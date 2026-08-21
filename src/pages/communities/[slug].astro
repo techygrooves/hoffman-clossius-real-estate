@@ -1,0 +1,29 @@
+---
+/**
+ * Individual community guide. Generates nothing until guides are written with
+ * the client — see src/data/communities.ts.
+ */
+import type { GetStaticPaths } from 'astro';
+import StubPage from '@layouts/StubPage.astro';
+import { communities } from '@data/communities';
+
+export const getStaticPaths = (() =>
+  communities.map((community) => ({
+    params: { slug: community.slug },
+    props: { community },
+  }))) satisfies GetStaticPaths;
+
+const { community } = Astro.props;
+---
+
+<StubPage
+  title={community.name}
+  heading={community.name}
+  eyebrow={community.county}
+  description={community.summary}
+  breadcrumbs={[
+    { label: 'Communities', href: '/communities/' },
+    { label: community.name },
+  ]}
+  note="The community guide template is built alongside the first guides."
+/>

@@ -1,0 +1,84 @@
+---
+/**
+ * Breadcrumbs — accessible trail with matching BreadcrumbList structured data.
+ * `items` should NOT include the home link; it is prepended automatically.
+ */
+import { absoluteUrl } from '@config/site';
+import { cn } from '@lib/cn';
+
+export type Crumb = { label: string; href?: string };
+
+interface Props {
+  items: Crumb[];
+  tone?: 'dark' | 'light';
+  class?: string;
+}
+
+const { items, tone = 'dark', class: className } = Astro.props;
+
+const trail: Crumb[] = [{ label: 'Home', href: '/' }, ...items];
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: trail.map((crumb, index) => ({
+    '@type': 'ListItem',
+    position: index + 1,
+    name: crumb.label,
+    ...(crumb.href ? { item: absoluteUrl(crumb.href) } : {}),
+  })),
+};
+
+const isLight = tone === 'light';
+---
+
+<nav
+  aria-label="Breadcrumb"
+  class={cn('text-xs tracking-wide-sm', className)}
+>
+  <ol class="flex flex-wrap items-center gap-x-2 gap-y-1">
+    {
+      trail.map((crumb, index) => {
+        const isLast = index === trail.length - 1;
+        return (
+          <li class="flex items-center gap-2">
+            {index > 0 && (
+              <span
+                aria-hidden="true"
+                class={isLight ? 'text-white/40' : 'text-ink-subtle'}
+              >
+                /
+              </span>
+            )}
+            {crumb.href && !isLast ? (
+              <a
+                href={crumb.href}
+                class={cn(
+                  'link-underline transition-colors',
+                  isLight
+                    ? 'text-white/70 hover:text-white'
+                    : 'text-ink-muted hover:text-evergreen-800',
+                )}
+              >
+                {crumb.label}
+              </a>
+            ) : (
+              <span
+                aria-current={isLast ? 'page' : undefined}
+                class={isLight ? 'text-white' : 'text-evergreen-800'}
+              >
+                {crumb.label}
+              </span>
+            )}
+          </li>
+        );
+      })
+    }
+  </ol>
+</nav>
+
+<script
+  type="application/ld+json"
+  is:inline
+  set:html={JSON.stringify(jsonLd)}
+/>

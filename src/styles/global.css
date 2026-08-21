@@ -1,0 +1,253 @@
+/* ---------------------------------------------------------------------------
+ * GLOBAL STYLESHEET — Hoffman & Closius
+ * Imported once by BaseLayout. Order matters: Tailwind first, then tokens
+ * (which extend Tailwind's theme), then fonts, then base/utility layers.
+ * ------------------------------------------------------------------------- */
+
+@import 'tailwindcss';
+@import './tokens.css';
+@import './fonts.css';
+
+/* ------------------------------------------------------------------ base */
+
+@layer base {
+  *,
+  *::before,
+  *::after {
+    border-color: var(--color-line);
+  }
+
+  html {
+    scroll-behavior: smooth;
+    /* Anchor targets clear the sticky header. */
+    scroll-padding-top: calc(var(--header-height) + 1.5rem);
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: var(--color-surface);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-size: 1rem;
+    line-height: 1.65;
+    font-synthesis-weight: none;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-serif);
+    font-weight: 400;
+    color: var(--color-evergreen-800);
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  /*
+   * Focus ring — WCAG 2.2 SC 1.4.11 (3:1 against adjacent colours).
+   *
+   * No single colour clears 3:1 on both white and deep evergreen: gold is
+   * 2.4:1 on white, evergreen is 1.6:1 on evergreen. So the ring colour is a
+   * variable, and any dark band flips it by carrying data-surface="dark".
+   *
+   *   light surfaces  evergreen-800 on white  11.9:1
+   *   dark surfaces   gold-300 on evergreen-800  7.2:1
+   */
+  :focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 3px;
+  }
+
+  /* Only remove the default ring where we replace it above. */
+  :focus:not(:focus-visible) {
+    outline: none;
+  }
+
+  ::selection {
+    background-color: var(--color-evergreen-100);
+    color: var(--color-evergreen-900);
+  }
+
+  img,
+  picture,
+  video,
+  svg {
+    max-width: 100%;
+    height: auto;
+  }
+
+  /* Respect the user's motion preference across the whole site. */
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+/* -------------------------------------------------------------- utilities */
+
+/** Page gutter + max width. Used by <Container>. */
+@utility container-page {
+  width: 100%;
+  max-width: var(--container-page);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+/** Narrow measure for long-form editorial copy. */
+@utility container-content {
+  width: 100%;
+  max-width: var(--container-content);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+/** Standard vertical rhythm between page sections. */
+@utility section-space {
+  padding-block: var(--section-space);
+}
+
+@utility section-space-tight {
+  padding-block: var(--section-space-tight);
+}
+
+/** Small uppercase label that sits above a section heading. */
+@utility eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.625rem;
+  font-family: var(--font-sans);
+  font-size: var(--text-eyebrow);
+  font-weight: 500;
+  letter-spacing: var(--tracking-eyebrow);
+  text-transform: uppercase;
+  line-height: 1.2;
+}
+
+/** Accessible skip-link, visually hidden until focused. */
+@utility skip-link {
+  position: absolute;
+  left: 1rem;
+  top: 1rem;
+  z-index: 100;
+  transform: translateY(-200%);
+  transition: transform 0.2s var(--ease-standard);
+
+  &:focus-visible {
+    transform: translateY(0);
+  }
+}
+
+/** Gold hairline used sparingly as an editorial divider. */
+@utility rule-gold {
+  display: block;
+  width: 2.5rem;
+  height: 1px;
+  background-color: var(--color-gold-500);
+}
+
+/**
+ * Underline that draws in from the left on hover — the site's signature
+ * link micro-interaction. Pure CSS, no JavaScript.
+ */
+@utility link-underline {
+  position: relative;
+  display: inline-block;
+
+  &::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: -0.125rem;
+    height: 1px;
+    width: 100%;
+    background-color: currentColor;
+    transform: scaleX(0);
+    transform-origin: right;
+    transition: transform 0.4s var(--ease-editorial);
+  }
+
+  &:hover::after,
+  &:focus-visible::after {
+    transform: scaleX(1);
+    transform-origin: left;
+  }
+}
+
+/* ----------------------------------------------- progressive reveal ----- */
+
+/*
+ * Elements marked [data-reveal] fade and rise into view once. The hidden
+ * start state only applies after src/lib/reveal.ts flags <html>, so with
+ * JavaScript disabled every element renders immediately and visibly.
+ * Stagger a group by setting `style="--reveal-delay: 120ms"` on a child.
+ */
+html[data-reveal-enabled] [data-reveal] {
+  opacity: 0;
+  transform: translate3d(0, 1.25rem, 0);
+  transition:
+    opacity 0.7s var(--ease-editorial),
+    transform 0.7s var(--ease-editorial);
+  transition-delay: var(--reveal-delay, 0ms);
+  will-change: opacity, transform;
+}
+
+html[data-reveal-enabled] [data-reveal][data-revealed] {
+  opacity: 1;
+  transform: none;
+  will-change: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-reveal-enabled] [data-reveal] {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ------------------------------------------------------------ print ----- */
+
+/*
+ * Printing must never lose content to an un-fired scroll reveal, and the
+ * site chrome is noise on paper.
+ */
+@media print {
+  html[data-reveal-enabled] [data-reveal] {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  [data-site-header],
+  footer nav,
+  .skip-link {
+    display: none !important;
+  }
+
+  body {
+    background: #fff;
+    color: #000;
+  }
+
+  a[href^='http']::after {
+    content: ' (' attr(href) ')';
+    font-size: 0.75em;
+    word-break: break-all;
+  }
+}

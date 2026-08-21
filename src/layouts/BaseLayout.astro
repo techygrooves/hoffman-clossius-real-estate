@@ -1,0 +1,160 @@
+---
+/**
+ * BaseLayout — the single HTML shell for every page.
+ *
+ * Owns <head>, the skip link, the global header/footer and the one global
+ * client script. Pages supply content and metadata only.
+ */
+import { site, brand, professionals, pending, absoluteUrl } from '@config/site';
+import Header from '@components/layout/Header.astro';
+import Footer from '@components/layout/Footer.astro';
+import '@styles/global.css';
+
+interface Props {
+  /** Page title without the site suffix. Omit on the homepage. */
+  title?: string;
+  description?: string;
+  /** Overrides the automatic "Title | Hoffman & Closius" pattern. */
+  fullTitle?: string;
+  /** Social share image under /public. */
+  ogImage?: string;
+  /** Keeps a page out of search results (login, register, thank-you pages). */
+  noindex?: boolean;
+  /** Extra classes on <main>. */
+  mainClass?: string;
+  bodyClass?: string;
+}
+
+const {
+  title,
+  description = site.description,
+  fullTitle,
+  ogImage,
+  noindex = false,
+  mainClass,
+  bodyClass,
+} = Astro.props;
+
+const pageTitle =
+  fullTitle ?? (title ? `${title} | ${site.titleSuffix}` : `${site.name} — ${site.tagline}`);
+
+const pathname = Astro.url.pathname;
+
+/**
+ * Canonical and og:url are only emitted once the production domain has been
+ * confirmed — publishing a canonical that points at the wrong host is worse
+ * than publishing none. See CONTENT_PENDING.md → "Primary domain".
+ */
+const canonical = site.urlConfirmed ? absoluteUrl(pathname) : null;
+
+/** Structured data built strictly from confirmed facts. */
+const structuredData = {
+  '@context': 'https://schema.org',
+  '@type': 'RealEstateAgent',
+  name: site.name,
+  description: site.description,
+  areaServed: ['Broward County, Florida', 'Palm Beach County, Florida', 'Miami-Dade County, Florida'],
+  ...(canonical ? { url: absoluteUrl('/') } : {}),
+  ...(pending.officeAddress
+    ? {
+        address: {
+          '@type': 'PostalAddress',
+          streetAddress: pending.officeAddress.street,
+          addressLocality: pending.officeAddress.city,
+          addressRegion: pending.officeAddress.state,
+          postalCode: pending.officeAddress.postalCode,
+          addressCountry: 'US',
+        },
+      }
+    : {}),
+  employee: professionals.map((person) => ({
+    '@type': 'Person',
+    name: person.name,
+    jobTitle: person.specialty
+      ? `${person.title}, ${person.specialty}`
+      : person.title,
+    telephone: person.phone.value,
+    email: person.email.value,
+  })),
+};
+---
+
+<!doctype html>
+<html lang={site.lang} class="scroll-smooth">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="generator" content={Astro.generator} />
+
+    <title>{pageTitle}</title>
+    <meta name="description" content={description} />
+    {canonical && <link rel="canonical" href={canonical} />}
+    {noindex && <meta name="robots" content="noindex, nofollow" />}
+
+    {/* Fonts: self-hosted, latin subset, preloaded to avoid a layout shift. */}
+    <link
+      rel="preload"
+      as="font"
+      type="font/woff2"
+      href="/fonts/inter-latin-wght-normal.woff2"
+      crossorigin="anonymous"
+    />
+    <link
+      rel="preload"
+      as="font"
+      type="font/woff2"
+      href="/fonts/cormorant-garamond-latin-wght-normal.woff2"
+      crossorigin="anonymous"
+    />
+
+    {/* apple-touch-icon.png + favicon.ico still to be produced — see CONTENT_PENDING.md */}
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <meta name="theme-color" content={brand.themeColor} />
+
+    {/* Social */}
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={site.name} />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:locale" content="en_US" />
+    {canonical && <meta property="og:url" content={canonical} />}
+    {ogImage && <meta property="og:image" content={absoluteUrl(ogImage)} />}
+    <meta
+      name="twitter:card"
+      content={ogImage ? 'summary_large_image' : 'summary'}
+    />
+    <meta name="twitter:title" content={pageTitle} />
+    <meta name="twitter:description" content={description} />
+
+    <script
+      type="application/ld+json"
+      is:inline
+      set:html={JSON.stringify(structuredData)}
+    />
+
+    <slot name="head" />
+  </head>
+
+  <body class={bodyClass}>
+    <a
+      href="#main"
+      data-surface="dark"
+      class="skip-link rounded-xs bg-evergreen-800 px-5 py-3 text-sm text-white shadow-elevated"
+    >
+      Skip to main content
+    </a>
+
+    <Header />
+
+    <main id="main" class={mainClass}>
+      <slot />
+    </main>
+
+    <Footer />
+
+    <script>
+      import { initReveal } from '@lib/reveal';
+      initReveal();
+    </script>
+  </body>
+</html>

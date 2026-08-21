@@ -1,0 +1,108 @@
+---
+/**
+ * Button — renders an <a> when `href` is present, otherwise a <button>.
+ *
+ * Variants are intentionally few. `gold` is reserved for a single, genuinely
+ * primary call to action per page; the palette rule is that gold stays rare.
+ */
+import { cn } from '@lib/cn';
+
+type Variant = 'primary' | 'secondary' | 'ghost' | 'inverse' | 'gold';
+type Size = 'sm' | 'md' | 'lg';
+
+interface Props {
+  href?: string;
+  type?: 'button' | 'submit' | 'reset';
+  variant?: Variant;
+  size?: Size;
+  /** Stretches to the width of its container — useful on mobile. */
+  block?: boolean;
+  disabled?: boolean;
+  /** Adds an animated arrow that slides on hover. */
+  withArrow?: boolean;
+  class?: string;
+  id?: string;
+  rel?: string;
+  target?: string;
+  'aria-label'?: string;
+  'data-analytics'?: string;
+}
+
+const {
+  href,
+  type = 'button',
+  variant = 'primary',
+  size = 'md',
+  block = false,
+  disabled = false,
+  withArrow = false,
+  class: className,
+  ...rest
+} = Astro.props;
+
+const base = [
+  'group relative inline-flex items-center justify-center gap-2.5',
+  'font-sans font-medium tracking-wide-sm',
+  'rounded-xs border transition-all duration-300 ease-[var(--ease-editorial)]',
+  'disabled:cursor-not-allowed disabled:opacity-50',
+  'motion-safe:active:translate-y-px',
+].join(' ');
+
+/*
+ * Outline-variant borders sit at 60% / 50% alpha rather than a lighter hairline:
+ * the border is what identifies the control, so it carries a 3:1 floor.
+ */
+const variants: Record<Variant, string> = {
+  primary:
+    'border-evergreen-800 bg-evergreen-800 text-white hover:bg-evergreen-900 hover:border-evergreen-900 hover:shadow-card',
+  secondary:
+    'border-evergreen-800/60 bg-transparent text-evergreen-800 hover:border-evergreen-800 hover:bg-evergreen-800 hover:text-white',
+  ghost:
+    'border-transparent bg-transparent text-evergreen-800 hover:bg-evergreen-50 px-0 hover:px-4',
+  inverse:
+    'border-white/50 bg-transparent text-white hover:bg-white hover:text-evergreen-800 hover:border-white',
+  gold: 'border-gold-500 bg-gold-500 text-evergreen-900 hover:bg-gold-400 hover:border-gold-400 hover:shadow-card',
+};
+
+const sizes: Record<Size, string> = {
+  sm: 'text-xs px-4 py-2',
+  md: 'text-sm px-6 py-3',
+  lg: 'text-sm px-8 py-4',
+};
+
+const classes = cn(
+  base,
+  variants[variant],
+  sizes[size],
+  block && 'w-full',
+  className,
+);
+
+const Tag = href ? 'a' : 'button';
+---
+
+<Tag
+  class={classes}
+  href={href}
+  type={href ? undefined : type}
+  disabled={href ? undefined : disabled}
+  aria-disabled={href && disabled ? 'true' : undefined}
+  {...rest}
+>
+  <slot />
+  {
+    withArrow && (
+      <svg
+        class="h-3.5 w-3.5 shrink-0 transition-transform duration-300 ease-[var(--ease-editorial)] motion-safe:group-hover:translate-x-1"
+        viewBox="0 0 16 16"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.5"
+        stroke-linecap="square"
+        aria-hidden="true"
+      >
+        <path d="M1 8h13M9 3l5 5-5 5" />
+      </svg>
+    )
+  }
+</Tag>

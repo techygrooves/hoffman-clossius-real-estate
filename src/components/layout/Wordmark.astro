@@ -1,0 +1,56 @@
+---
+/**
+ * Wordmark — the Hoffman & Closius name lockup used in the header and footer.
+ * Typographic rather than an image file, so it stays crisp at every size and
+ * costs nothing to load.
+ */
+import { site } from '@config/site';
+import { cn } from '@lib/cn';
+
+interface Props {
+  tone?: 'dark' | 'light';
+  /** Shows the small tagline under the name. */
+  showTagline?: boolean;
+  size?: 'sm' | 'md' | 'lg';
+  class?: string;
+}
+
+const {
+  tone = 'dark',
+  showTagline = true,
+  size = 'md',
+  class: className,
+} = Astro.props;
+
+const isLight = tone === 'light';
+
+const nameSize = {
+  sm: 'text-lg sm:text-xl',
+  md: 'text-lg sm:text-2xl lg:text-[1.75rem]',
+  lg: 'text-2xl sm:text-3xl lg:text-4xl',
+}[size];
+---
+
+<span class={cn('flex min-w-0 flex-col justify-center leading-none', className)}>
+  <span
+    class={cn(
+      'whitespace-nowrap font-serif tracking-[0.01em]',
+      nameSize,
+      isLight ? 'text-white' : 'text-evergreen-800',
+    )}
+  >
+    Hoffman <span class={isLight ? 'text-gold-400' : 'text-gold-500'}>&amp;</span> Closius
+  </span>
+  {
+    showTagline && (
+      <span
+        class={cn(
+          'mt-1.5 whitespace-nowrap font-sans text-[0.5625rem] uppercase tracking-eyebrow sm:text-[0.625rem]',
+          isLight ? 'text-white/60' : 'text-ink-subtle',
+        )}
+      >
+        {site.tagline}
+      </span>
+    )
+  }
+</span>

@@ -1,0 +1,28 @@
+---
+/**
+ * Individual journal article. Generates nothing until the first post is added
+ * to src/content/blog/.
+ */
+import type { GetStaticPaths } from 'astro';
+import { getCollection } from 'astro:content';
+import StubPage from '@layouts/StubPage.astro';
+
+export const getStaticPaths = (async () => {
+  const posts = await getCollection('blog', ({ data }) => data.draft !== true);
+  return posts.map((post) => ({
+    params: { slug: post.id },
+    props: { post },
+  }));
+}) satisfies GetStaticPaths;
+
+const { post } = Astro.props;
+---
+
+<StubPage
+  title={post.data.title}
+  heading={post.data.title}
+  eyebrow="Journal"
+  description={post.data.description}
+  breadcrumbs={[{ label: 'Journal', href: '/blog/' }, { label: post.data.title }]}
+  note="The article template — rendered Markdown, author byline and related reading — is built with the first published post."
+/>

@@ -1,0 +1,9 @@
+# Hoffman & Closius
+# NOTE: the Sitemap line is regenerated once the production domain is confirmed
+# (CONTENT_PENDING.md → "Primary domain").
+
+User-agent: *
+Allow: /
+
+Disallow: /login/
+Disallow: /register/
