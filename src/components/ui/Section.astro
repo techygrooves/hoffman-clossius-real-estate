@@ -1,0 +1,65 @@
+---
+/**
+ * Section — vertical rhythm + surface tone for a band of page content.
+ * Wrap content in <Container> inside, or pass `contained` to get one for free.
+ */
+import { cn } from '@lib/cn';
+import Container from './Container.astro';
+
+type Tone = 'white' | 'warm' | 'sage' | 'deep';
+type Space = 'default' | 'tight' | 'none';
+
+interface Props {
+  as?: 'section' | 'div' | 'article' | 'aside' | 'footer' | 'header';
+  tone?: Tone;
+  space?: Space;
+  /** Wrap the slot in a <Container> automatically. */
+  contained?: boolean;
+  containerWidth?: 'page' | 'content' | 'flush';
+  id?: string;
+  class?: string;
+  /** Sets aria-labelledby when the section has a heading with this id. */
+  labelledby?: string;
+}
+
+const {
+  as: Tag = 'section',
+  tone = 'white',
+  space = 'default',
+  contained = true,
+  containerWidth = 'page',
+  id,
+  class: className,
+  labelledby,
+} = Astro.props as Props;
+
+const tones: Record<Tone, string> = {
+  white: 'bg-surface text-ink',
+  warm: 'bg-cream-100 text-ink',
+  sage: 'bg-evergreen-100 text-evergreen-900',
+  deep: 'bg-evergreen-800 text-white',
+};
+
+const spaces: Record<Space, string> = {
+  default: 'section-space',
+  tight: 'section-space-tight',
+  none: '',
+};
+---
+
+<Tag
+  id={id}
+  aria-labelledby={labelledby}
+  data-surface={tone === 'deep' ? 'dark' : undefined}
+  class={cn('relative', tones[tone], spaces[space], className)}
+>
+  {
+    contained ? (
+      <Container width={containerWidth}>
+        <slot />
+      </Container>
+    ) : (
+      <slot />
+    )
+  }
+</Tag>

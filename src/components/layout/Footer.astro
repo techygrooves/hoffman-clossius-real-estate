@@ -1,0 +1,184 @@
+---
+/**
+ * Footer — global site footer.
+ *
+ * Anything the client has not confirmed (office address, social profiles,
+ * brokerage legal wording, licence numbers) renders as nothing rather than a
+ * guess. See CONTENT_PENDING.md for the outstanding list.
+ */
+import { professionals, pending, activeSocialLinks, site } from '@config/site';
+import { footerNav, legalNav } from '@config/navigation';
+import Container from '@components/ui/Container.astro';
+import KeyesLogo from './KeyesLogo.astro';
+import Wordmark from './Wordmark.astro';
+
+const year = new Date().getFullYear();
+
+const socialLabels: Record<string, string> = {
+  facebook: 'Facebook',
+  instagram: 'Instagram',
+  linkedin: 'LinkedIn',
+  youtube: 'YouTube',
+  x: 'X',
+};
+---
+
+<footer class="bg-evergreen-800 text-white" data-surface="dark">
+  {/* ------------------------------------------------------------- masthead */}
+  <Container class="grid gap-12 border-b border-line-inverse py-16 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.35fr)] lg:gap-20 lg:py-20">
+    <div class="flex flex-col gap-8">
+      <a href="/" class="inline-flex rounded-xs" aria-label="Hoffman & Closius — home">
+        <Wordmark tone="light" size="lg" />
+      </a>
+
+      <p class="max-w-sm text-sm leading-relaxed text-white/70">
+        Representation for buyers, sellers and relocating families across {site.region}.
+      </p>
+
+      <KeyesLogo tone="dark" height={44} />
+
+      {
+        pending.officeAddress && (
+          <address class="text-sm not-italic leading-relaxed text-white/70">
+            {pending.officeAddress.street}
+            <br />
+            {pending.officeAddress.street2 && (
+              <>
+                {pending.officeAddress.street2}
+                <br />
+              </>
+            )}
+            {pending.officeAddress.city}, {pending.officeAddress.state}{' '}
+            {pending.officeAddress.postalCode}
+          </address>
+        )
+      }
+
+      {
+        activeSocialLinks.length > 0 && (
+          <ul class="flex flex-wrap items-center gap-5 text-xs">
+            {activeSocialLinks.map(({ key, href }) => (
+              <li>
+                <a
+                  href={href}
+                  rel="noopener noreferrer"
+                  target="_blank"
+                  class="link-underline tracking-wide-sm text-white/70 transition-colors hover:text-white"
+                >
+                  {socialLabels[key] ?? key}
+                </a>
+              </li>
+            ))}
+          </ul>
+        )
+      }
+    </div>
+
+    {/* Direct contacts */}
+    <div class="grid gap-8 sm:grid-cols-2">
+      {
+        professionals.map((person) => (
+          <div class="flex flex-col gap-2">
+            <p class="font-serif text-2xl text-white">
+              <a href={person.href} class="link-underline">
+                {person.name}
+              </a>
+            </p>
+            <p class="eyebrow text-gold-300">
+              {person.specialty
+                ? `${person.title} · ${person.specialty}`
+                : person.title}
+            </p>
+            <dl class="mt-2 flex flex-col gap-1.5 text-sm text-white/75">
+              <div class="flex gap-2">
+                <dt class="sr-only">{person.phone.label}</dt>
+                <dd>
+                  <a
+                    href={person.phone.href}
+                    class="link-underline transition-colors hover:text-white"
+                  >
+                    {person.phone.value}
+                  </a>
+                </dd>
+              </div>
+              <div class="flex gap-2">
+                <dt class="sr-only">{person.email.label}</dt>
+                <dd class="break-all">
+                  <a
+                    href={person.email.href}
+                    class="link-underline transition-colors hover:text-white"
+                  >
+                    {person.email.value}
+                  </a>
+                </dd>
+              </div>
+            </dl>
+          </div>
+        ))
+      }
+    </div>
+  </Container>
+
+  {/* ---------------------------------------------------------- sitemap nav */}
+  <Container class="grid gap-10 border-b border-line-inverse py-14 sm:grid-cols-2 lg:grid-cols-4">
+    {
+      footerNav.map((group) => (
+        <nav aria-label={group.label} class="flex flex-col gap-4">
+          <h2 class="eyebrow font-sans text-white/70">{group.label}</h2>
+          <ul class="flex flex-col gap-2.5 text-sm">
+            {group.items.map((item) => (
+              <li>
+                <a
+                  href={item.href}
+                  class="link-underline text-white/75 transition-colors hover:text-white"
+                >
+                  {item.label}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      ))
+    }
+  </Container>
+
+  {/* --------------------------------------------------------------- legal */}
+  <Container class="flex flex-col gap-6 py-10">
+    {
+      (pending.legal.footerDisclosure ||
+        pending.legal.brokerageLegalName ||
+        pending.legal.brokerageLicense) && (
+        <div class="flex flex-col gap-2 text-xs leading-relaxed text-white/55">
+          {pending.legal.brokerageLegalName && (
+            <p>{pending.legal.brokerageLegalName}</p>
+          )}
+          {pending.legal.brokerageLicense && (
+            <p>{pending.legal.brokerageLicense}</p>
+          )}
+          {pending.legal.footerDisclosure && (
+            <p>{pending.legal.footerDisclosure}</p>
+          )}
+        </div>
+      )
+    }
+
+    <div class="flex flex-col gap-4 text-xs text-white/55 md:flex-row md:items-center md:justify-between">
+      <p>&copy; {year} {site.name}. All rights reserved.</p>
+
+      <ul class="flex flex-wrap items-center gap-x-6 gap-y-2">
+        {
+          legalNav.map((link) => (
+            <li>
+              <a
+                href={link.href}
+                class="link-underline transition-colors hover:text-white"
+              >
+                {link.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </Container>
+</footer>

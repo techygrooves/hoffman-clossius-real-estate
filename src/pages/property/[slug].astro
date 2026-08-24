@@ -1,0 +1,34 @@
+---
+/**
+ * Individual property detail page.
+ *
+ * `listings` is intentionally empty until the client's IDX/MLS feed is
+ * connected, so this route currently generates no pages. That is correct —
+ * inventing a sample property would put fabricated listing data on a live
+ * real estate site.
+ */
+import type { GetStaticPaths } from 'astro';
+import StubPage from '@layouts/StubPage.astro';
+import { listings } from '@data/listings';
+
+export const getStaticPaths = (() =>
+  listings.map((listing) => ({
+    params: { slug: listing.slug },
+    props: { listing },
+  }))) satisfies GetStaticPaths;
+
+const { listing } = Astro.props;
+---
+
+<StubPage
+  title={listing.headline}
+  heading={listing.headline}
+  eyebrow="Property"
+  description={listing.description ?? `${listing.addressLine}, ${listing.city}, ${listing.state}`}
+  breadcrumbs={[
+    { label: 'Properties' },
+    { label: 'For Sale', href: '/properties/for-sale/' },
+    { label: listing.addressLine },
+  ]}
+  note="The property detail template — gallery, specification, map and enquiry form — is built once the MLS feed defines the real field set."
+/>

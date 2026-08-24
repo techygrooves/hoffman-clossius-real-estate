@@ -1,0 +1,90 @@
+---
+/**
+ * 404 — served by the host for any unmatched URL. Built as a real page rather
+ * than a stub, because a broken link is the one moment a visitor most needs a
+ * way forward.
+ */
+import BaseLayout from '@layouts/BaseLayout.astro';
+import PageHero from '@components/ui/PageHero.astro';
+import Section from '@components/ui/Section.astro';
+import Button from '@components/ui/Button.astro';
+import { professionals } from '@config/site';
+
+const destinations = [
+  { label: 'Property search', href: '/properties/search/' },
+  { label: 'Our listings', href: '/properties/our-listings/' },
+  { label: 'Communities', href: '/communities/' },
+  { label: 'About the team', href: '/about/' },
+  { label: 'Contact', href: '/contact/' },
+];
+---
+
+<BaseLayout
+  title="Page not found"
+  description="The page you were looking for could not be found."
+  noindex
+>
+  <PageHero
+    eyebrow="404"
+    title="We could not find that page."
+    lead="The link may be out of date, or the address may have been mistyped."
+  >
+    <div class="mt-2 flex flex-wrap gap-3">
+      <Button href="/" withArrow>Back to the homepage</Button>
+      <Button href="/contact/" variant="secondary">Contact us</Button>
+    </div>
+  </PageHero>
+
+  <Section tone="white" labelledby="four-oh-four-elsewhere">
+    <h2 id="four-oh-four-elsewhere" class="text-display-sm text-evergreen-800">
+      Try one of these instead
+    </h2>
+
+    <ul class="mt-8 grid gap-px overflow-hidden rounded-xs border border-line bg-line sm:grid-cols-2 lg:grid-cols-3">
+      {
+        destinations.map((item) => (
+          <li class="bg-white">
+            <a
+              href={item.href}
+              class="group flex items-center justify-between gap-4 px-6 py-5 transition-colors hover:bg-evergreen-50"
+            >
+              <span class="font-serif text-xl text-evergreen-800">
+                {item.label}
+              </span>
+              <svg
+                class="h-3.5 w-3.5 shrink-0 text-ink-subtle transition-transform duration-300 ease-[var(--ease-editorial)] motion-safe:group-hover:translate-x-1"
+                viewBox="0 0 16 16"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.5"
+                stroke-linecap="square"
+                aria-hidden="true"
+              >
+                <path d="M1 8h13M9 3l5 5-5 5" />
+              </svg>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+
+    <div class="mt-12 border-t border-line pt-8">
+      <p class="text-sm text-ink-muted">
+        Or reach us directly:
+        {
+          professionals.map((person, index) => (
+            <>
+              {index > 0 && <span aria-hidden="true"> · </span>}
+              <a
+                href={person.phone.href}
+                class="link-underline text-evergreen-800"
+              >
+                {person.firstName} {person.phone.value}
+              </a>
+            </>
+          ))
+        }
+      </p>
+    </div>
+  </Section>
+</BaseLayout>

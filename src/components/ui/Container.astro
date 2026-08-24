@@ -1,0 +1,33 @@
+---
+/**
+ * Container — horizontal page gutter + max width.
+ * The only component that should set page-level horizontal padding.
+ */
+import { cn } from '@lib/cn';
+import type { HTMLTag, Polymorphic } from 'astro/types';
+
+type Width = 'page' | 'content' | 'flush';
+
+type Props<Tag extends HTMLTag = 'div'> = Polymorphic<{ as: Tag }> & {
+  width?: Width;
+  class?: string;
+};
+
+const {
+  as: Tag = 'div',
+  width = 'page',
+  class: className,
+  ...rest
+} = Astro.props as Props;
+
+const widths: Record<Width, string> = {
+  page: 'container-page',
+  content: 'container-content',
+  // Full-bleed: keeps the gutter but drops the max width.
+  flush: 'w-full px-[var(--gutter)]',
+};
+---
+
+<Tag class={cn(widths[width], className)} {...rest}>
+  <slot />
+</Tag>

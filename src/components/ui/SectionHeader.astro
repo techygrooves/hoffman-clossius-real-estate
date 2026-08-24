@@ -1,0 +1,76 @@
+---
+/**
+ * SectionHeader — eyebrow + serif heading + optional lead paragraph.
+ * Keeps section typography consistent across every page.
+ */
+import { cn } from '@lib/cn';
+
+interface Props {
+  eyebrow?: string;
+  title: string;
+  lead?: string;
+  /** Heading level. Only one <h1> per page. */
+  as?: 'h1' | 'h2' | 'h3';
+  align?: 'left' | 'center';
+  tone?: 'dark' | 'light';
+  id?: string;
+  class?: string;
+}
+
+const {
+  eyebrow,
+  title,
+  lead,
+  as: Heading = 'h2',
+  align = 'left',
+  tone = 'dark',
+  id,
+  class: className,
+} = Astro.props;
+
+const isLight = tone === 'light';
+---
+
+<header
+  class={cn(
+    'flex flex-col gap-4',
+    align === 'center' && 'items-center text-center',
+    align === 'center' ? 'mx-auto max-w-2xl' : 'max-w-3xl',
+    className,
+  )}
+  data-reveal
+>
+  {
+    eyebrow && (
+      <p class={cn('eyebrow', isLight ? 'text-gold-300' : 'text-evergreen-600')}>
+        <span class="rule-gold" aria-hidden="true" />
+        {eyebrow}
+      </p>
+    )
+  }
+
+  <Heading
+    id={id}
+    class={cn(
+      'text-display-sm',
+      isLight ? 'text-white' : 'text-evergreen-800',
+    )}
+  >
+    {title}
+  </Heading>
+
+  {
+    lead && (
+      <p
+        class={cn(
+          'text-lg leading-relaxed',
+          isLight ? 'text-evergreen-100' : 'text-ink-muted',
+        )}
+      >
+        {lead}
+      </p>
+    )
+  }
+
+  <slot />
+</header>

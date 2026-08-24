@@ -1,0 +1,101 @@
+---
+/**
+ * KeyesLogo — renders the official Keyes brand asset.
+ *
+ * RULES (PROJECT_CONTEXT.md):
+ *  - The asset is displayed UNMODIFIED. Never recolour, redraw, stretch, crop,
+ *    rotate, add filters/effects, or place it inside a decorative frame.
+ *    Only the rendered height changes; aspect ratio is always preserved.
+ *  - Never write relationship wording ("affiliated with", "backed by", ...)
+ *    next to it. The logo stands on its own.
+ *
+ * The official files are not in the repository yet. Drop them at:
+ *    public/brand/keyes-logo.svg        (for light backgrounds)
+ *    public/brand/keyes-logo-white.svg  (reversed, for evergreen backgrounds)
+ * and this component switches from the placeholder to the real asset
+ * automatically at build time. .png / .webp are accepted as fallbacks.
+ */
+import fs from 'node:fs';
+import path from 'node:path';
+import { brokerageBrand } from '@config/site';
+import { cn } from '@lib/cn';
+
+interface Props {
+  /** 'light' = asset for light backgrounds. 'dark' = reversed/white asset. */
+  tone?: 'light' | 'dark';
+  /** Rendered height in px. Width follows the asset's own aspect ratio. */
+  height?: number;
+  class?: string;
+  /**
+   * When true the logo is purely decorative because an adjacent element
+   * already names it. Defaults to false so it carries its accessible name.
+   */
+  decorative?: boolean;
+}
+
+const {
+  tone = 'light',
+  height = 40,
+  class: className,
+  decorative = false,
+} = Astro.props;
+
+const BRAND_DIR = path.join(process.cwd(), 'public', 'brand');
+const EXTENSIONS = ['.svg', '.png', '.webp'] as const;
+
+/** Returns the first existing /brand asset for a base filename, else null. */
+function resolveAsset(base: string): string | null {
+  for (const ext of EXTENSIONS) {
+    if (fs.existsSync(path.join(BRAND_DIR, `${base}${ext}`))) {
+      return `/brand/${base}${ext}`;
+    }
+  }
+  return null;
+}
+
+const preferred = tone === 'dark' ? 'keyes-logo-white' : 'keyes-logo';
+const src = resolveAsset(preferred) ?? resolveAsset('keyes-logo');
+
+const ratio = brokerageBrand.width / brokerageBrand.height;
+const width = Math.round(height * ratio);
+---
+
+{
+  src ? (
+    <img
+      src={src}
+      alt={decorative ? '' : brokerageBrand.alt}
+      aria-hidden={decorative ? 'true' : undefined}
+      width={width}
+      height={height}
+      loading="eager"
+      decoding="async"
+      style={`height:${height}px;width:auto`}
+      class={cn('block w-auto object-contain', className)}
+    />
+  ) : (
+    /*
+     * PLACEHOLDER — visible on purpose so the missing asset cannot ship
+     * unnoticed. Tracked in CONTENT_PENDING.md. This is NOT a logo and must
+     * never be treated as one.
+     */
+    <span
+      role="img"
+      aria-label="Keyes logo — official asset pending"
+      title="Official Keyes logo asset has not been supplied yet"
+      style={`height:${height}px`}
+      class={cn(
+        'inline-flex select-none items-center justify-center gap-2 rounded-xs border border-dashed px-3',
+        'font-sans text-[0.625rem] uppercase tracking-eyebrow',
+        tone === 'dark'
+          ? 'border-white/40 text-white/70'
+          : 'border-evergreen-800/30 text-evergreen-800/60',
+        className,
+      )}
+      data-pending-asset="keyes-logo"
+    >
+      <span>Keyes</span>
+      <span class="hidden sm:inline">logo pending</span>
+    </span>
+  )
+}

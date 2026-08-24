@@ -1,0 +1,382 @@
+---
+/**
+ * Header — global site header.
+ *
+ * Structure
+ *   Utility bar (desktop)  evergreen strip with both agents' direct lines.
+ *   Main bar (sticky)      Hoffman & Closius wordmark · primary nav ·
+ *                          Keyes logo · contact call to action.
+ *   Mobile drawer          full-screen panel, native <details> disclosures.
+ *
+ * Accessibility
+ *   - Desktop menus open on hover AND focus with no JavaScript; the script
+ *     only upgrades them with click-toggle, aria-expanded and Escape.
+ *   - The drawer traps nothing it should not: Escape closes it, focus returns
+ *     to the toggle, and background scrolling is locked while it is open.
+ */
+import { professionals } from '@config/site';
+import {
+  primaryNav,
+  accountNav,
+  isNavGroup,
+  entryIsActive,
+} from '@config/navigation';
+import { cn } from '@lib/cn';
+import Container from '@components/ui/Container.astro';
+import Button from '@components/ui/Button.astro';
+import KeyesLogo from './KeyesLogo.astro';
+import Wordmark from './Wordmark.astro';
+
+const current = Astro.url.pathname;
+---
+
+<header class="relative z-50" data-site-header>
+  {/* ---------------------------------------------------------- utility bar */}
+  <div class="hidden bg-evergreen-800 text-white lg:block" data-surface="dark">
+    <Container class="flex h-10 items-center justify-between gap-6 text-xs">
+      <ul class="flex items-center gap-6">
+        {
+          professionals.map((person) => (
+            <li class="flex items-center gap-2">
+              <span class="text-white/55">{person.firstName}</span>
+              <a
+                href={person.phone.href}
+                class="link-underline tracking-wide-sm text-white/90 transition-colors hover:text-white"
+              >
+                {person.phone.value}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+
+      <ul class="flex items-center gap-5">
+        {
+          accountNav.map((link) => (
+            <li>
+              <a
+                href={link.href}
+                class="link-underline text-white/70 transition-colors hover:text-white"
+              >
+                {link.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </Container>
+  </div>
+
+  {/* ------------------------------------------------------------- main bar */}
+  <div
+    class="sticky top-0 z-50 border-b border-line bg-white/95 backdrop-blur-sm transition-shadow duration-300 data-[scrolled]:shadow-header"
+    data-header-bar
+  >
+    <Container class="flex h-[var(--header-height)] items-center justify-between gap-4 lg:h-[var(--header-height-lg)]">
+      {/* Brand */}
+      <a
+        href="/"
+        class="min-w-0 shrink rounded-xs transition-opacity duration-300 hover:opacity-80"
+        aria-label="Hoffman & Closius — home"
+      >
+        <Wordmark size="md" />
+      </a>
+
+      {/* Primary navigation */}
+      <nav
+        class="hidden xl:block"
+        aria-label="Primary"
+        data-primary-nav
+      >
+        <ul class="flex items-center">
+          {
+            primaryNav.map((entry, index) => {
+              const active = entryIsActive(entry, current);
+              const panelId = `nav-panel-${index}`;
+
+              if (!isNavGroup(entry)) {
+                return (
+                  <li>
+                    <a
+                      href={entry.href}
+                      aria-current={active ? 'page' : undefined}
+                      class={cn(
+                        'link-underline mx-3 block py-2 text-sm tracking-wide-sm transition-colors',
+                        active
+                          ? 'text-evergreen-800'
+                          : 'text-ink-muted hover:text-evergreen-800',
+                      )}
+                    >
+                      {entry.label}
+                    </a>
+                  </li>
+                );
+              }
+
+              return (
+                <li class="group relative" data-nav-group>
+                  <button
+                    type="button"
+                    aria-expanded="false"
+                    aria-controls={panelId}
+                    data-nav-trigger
+                    class={cn(
+                      'mx-3 flex items-center gap-1.5 py-2 text-sm tracking-wide-sm transition-colors',
+                      active
+                        ? 'text-evergreen-800'
+                        : 'text-ink-muted hover:text-evergreen-800',
+                    )}
+                  >
+                    {entry.label}
+                    <svg
+                      class="h-2.5 w-2.5 transition-transform duration-300 ease-[var(--ease-editorial)] group-hover:rotate-180 group-focus-within:rotate-180"
+                      viewBox="0 0 10 6"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.25"
+                      aria-hidden="true"
+                    >
+                      <path d="M1 1l4 4 4-4" />
+                    </svg>
+                  </button>
+
+                  <div
+                    id={panelId}
+                    data-nav-panel
+                    class={cn(
+                      'invisible absolute left-1/2 top-full z-50 w-80 -translate-x-1/2 pt-4 opacity-0',
+                      'transition-[opacity,transform,visibility] duration-300 ease-[var(--ease-editorial)]',
+                      'translate-y-1',
+                      'group-hover:visible group-hover:translate-y-0 group-hover:opacity-100',
+                      'group-focus-within:visible group-focus-within:translate-y-0 group-focus-within:opacity-100',
+                      'data-[open]:visible data-[open]:translate-y-0 data-[open]:opacity-100',
+                    )}
+                  >
+                    <div class="overflow-hidden rounded-xs border border-line bg-white p-2 shadow-elevated">
+                      <span
+                        class="pointer-events-none absolute inset-x-0 top-4 mx-auto block h-px w-full max-w-[calc(100%-1rem)] bg-gold-500/50"
+                        aria-hidden="true"
+                      />
+                      <ul class="flex flex-col">
+                        {entry.items.map((item) => (
+                          <li>
+                            <a
+                              href={item.href}
+                              class="block rounded-xs px-4 py-3 transition-colors hover:bg-evergreen-50"
+                            >
+                              <span class="block text-sm text-evergreen-800">
+                                {item.label}
+                              </span>
+                              {item.description && (
+                                <span class="mt-0.5 block text-xs leading-snug text-ink-muted">
+                                  {item.description}
+                                </span>
+                              )}
+                            </a>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                </li>
+              );
+            })
+          }
+        </ul>
+      </nav>
+
+      {/*
+        Keyes brand asset + call to action.
+
+        Responsive visibility lives on wrapper elements, never on the child
+        component: Tailwind emits `.inline-flex` after `.hidden`, so a `hidden`
+        class handed to a component that sets its own display would lose.
+      */}
+      <div class="flex shrink-0 items-center gap-3 sm:gap-5">
+        <KeyesLogo height={36} />
+
+        <span
+          class="hidden h-8 w-px bg-line xl:block"
+          aria-hidden="true"
+        ></span>
+
+        <span class="hidden xl:block">
+          <Button href="/contact/" size="sm">Contact</Button>
+        </span>
+
+        {/* Drawer toggle */}
+        <button
+          type="button"
+          data-drawer-toggle
+          aria-expanded="false"
+          aria-controls="mobile-drawer"
+          class="-mr-2 flex h-11 w-11 items-center justify-center rounded-xs text-evergreen-800 transition-colors hover:bg-evergreen-50 xl:hidden"
+        >
+          <span class="sr-only">Open menu</span>
+          <svg
+            class="h-5 w-5"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linecap="square"
+            aria-hidden="true"
+          >
+            <path d="M3 6h18M3 12h18M3 18h18" />
+          </svg>
+        </button>
+      </div>
+    </Container>
+  </div>
+
+  {/* -------------------------------------------------------- mobile drawer */}
+  <div
+    id="mobile-drawer"
+    data-drawer
+    hidden
+    class="fixed inset-0 z-[60] xl:hidden"
+  >
+    <div
+      data-drawer-scrim
+      class="absolute inset-0 bg-evergreen-950/45 opacity-0 transition-opacity duration-300 data-[open]:opacity-100"
+    >
+    </div>
+
+    <div
+      data-drawer-panel
+      role="dialog"
+      aria-modal="true"
+      aria-label="Site menu"
+      class="absolute inset-y-0 right-0 flex w-full max-w-sm translate-x-full flex-col bg-white transition-transform duration-400 ease-[var(--ease-editorial)] data-[open]:translate-x-0"
+    >
+      <div class="flex h-[var(--header-height)] shrink-0 items-center justify-between border-b border-line px-[var(--gutter)]">
+        <KeyesLogo height={30} />
+        <button
+          type="button"
+          data-drawer-close
+          class="-mr-2 flex h-11 w-11 items-center justify-center rounded-xs text-evergreen-800 transition-colors hover:bg-evergreen-50"
+        >
+          <span class="sr-only">Close menu</span>
+          <svg
+            class="h-5 w-5"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linecap="square"
+            aria-hidden="true"
+          >
+            <path d="M6 6l12 12M18 6L6 18" />
+          </svg>
+        </button>
+      </div>
+
+      <nav
+        class="flex-1 overflow-y-auto overscroll-contain px-[var(--gutter)] py-6"
+        aria-label="Mobile"
+      >
+        <ul class="flex flex-col divide-y divide-line">
+          {
+            primaryNav.map((entry) => {
+              if (!isNavGroup(entry)) {
+                return (
+                  <li>
+                    <a
+                      href={entry.href}
+                      aria-current={
+                        entryIsActive(entry, current) ? 'page' : undefined
+                      }
+                      class="block py-4 font-serif text-xl text-evergreen-800"
+                    >
+                      {entry.label}
+                    </a>
+                  </li>
+                );
+              }
+
+              return (
+                <li>
+                  <details
+                    class="group/details"
+                    open={entryIsActive(entry, current)}
+                  >
+                    <summary class="flex cursor-pointer list-none items-center justify-between py-4 font-serif text-xl text-evergreen-800 [&::-webkit-details-marker]:hidden">
+                      {entry.label}
+                      <svg
+                        class="h-3 w-3 shrink-0 text-ink-subtle transition-transform duration-300 group-open/details:rotate-180"
+                        viewBox="0 0 10 6"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.25"
+                        aria-hidden="true"
+                      >
+                        <path d="M1 1l4 4 4-4" />
+                      </svg>
+                    </summary>
+                    <ul class="flex flex-col gap-1 pb-4 pl-1">
+                      {entry.items.map((item) => (
+                        <li>
+                          <a
+                            href={item.href}
+                            class="block py-2 text-sm text-ink-muted transition-colors hover:text-evergreen-800"
+                          >
+                            {item.label}
+                          </a>
+                        </li>
+                      ))}
+                    </ul>
+                  </details>
+                </li>
+              );
+            })
+          }
+        </ul>
+
+        <div class="mt-8 flex flex-col gap-3">
+          <Button href="/contact/" block withArrow>Contact Us</Button>
+        </div>
+
+        <ul class="mt-8 flex flex-col gap-4 border-t border-line pt-6">
+          {
+            professionals.map((person) => (
+              <li class="text-sm">
+                <p class="font-serif text-lg text-evergreen-800">
+                  {person.name}
+                </p>
+                <p class="text-xs uppercase tracking-wide-sm text-ink-subtle">
+                  {person.title}
+                </p>
+                <a
+                  href={person.phone.href}
+                  class="mt-1 inline-block text-ink-muted transition-colors hover:text-evergreen-800"
+                >
+                  {person.phone.value}
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+
+        <ul class="mt-6 flex items-center gap-5 border-t border-line pt-6 text-xs">
+          {
+            accountNav.map((link) => (
+              <li>
+                <a
+                  href={link.href}
+                  class="link-underline text-ink-muted transition-colors hover:text-evergreen-800"
+                >
+                  {link.label}
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </nav>
+    </div>
+  </div>
+</header>
+
+<script>
+  import { initHeader } from '@lib/header';
+  initHeader();
+</script>

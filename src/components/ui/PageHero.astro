@@ -1,0 +1,137 @@
+---
+/**
+ * PageHero — the standard masthead for every interior page.
+ *
+ * Two treatments:
+ *   'plain' (default) — typographic, on warm off-white. Fast, calm, no image.
+ *   'image'           — full-bleed photograph with an evergreen scrim.
+ *
+ * The image treatment expects a real photograph. Until the client's
+ * photography is supplied, pages should use the plain treatment rather than
+ * shipping stand-in imagery.
+ */
+import { cn } from '@lib/cn';
+import Container from './Container.astro';
+import Breadcrumbs from './Breadcrumbs.astro';
+import type { Crumb } from './Breadcrumbs.astro';
+
+interface Props {
+  eyebrow?: string;
+  title: string;
+  lead?: string;
+  breadcrumbs?: Crumb[];
+  variant?: 'plain' | 'image';
+  /** Path under /public, e.g. "/images/heroes/coastal.jpg". */
+  image?: string;
+  /** Meaningful alt text. Empty string marks the image as decorative. */
+  imageAlt?: string;
+  align?: 'left' | 'center';
+  class?: string;
+}
+
+const {
+  eyebrow,
+  title,
+  lead,
+  breadcrumbs = [],
+  variant = 'plain',
+  image,
+  imageAlt = '',
+  align = 'left',
+  class: className,
+} = Astro.props;
+
+const hasImage = variant === 'image' && Boolean(image);
+const isLight = hasImage;
+---
+
+<section
+  data-surface={hasImage ? 'dark' : undefined}
+  class={cn(
+    'relative isolate overflow-hidden',
+    hasImage ? 'bg-evergreen-900 text-white' : 'bg-cream-100 text-ink',
+    className,
+  )}
+>
+  {
+    hasImage && (
+      <>
+        <img
+          src={image}
+          alt={imageAlt}
+          width="2400"
+          height="1200"
+          fetchpriority="high"
+          decoding="async"
+          class="absolute inset-0 -z-20 h-full w-full object-cover"
+        />
+        <div
+          aria-hidden="true"
+          class="absolute inset-0 -z-10 bg-gradient-to-b from-evergreen-950/75 via-evergreen-900/55 to-evergreen-950/80"
+        />
+      </>
+    )
+  }
+
+  <Container
+    class={cn(
+      'relative flex flex-col gap-6',
+      hasImage
+        ? 'pt-28 pb-20 sm:pt-36 sm:pb-28'
+        : 'pt-16 pb-14 sm:pt-24 sm:pb-20',
+      align === 'center' && 'items-center text-center',
+    )}
+  >
+    {
+      breadcrumbs.length > 0 && (
+        <Breadcrumbs
+          items={breadcrumbs}
+          tone={isLight ? 'light' : 'dark'}
+          class={align === 'center' ? 'mx-auto' : ''}
+        />
+      )
+    }
+
+    <div
+      class={cn(
+        'flex flex-col gap-5',
+        align === 'center' ? 'max-w-3xl' : 'max-w-4xl',
+      )}
+      data-reveal
+    >
+      {
+        eyebrow && (
+          <p class={cn('eyebrow', isLight ? 'text-gold-300' : 'text-evergreen-600')}>
+            <span class="rule-gold" aria-hidden="true" />
+            {eyebrow}
+          </p>
+        )
+      }
+
+      <h1
+        class={cn(
+          'text-display',
+          isLight ? 'text-white' : 'text-evergreen-800',
+        )}
+      >
+        {title}
+      </h1>
+
+      {
+        lead && (
+          <p
+            class={cn(
+              'max-w-2xl text-lg leading-relaxed sm:text-xl',
+              isLight ? 'text-white/85' : 'text-ink-muted',
+              align === 'center' && 'mx-auto',
+            )}
+          >
+            {lead}
+          </p>
+        )
+      }
+
+      <slot />
+    </div>
+  </Container>
+</section>

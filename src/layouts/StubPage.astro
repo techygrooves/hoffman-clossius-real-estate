@@ -1,0 +1,48 @@
+---
+/**
+ * StubPage — temporary layout for routes whose architecture exists but whose
+ * content has not been built yet.
+ *
+ * As each page is built out, replace `<StubPage>` with `<BaseLayout>` plus the
+ * page's real sections. Nothing here should survive into the finished site.
+ */
+import BaseLayout from './BaseLayout.astro';
+import PageHero from '@components/ui/PageHero.astro';
+import InPreparation from '@components/sections/InPreparation.astro';
+import type { Crumb } from '@components/ui/Breadcrumbs.astro';
+
+interface Props {
+  title: string;
+  /** Heading shown in the hero, if it should differ from the <title>. */
+  heading?: string;
+  eyebrow?: string;
+  description: string;
+  /** Hero lead paragraph; falls back to the meta description. */
+  lead?: string;
+  breadcrumbs?: Crumb[];
+  /** Plain-language note about what will live on this page. */
+  note?: string;
+  noindex?: boolean;
+}
+
+const {
+  title,
+  heading,
+  eyebrow,
+  description,
+  lead,
+  breadcrumbs = [],
+  note,
+  noindex = false,
+} = Astro.props;
+---
+
+<BaseLayout title={title} description={description} noindex={noindex}>
+  <PageHero
+    eyebrow={eyebrow}
+    title={heading ?? title}
+    lead={lead ?? description}
+    breadcrumbs={breadcrumbs}
+  />
+  <InPreparation note={note} />
+</BaseLayout>

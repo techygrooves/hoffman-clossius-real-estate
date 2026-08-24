@@ -1,0 +1,33 @@
+---
+/**
+ * Individual development page. Generates nothing until the client supplies
+ * development material — see src/data/developments.ts.
+ */
+import type { GetStaticPaths } from 'astro';
+import StubPage from '@layouts/StubPage.astro';
+import { developments } from '@data/developments';
+
+export const getStaticPaths = (() =>
+  developments.map((development) => ({
+    params: { slug: development.slug },
+    props: { development },
+  }))) satisfies GetStaticPaths;
+
+const { development } = Astro.props;
+---
+
+<StubPage
+  title={development.name}
+  heading={development.name}
+  eyebrow="Development"
+  description={development.summary}
+  breadcrumbs={[
+    { label: 'Developments' },
+    {
+      label: development.kind === 'new' ? 'New' : 'Established',
+      href: development.kind === 'new' ? '/developments/new/' : '/developments/existing/',
+    },
+    { label: development.name },
+  ]}
+  note="The development template is built alongside the first set of developments the client supplies."
+/>

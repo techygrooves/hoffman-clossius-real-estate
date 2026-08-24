@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Hoffman &amp; Closius">
+  <rect width="64" height="64" rx="8" fill="#063F35"/>
+  <text x="32" y="43"
+        font-family="Cormorant Garamond, Garamond, Times New Roman, serif"
+        font-size="30" font-weight="500" letter-spacing="0.5"
+        text-anchor="middle" fill="#FFFFFF">H<tspan fill="#C9A34A">&amp;</tspan>C</text>
+</svg>
