@@ -1,12 +1,45 @@
 ---
-import StubPage from '@layouts/StubPage.astro';
+/**
+ * Homepage.
+ *
+ * Section order is the page's outline: the hero owns the only <h1>, and every
+ * band below is a <section> with its own <h2>. Composition only — each section
+ * owns its own data, so nothing here needs to change when the MLS feed,
+ * photography or first article arrives.
+ */
+import BaseLayout from '@layouts/BaseLayout.astro';
+import HomeHero from '@components/home/HomeHero.astro';
+import PropertySearch from '@components/home/PropertySearch.astro';
+import FeaturedListings from '@components/home/FeaturedListings.astro';
+import AgentsSection from '@components/home/AgentsSection.astro';
+import BuySellPanels from '@components/home/BuySellPanels.astro';
+import CommunitiesGrid from '@components/home/CommunitiesGrid.astro';
+import DevelopmentsPreview from '@components/home/DevelopmentsPreview.astro';
+import HomeValuationCta from '@components/home/HomeValuationCta.astro';
+import TestimonialsSection from '@components/home/TestimonialsSection.astro';
+import RelocationSection from '@components/home/RelocationSection.astro';
+import InsightsSection from '@components/home/InsightsSection.astro';
+import FinalCta from '@components/home/FinalCta.astro';
 ---
 
-<StubPage
-  title={'Home'}
-  heading={'South Florida real estate, handled with care.'}
-  eyebrow={'Hoffman & Closius'}
-  description={'Hoffman & Closius — South Florida real estate representation for buyers, sellers and relocating families across Broward, Palm Beach and Miami-Dade.'}
-  lead={'Martin Hoffman P.A. and MaryEllen Closius P.A. represent buyers, sellers and relocating families across South Florida.'}
-  note={'The homepage is the next build task. It will introduce Martin and MaryEllen, surface current listings once the MLS feed is connected, and lead into the buying, selling and relocation journeys.'}
-/>
+<BaseLayout
+  fullTitle="Hoffman & Closius — South Florida Real Estate"
+  description="Martin Hoffman P.A. and MaryEllen Closius P.A. represent buyers, sellers and relocating families across Broward, Palm Beach and Miami-Dade."
+>
+  <HomeHero />
+  <PropertySearch />
+  <FeaturedListings
+    eyebrow="Featured"
+    title="Selected properties"
+    lead="A closer look at homes currently on the market across South Florida."
+  />
+  <AgentsSection />
+  <BuySellPanels />
+  <CommunitiesGrid />
+  <DevelopmentsPreview />
+  <HomeValuationCta />
+  <TestimonialsSection />
+  <RelocationSection />
+  <InsightsSection />
+  <FinalCta />
+</BaseLayout>

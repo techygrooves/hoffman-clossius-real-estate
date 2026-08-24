@@ -1,0 +1,99 @@
+---
+/**
+ * FeaturedListings — reusable property grid.
+ *
+ * Data comes from `resolveFeaturedListings()`, never from markup: real
+ * listings when they exist, clearly-labelled demo records when the demo flag
+ * is on, and an honest empty state otherwise. A production build with no MLS
+ * feed shows the empty state — it never invents inventory.
+ */
+import Section from '@components/ui/Section.astro';
+import SectionHeader from '@components/ui/SectionHeader.astro';
+import Button from '@components/ui/Button.astro';
+import ListingCard from '@components/ui/ListingCard.astro';
+import DemoNotice from '@components/ui/DemoNotice.astro';
+import { resolveFeaturedListings } from '@lib/content';
+
+interface Props {
+  eyebrow?: string;
+  title?: string;
+  lead?: string;
+  limit?: number;
+  tone?: 'white' | 'warm';
+}
+
+const {
+  eyebrow = 'Featured',
+  title = 'Selected properties',
+  lead,
+  limit = 3,
+  tone = 'white',
+} = Astro.props;
+
+const { items, isDemo } = resolveFeaturedListings(limit);
+---
+
+<Section tone={tone} labelledby="featured-listings-heading">
+  <div class="flex flex-col gap-8 md:flex-row md:items-end md:justify-between">
+    <SectionHeader
+      id="featured-listings-heading"
+      eyebrow={eyebrow}
+      title={title}
+      lead={lead}
+    />
+    <div class="hidden shrink-0 md:block" data-reveal>
+      <Button href="/properties/our-listings/" variant="secondary" withArrow>
+        View Our Listings
+      </Button>
+    </div>
+  </div>
+
+  {isDemo && <DemoNotice class="mt-8" what="properties" />}
+
+  {
+    items.length > 0 ? (
+      <div class="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        {items.map((listing, index) => (
+          <ListingCard
+            listing={listing}
+            isDemo={isDemo}
+            seed={index}
+            class={index >= 2 ? 'sm:col-span-2 lg:col-span-1' : undefined}
+          />
+        ))}
+      </div>
+    ) : (
+      <div
+        class="mt-12 rounded-xs border border-dashed border-line-strong bg-cream-50 px-8 py-14 text-center"
+        data-reveal
+      >
+        <p class="mx-auto max-w-lg font-serif text-2xl text-evergreen-800">
+          Listings appear here once the MLS feed is connected.
+        </p>
+        <p class="mx-auto mt-3 max-w-lg text-sm leading-relaxed text-ink-muted">
+          In the meantime, tell Martin or MaryEllen what you are looking for and
+          they will search the market for you directly.
+        </p>
+        <div class="mt-8 flex flex-wrap justify-center gap-3">
+          <Button href="/buy/dream-home-finder/" withArrow>
+            Tell us what you want
+          </Button>
+          <Button href="/contact/" variant="secondary">
+            Contact us
+          </Button>
+        </div>
+      </div>
+    )
+  }
+
+  <div class="mt-10 flex flex-wrap gap-3 md:justify-center" data-reveal>
+    <div class="md:hidden">
+      <Button href="/properties/our-listings/" variant="secondary" withArrow>
+        View Our Listings
+      </Button>
+    </div>
+    <Button href="/properties/search/" variant="ghost" withArrow>
+      Search All Properties
+    </Button>
+  </div>
+</Section>

@@ -1,0 +1,65 @@
+---
+/**
+ * QueryEcho — reads the query parameters a form sent to this page and shows
+ * what was received.
+ *
+ * The homepage search and valuation forms submit real criteria. Until the IDX
+ * feed exists there are no results to render, so the least dishonest thing the
+ * destination page can do is confirm exactly what it was given and say what
+ * happens next — rather than silently discarding it.
+ *
+ * The page is static, so parameters are read on the client. With no
+ * parameters, or with JavaScript off, nothing renders at all.
+ */
+import { cn } from '@lib/cn';
+
+export type EchoField = {
+  param: string;
+  label: string;
+  suffix?: string;
+  /** 'currency' renders 500000 as $500,000; 'capitalize' as Buy. */
+  format?: 'currency' | 'capitalize';
+};
+
+interface Props {
+  title: string;
+  /** Rendered under the values — what actually happens next. */
+  note: string;
+  fields: EchoField[];
+  class?: string;
+}
+
+const { title, note, fields, class: className } = Astro.props;
+---
+
+<div
+  class={cn('border-t border-line bg-white', className)}
+  data-query-echo
+  data-fields={JSON.stringify(fields)}
+  hidden
+>
+  <div class="container-page section-space-tight">
+    <div class="rounded-xs border border-line bg-cream-50 p-8 sm:p-10">
+      <p class="eyebrow text-evergreen-600">
+        <span class="rule-gold" aria-hidden="true"></span>
+        Received
+      </p>
+      <h2 class="mt-4 text-display-sm text-evergreen-800">{title}</h2>
+
+      <dl
+        class="mt-8 grid gap-x-10 gap-y-5 sm:grid-cols-2 lg:grid-cols-3"
+        data-query-echo-list
+      >
+      </dl>
+
+      <p class="mt-8 max-w-2xl border-t border-line pt-6 text-sm leading-relaxed text-ink-muted">
+        {note}
+      </p>
+    </div>
+  </div>
+</div>
+
+<script>
+  import { initQueryEcho } from '@lib/query-echo';
+  initQueryEcho();
+</script>

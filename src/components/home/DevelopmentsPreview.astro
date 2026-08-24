@@ -1,0 +1,105 @@
+---
+/**
+ * DevelopmentsPreview — New Developments.
+ *
+ * Driven by src/data/developments.ts, which is empty on purpose. Unlike the
+ * property grid there is NO demo counterpart: inventing a development, its
+ * builder, its pricing or its delivery date would be a claim about the market
+ * rather than a design placeholder (CONTENT_PENDING.md 10.6). Until the client
+ * supplies material this renders an honest invitation instead.
+ */
+import Section from '@components/ui/Section.astro';
+import SectionHeader from '@components/ui/SectionHeader.astro';
+import Button from '@components/ui/Button.astro';
+import MediaSlot from '@components/ui/MediaSlot.astro';
+import { formatPrice } from '@lib/format';
+import { resolveDevelopments } from '@lib/content';
+
+const { items } = resolveDevelopments(3);
+---
+
+<Section tone="sage" labelledby="developments-heading">
+  <div class="flex flex-col gap-8 md:flex-row md:items-end md:justify-between">
+    <SectionHeader
+      id="developments-heading"
+      eyebrow="New construction"
+      title="New Developments"
+      lead="Pre-construction and newly delivered communities across South Florida."
+    />
+    <div class="hidden shrink-0 md:block" data-reveal>
+      <Button href="/developments/new/" variant="secondary" withArrow>
+        Explore New Developments
+      </Button>
+    </div>
+  </div>
+
+  {
+    items.length > 0 ? (
+      <ul class="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        {items.map((development, index) => (
+          <li>
+            <a
+              href={`/developments/${development.slug}/`}
+              class="group flex h-full flex-col overflow-hidden rounded-xs border border-line bg-white transition-shadow duration-500 hover:shadow-card"
+              data-reveal
+              style={`--reveal-delay:${index * 60}ms`}
+            >
+              <MediaSlot
+                src={development.heroImage?.src ?? null}
+                alt=""
+                width={800}
+                height={600}
+                ratio="4/3"
+                seed={index}
+                marker={false}
+                sizes="(min-width: 1024px) 33vw, 100vw"
+                imgClass="transition-transform duration-700 ease-[var(--ease-editorial)] motion-safe:group-hover:scale-[1.04]"
+              />
+              <div class="flex flex-1 flex-col p-6">
+                <p class="text-[0.625rem] uppercase tracking-eyebrow text-evergreen-600">
+                  {development.city}, {development.state}
+                </p>
+                <h3 class="mt-2 font-serif text-2xl text-evergreen-800">
+                  {development.name}
+                </h3>
+                <p class="mt-2 text-sm leading-relaxed text-ink-muted">
+                  {development.summary}
+                </p>
+                {development.priceFrom !== null && (
+                  <p class="mt-4 text-sm text-evergreen-800">
+                    From {formatPrice(development.priceFrom)}
+                  </p>
+                )}
+              </div>
+            </a>
+          </li>
+        ))}
+      </ul>
+    ) : (
+      <div
+        class="mt-12 rounded-xs border border-dashed border-evergreen-800/25 bg-white/60 px-8 py-14 text-center"
+        data-reveal
+      >
+        <p class="mx-auto max-w-lg font-serif text-2xl text-evergreen-800">
+          New development information is added as it is released.
+        </p>
+        <p class="mx-auto mt-3 max-w-lg text-sm leading-relaxed text-ink-muted">
+          Pre-construction moves quickly and quietly. Tell us what you are
+          watching for and we will let you know when it opens.
+        </p>
+        <div class="mt-8 flex flex-wrap justify-center gap-3">
+          <Button href="/developments/new/" withArrow>
+            Explore New Developments
+          </Button>
+          <Button href="/contact/" variant="secondary">Register your interest</Button>
+        </div>
+      </div>
+    )
+  }
+
+  <div class="mt-10 md:hidden" data-reveal>
+    <Button href="/developments/new/" variant="secondary" block withArrow>
+      Explore New Developments
+    </Button>
+  </div>
+</Section>

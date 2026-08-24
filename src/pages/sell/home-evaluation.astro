@@ -1,12 +1,21 @@
 ---
 import StubPage from '@layouts/StubPage.astro';
+import QueryEcho from '@components/ui/QueryEcho.astro';
+
+const fields = [{ param: 'address', label: 'Property address' }];
 ---
 
 <StubPage
-  title={'Home Evaluation'}
-  heading={'Request a home evaluation'}
-  eyebrow={'Sell'}
-  description={'Request a considered opinion of value for your South Florida property from Hoffman & Closius.'}
+  title="Home Evaluation"
+  heading="Request a home evaluation"
+  eyebrow="Sell"
+  description="Request a considered opinion of value for your South Florida property from Hoffman & Closius."
   breadcrumbs={[{ label: 'Sell', href: '/sell/' }, { label: 'Home Evaluation' }]}
-  note={'The evaluation request form is built once the form destination is confirmed. Valuations are prepared by Martin and MaryEllen; the site never generates an automated estimate.'}
-/>
+  note="The evaluation request form is built once the form destination is confirmed. Valuations are prepared by Martin and MaryEllen; the site never generates an automated estimate."
+>
+  <QueryEcho
+    title="The address you sent"
+    note="Nothing has been submitted yet — the form destination is still being confirmed. Call Martin on 954-605-4823 or MaryEllen on 954-471-4626 and they will prepare an opinion of value for this address."
+    fields={fields}
+  />
+</StubPage>

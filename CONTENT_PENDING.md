@@ -113,7 +113,7 @@ Status key: 🔴 blocking · 🟠 needed soon · 🟡 needed before launch
 | --- | --- | --- | --- |
 | 8.1 | **Martin Hoffman — biography** | 🔴 | In his own words, or approved by him. Not to be written from scratch. |
 | 8.2 | **MaryEllen Closius — biography** | 🔴 | Same. |
-| 8.3 | Professional portraits | 🔴 | High resolution, plus photographer credit if required. `professionals[].portrait` is `null` until then. |
+| 8.3 | **Professional portraits** | 🔴 | High resolution, plus photographer credit if required. Set `professionals[].portrait` in `src/config/site.ts` and the homepage, About pages and agent cards all pick it up. Portrait orientation (4:5) suits the slot best. |
 | 8.4 | Designations, memberships, languages | 🟠 | Only the two confirmed titles are on record. |
 | 8.5 | Areas of focus / specialities | 🟠 | Beyond MaryEllen's confirmed "Relocation Specialist". |
 | 8.6 | Team story — how they work together | 🟠 | For `/about/`. |
@@ -124,11 +124,13 @@ Status key: 🔴 blocking · 🟠 needed soon · 🟡 needed before launch
 
 | # | Item | Status | Notes |
 | --- | --- | --- | --- |
-| 9.1 | **Homepage hero photography** | 🔴 | The design depends on strong South Florida imagery. Licensed or client-owned only. |
+| 9.1 | **Homepage hero photography** | 🔴 | The design depends on strong South Florida imagery. Licensed or client-owned only. Drop the file under `/public/images/home/` and set `heroImage` at the top of `src/components/home/HomeHero.astro` — one line, no other change. A muted background video can replace the same slot later. |
 | 9.2 | Interior page hero images | 🟠 | `PageHero` supports an image variant; pages use the plain variant until real photography exists. |
 | 9.3 | Community / neighbourhood photography | 🟠 | |
 | 9.4 | Image licensing and credits | 🟠 | Confirm usage rights for every supplied image. |
 | 9.5 | Alt text intent | 🟡 | What each image is meant to convey, so alt text is accurate. |
+| 9.6 | **Community card imagery** | 🟠 | One image per community (Hollywood, Fort Lauderdale, Dania Beach, Hallandale Beach, Pembroke Pines, Aventura). Set `heroImage` on each entry in `src/data/communities.ts`. |
+| 9.7 | Relocation section image | 🟡 | One supporting image for the "Moving to South Florida?" band. |
 
 ---
 
@@ -136,7 +138,7 @@ Status key: 🔴 blocking · 🟠 needed soon · 🟡 needed before launch
 
 | # | Item | Status | Notes |
 | --- | --- | --- | --- |
-| 10.1 | **Testimonials** | 🟠 | Real, attributable quotes with permission to publish. `src/data/testimonials.ts` stays empty until then. **No sample testimonials.** |
+| 10.1 | **Testimonials** | 🟠 | Real, attributable quotes with permission to publish. `src/data/testimonials.ts` stays empty until then, and each entry needs `verified: true` — meaning the client has confirmed the quote and that we may publish it. Unverified entries never render. **No sample testimonials, in any environment.** |
 | 10.2 | **FAQ answers** | 🟠 | Questions touching process, fees and Florida practice must be client-reviewed. |
 | 10.3 | Buying guide content | 🟠 | |
 | 10.4 | Selling guide content | 🟠 | |
@@ -173,6 +175,9 @@ Every placeholder shipped today, so none can be forgotten:
 | Empty data modules | `src/data/*.ts` | The matching source is confirmed |
 | Six community pages carrying only a locational one-liner | `src/data/communities.ts` | 10.5 supplied |
 | Social icon slots rendering nothing | `src/components/layout/SocialLinks.astro` | §7 URLs supplied |
+| Abstract media placeholders in every image position | `src/components/ui/MediaSlot.astro` | §9 photography supplied |
+| Six demo property records, dev-only, badged "Sample" | `src/data/demo/listings.demo.ts` | §5 IDX feed connected (delete the file) |
+| Homepage empty states: listings, developments, testimonials, insights | the matching section components | Each data source is supplied |
 
 No placeholder above is phrased as a factual claim about the client, and none
 uses lorem ipsum.

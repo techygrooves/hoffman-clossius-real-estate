@@ -1,0 +1,46 @@
+---
+/**
+ * DemoNotice — the visible marker that a section is showing placeholder
+ * content rather than the client's real data.
+ *
+ * Rendered only when `flags.demoContent` is on, which never happens in a
+ * production build. Its job is to make it impossible to mistake the demo for
+ * real inventory in a screenshot or a review call.
+ */
+import { cn } from '@lib/cn';
+
+interface Props {
+  /** What is being stood in for, e.g. "properties". */
+  what?: string;
+  class?: string;
+}
+
+const { what = 'items', class: className } = Astro.props;
+---
+
+<p
+  class={cn(
+    'flex items-start gap-3 rounded-xs border border-dashed border-gold-600/50 bg-gold-100/50 px-4 py-3',
+    'text-xs leading-relaxed text-charcoal-600',
+    className,
+  )}
+  data-demo-notice
+>
+  <svg
+    class="mt-px h-4 w-4 shrink-0 text-gold-700"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="1.5"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    aria-hidden="true"
+  >
+    <path d="M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z" />
+  </svg>
+  <span>
+    <strong class="font-medium">Sample {what} — not real inventory.</strong>{' '}
+    Placeholder records used to review the design before the MLS feed is
+    connected. They do not appear in a production build.
+  </span>
+</p>

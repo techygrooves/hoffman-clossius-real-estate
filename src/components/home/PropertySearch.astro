@@ -1,0 +1,185 @@
+---
+/**
+ * PropertySearch — the search module beneath the hero.
+ *
+ * A plain GET form that routes its criteria to /properties/search/ as query
+ * parameters. That page reads them back and shows what was requested.
+ *
+ * There is NO live MLS connection yet (CONTENT_PENDING.md §5) and the module
+ * says so rather than implying results exist. When the IDX provider is
+ * confirmed, the field names below map onto its query schema.
+ *
+ * The Buy/Rent tabs are a native radio group — keyboard-operable with arrow
+ * keys, and styled entirely in CSS, so no JavaScript is involved.
+ */
+import Container from '@components/ui/Container.astro';
+
+const PRICES = [
+  50000, 100000, 200000, 300000, 400000, 500000, 750000, 1000000, 1500000,
+  2000000, 3000000, 5000000, 10000000,
+];
+
+const usd = new Intl.NumberFormat('en-US', {
+  style: 'currency',
+  currency: 'USD',
+  notation: 'compact',
+  maximumFractionDigits: 1,
+});
+
+const PROPERTY_TYPES = [
+  'Single Family',
+  'Condominium',
+  'Townhouse',
+  'Villa',
+  'Multi-Family',
+  'Land',
+];
+
+const fieldClass =
+  'h-12 w-full rounded-xs border border-line-control bg-white px-3.5 text-sm text-ink placeholder:text-ink-subtle ' +
+  'transition-colors hover:border-evergreen-700 focus:border-evergreen-800';
+
+const labelClass = 'block text-xs uppercase tracking-wide-sm text-ink-muted';
+
+const tabClass =
+  'block cursor-pointer rounded-xs px-6 py-2.5 text-center text-sm tracking-wide-sm transition-colors ' +
+  'text-ink-muted hover:text-evergreen-800 ' +
+  'peer-checked:bg-evergreen-800 peer-checked:text-white';
+---
+
+<section
+  class="relative z-10 bg-cream-100 pb-16 pt-12 sm:pb-20"
+  aria-labelledby="property-search-heading"
+>
+  <Container>
+    <div
+      class="rounded-xs border border-line bg-white p-6 shadow-card sm:p-8 lg:-mt-24 lg:p-10"
+      data-reveal
+    >
+      <span class="rule-gold" aria-hidden="true"></span>
+
+      <h2 id="property-search-heading" class="mt-5 text-display-sm text-evergreen-800">
+        Find your place in South Florida
+      </h2>
+
+      <form
+        action="/properties/search/"
+        method="get"
+        class="mt-7"
+        role="search"
+        aria-label="Property search"
+      >
+        {/* Buy / Rent */}
+        <fieldset class="border-0 p-0">
+          <legend class="sr-only">What are you looking for?</legend>
+          <div class="inline-flex rounded-xs border border-line p-1">
+            <label class="relative">
+              <input
+                type="radio"
+                name="listing"
+                value="buy"
+                checked
+                class="peer sr-only"
+              />
+              <span class={tabClass}>Buy</span>
+            </label>
+            <label class="relative">
+              <input type="radio" name="listing" value="rent" class="peer sr-only" />
+              <span class={tabClass}>Rent</span>
+            </label>
+          </div>
+        </fieldset>
+
+        <div class="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-12">
+          <div class="lg:col-span-4">
+            <label class={labelClass} for="search-location">
+              Location, city or ZIP
+            </label>
+            <input
+              id="search-location"
+              name="location"
+              type="text"
+              autocomplete="off"
+              placeholder="Hollywood, Fort Lauderdale, 33019…"
+              class={`mt-2 ${fieldClass}`}
+            />
+          </div>
+
+          <div class="lg:col-span-2">
+            <label class={labelClass} for="search-min">Min price</label>
+            <select id="search-min" name="min" class={`mt-2 ${fieldClass}`}>
+              <option value="">No minimum</option>
+              {PRICES.map((p) => <option value={p}>{usd.format(p)}</option>)}
+            </select>
+          </div>
+
+          <div class="lg:col-span-2">
+            <label class={labelClass} for="search-max">Max price</label>
+            <select id="search-max" name="max" class={`mt-2 ${fieldClass}`}>
+              <option value="">No maximum</option>
+              {PRICES.map((p) => <option value={p}>{usd.format(p)}</option>)}
+            </select>
+          </div>
+
+          <div class="lg:col-span-1">
+            <label class={labelClass} for="search-beds">Beds</label>
+            <select id="search-beds" name="beds" class={`mt-2 ${fieldClass}`}>
+              <option value="">Any</option>
+              {[1, 2, 3, 4, 5, 6].map((n) => <option value={n}>{n}+</option>)}
+            </select>
+          </div>
+
+          <div class="lg:col-span-1">
+            <label class={labelClass} for="search-baths">Baths</label>
+            <select id="search-baths" name="baths" class={`mt-2 ${fieldClass}`}>
+              <option value="">Any</option>
+              {[1, 2, 3, 4, 5].map((n) => <option value={n}>{n}+</option>)}
+            </select>
+          </div>
+
+          <div class="sm:col-span-2 lg:col-span-2">
+            <label class={labelClass} for="search-type">Property type</label>
+            <select id="search-type" name="type" class={`mt-2 ${fieldClass}`}>
+              <option value="">All types</option>
+              {PROPERTY_TYPES.map((t) => <option value={t}>{t}</option>)}
+            </select>
+          </div>
+        </div>
+
+        <div class="mt-7 flex flex-col gap-4 border-t border-line pt-6 sm:flex-row sm:items-center sm:justify-between">
+          <p class="max-w-md text-xs leading-relaxed text-ink-muted">
+            Search results go live with the MLS feed. Send your criteria now and
+            Martin or MaryEllen will come back to you directly.
+          </p>
+
+          <div class="flex flex-col gap-3 sm:flex-row sm:shrink-0">
+            <button
+              type="submit"
+              class="group inline-flex h-12 items-center justify-center gap-2.5 rounded-xs border border-evergreen-800 bg-evergreen-800 px-8 text-sm font-medium tracking-wide-sm text-white transition-all duration-300 ease-[var(--ease-editorial)] hover:bg-evergreen-900 hover:shadow-card motion-safe:active:translate-y-px"
+            >
+              Search Homes
+              <svg
+                class="h-3.5 w-3.5 shrink-0 transition-transform duration-300 ease-[var(--ease-editorial)] motion-safe:group-hover:translate-x-1"
+                viewBox="0 0 16 16"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.5"
+                stroke-linecap="square"
+                aria-hidden="true"
+              >
+                <path d="M1 8h13M9 3l5 5-5 5"></path>
+              </svg>
+            </button>
+
+            <a
+              href="/properties/search/"
+              class="inline-flex h-12 items-center justify-center rounded-xs border border-line-control px-6 text-sm font-medium tracking-wide-sm text-evergreen-800 transition-colors hover:border-evergreen-800 hover:bg-evergreen-50"
+            >
+              Advanced Search
+            </a>
+          </div>
+        </div>
+      </form>
+    </div>
+  </Container>
+</section>

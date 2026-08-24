@@ -1,0 +1,94 @@
+---
+/**
+ * RelocationSection — for people arriving from out of state or abroad.
+ *
+ * MaryEllen's "Relocation Specialist" title is confirmed and is stated as
+ * such. Nothing else about the relocation service is asserted — no networks,
+ * partners, corporate programmes or track record (CONTENT_PENDING.md 10.8).
+ */
+import Section from '@components/ui/Section.astro';
+import MediaSlot from '@components/ui/MediaSlot.astro';
+import { getProfessional } from '@config/site';
+
+const maryellen = getProfessional('maryellen-closius');
+
+const LINKS = [
+  { label: 'Relocation Guide', href: '/relocation/' },
+  { label: 'Explore Communities', href: '/communities/' },
+  { label: 'Search Homes', href: '/properties/search/' },
+  { label: 'Contact Us', href: '/contact/' },
+];
+---
+
+<Section tone="white" labelledby="relocation-heading">
+  <div class="grid gap-12 lg:grid-cols-2 lg:items-center lg:gap-20">
+    <div class="order-2 lg:order-1" data-reveal>
+      <p class="eyebrow text-evergreen-600">
+        <span class="rule-gold" aria-hidden="true"></span>
+        Relocation
+      </p>
+
+      <h2 id="relocation-heading" class="mt-5 text-display-sm text-evergreen-800">
+        Moving to South Florida?
+      </h2>
+
+      {
+        maryellen && (
+          <p class="mt-5 max-w-lg leading-relaxed text-ink-muted">
+            {maryellen.name} is a {maryellen.specialty}. If you are arriving
+            from out of state or from abroad, she is the person to start with.
+          </p>
+        )
+      }
+
+      <ul class="mt-9 grid gap-px overflow-hidden rounded-xs border border-line bg-line sm:grid-cols-2">
+        {
+          LINKS.map((link) => (
+            <li class="bg-white">
+              <a
+                href={link.href}
+                class="group flex items-center justify-between gap-4 px-5 py-4 text-sm transition-colors hover:bg-evergreen-50"
+              >
+                <span class="text-evergreen-800">{link.label}</span>
+                <svg
+                  class="h-3 w-3 shrink-0 text-ink-subtle transition-all duration-300 ease-[var(--ease-editorial)] group-hover:text-gold-600 motion-safe:group-hover:translate-x-1"
+                  viewBox="0 0 16 16"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                  stroke-linecap="square"
+                  aria-hidden="true"
+                >
+                  <path d="M1 8h13M9 3l5 5-5 5" />
+                </svg>
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+
+      {
+        maryellen && (
+          <p class="mt-8 text-sm text-ink-muted">
+            Speak to MaryEllen directly —{' '}
+            <a href={maryellen.phone.href} class="link-underline text-evergreen-800">
+              {maryellen.phone.value}
+            </a>
+          </p>
+        )
+      }
+    </div>
+
+    <div class="order-1 lg:order-2" data-reveal style="--reveal-delay:100ms">
+      <MediaSlot
+        src={null}
+        width={1000}
+        height={1100}
+        ratio="10/11"
+        seed={2}
+        sizes="(min-width: 1024px) 45vw, 100vw"
+        class="max-h-[32rem] rounded-xs"
+      />
+    </div>
+  </div>
+</Section>
