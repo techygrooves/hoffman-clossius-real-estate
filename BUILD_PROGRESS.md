@@ -3,27 +3,83 @@
 Living record of what exists, what is broken and what comes next.
 **Update this file at the end of every session.**
 
-Last updated: **2026-08-24** — Session 2 (global header, navigation and footer)
+Last updated: **2026-08-24** — Session 3 (homepage)
 
 ---
 
 ## Current state
 
-Foundation complete, and the **global chrome — header, navigation, footer and
-mobile action bar — is now built**.
+Foundation, global chrome and **the complete homepage** are built.
 
-**Page content is still deliberately unwritten.** Every route except `/404`
-renders a hero plus an honest "in preparation" band. The homepage is next.
+Every other route still renders a hero plus an honest "in preparation" band.
 
 | Metric | Value |
 | --- | --- |
 | Build | ✅ passing — `astro check`: 0 errors, 0 warnings, 0 hints |
 | Pages generated | 36 static HTML pages |
-| Internal links | ✅ 39 distinct links + 35 nav entries, all resolve (`npm run verify:links`) |
-| Navigation tests | ✅ 21/21 behavioural checks, plus 5/5 with JavaScript disabled |
-| CSS bundle | ~40 KB uncompressed, one file |
-| JavaScript | ~4.4 KB total, inlined, no dependencies |
+| Internal links | ✅ all resolve (`npm run verify:links`, wired into `npm run build`) |
+| Tests | ✅ 14/14 homepage · 21/21 navigation · 5/5 with JavaScript disabled |
+| Homepage weight | ~123 KB HTML (15 KB gzipped), 54 KB CSS (10 KB gzipped) |
+| JavaScript | ~5 KB total, inlined, no dependencies |
 | Third-party runtime requests | none |
+
+---
+
+## ✅ Completed — Session 3 (2026-08-24) · Homepage
+
+Twelve sections, composed in `src/pages/index.astro`. Each owns its own data,
+so nothing in the page needs to change when the MLS feed, photography or first
+article arrives.
+
+| # | Section | Component | State without client data |
+| --- | --- | --- | --- |
+| 1 | Hero | `HomeHero` | Abstract media placeholder; one line sets the photo |
+| 2 | Property search | `PropertySearch` | Fully working — routes criteria to `/properties/search/` |
+| 3 | Featured properties | `FeaturedListings` | Demo records in dev; honest empty state in production |
+| 4 | Meet Martin & MaryEllen | `AgentsSection` + `AgentCard` | Portrait slots; role-descriptive intros only |
+| 5 | Buy / Sell | `BuySellPanels` | Complete |
+| 6 | Explore South Florida | `CommunitiesGrid` | Complete — six communities, data-driven |
+| 7 | New Developments | `DevelopmentsPreview` | Honest empty state; **no demo counterpart** |
+| 8 | Home valuation | `HomeValuationCta` | Complete — routes the address, never estimates |
+| 9 | Testimonials | `TestimonialsSection` | Neutral shell; **verified quotes only, ever** |
+| 10 | Relocation | `RelocationSection` | Complete |
+| 11 | Insights | `InsightsSection` | Honest empty state until the first article |
+| 12 | Final CTA | `FinalCta` | Complete |
+
+### Demo content layer
+- [x] `src/config/flags.ts` — one flag: ON in dev, OFF in production builds,
+      overridable with `PUBLIC_DEMO_CONTENT`. `npm run build:demo` gives a
+      populated build for design review.
+- [x] `src/data/demo/listings.demo.ts` — six records, every one typed
+      `isDemo: true` with a `DEMO-` reference, empty `images`, and a header
+      stating plainly that none of it is real. Nothing scraped.
+- [x] `src/lib/content.ts` — the one place that decides real vs demo vs empty.
+      **Real data always wins.**
+- [x] `<DemoNotice>` on the section and a "Sample" badge on every card, so demo
+      content cannot be mistaken for inventory in a screenshot.
+- [x] Verified: a production build contains **zero** occurrences of `DEMO-`,
+      "Sample properties" or any demo address.
+- [x] Testimonials and developments are deliberately excluded from the
+      mechanism — see PROJECT_CONTEXT.md §8.
+
+### Imagery
+- [x] `MediaSlot` — every image position on the site. Renders a responsive,
+      layout-stable `<img>` with a `src`, and a neutral abstract placeholder
+      without one. Never a stock photo or a borrowed picture.
+- [x] Aspect ratio always reserved, so nothing shifts when an image loads.
+
+### Forms that actually go somewhere
+- [x] Search and valuation forms submit real criteria as query parameters.
+- [x] `QueryEcho` + `src/lib/query-echo.ts` read them back on the destination
+      page and show what was received, with prices formatted. No fabricated
+      results, and no estimated value is ever generated.
+- [x] `StubPage` gained a slot so a stub can carry real functionality.
+
+### New components
+`MediaSlot`, `ListingCard`, `AgentCard`, `DemoNotice`, `QueryEcho`, plus the
+twelve homepage sections in `src/components/home/`.
+
+**Four bugs found by testing** — see the session log.
 
 ---
 
@@ -207,6 +263,12 @@ renders a hero plus an honest "in preparation" band. The homepage is next.
 | `Button` | `src/components/ui/Button.astro` | ✅ stable |
 | `Breadcrumbs` | `src/components/ui/Breadcrumbs.astro` | ✅ stable |
 | `PageHero` | `src/components/ui/PageHero.astro` | ✅ image variant untested — no photography yet |
+| `MediaSlot` | `src/components/ui/MediaSlot.astro` | ✅ stable — every image position goes through it |
+| `ListingCard` | `src/components/ui/ListingCard.astro` | ✅ stable — reuse for search results and listing indexes |
+| `AgentCard` | `src/components/ui/AgentCard.astro` | ✅ stable — reuse on /about/ |
+| `DemoNotice` | `src/components/ui/DemoNotice.astro` | ✅ stable — dev-only by construction |
+| `QueryEcho` | `src/components/ui/QueryEcho.astro` | ✅ stable |
+| Homepage sections | `src/components/home/*.astro` | ✅ stable — twelve sections |
 | `InPreparation` | `src/components/sections/InPreparation.astro` | ⚠️ temporary |
 
 **Before building anything new, check this table.** Extend an existing
@@ -226,6 +288,8 @@ primitive rather than adding a near-duplicate.
 | 6 | Tailwind display-utility pitfall | 🟢 low | `.inline-flex` is emitted after `.hidden`, so `class="hidden xl:block"` passed into `Button`/`KeyesLogo` is silently ignored. Responsive visibility goes on a **wrapper element** — apply that pattern everywhere. (Alignment utilities like `self-start` are safe to pass through.) |
 | 7 | Team-name spelling | 🟠 med | Site uses "Closius"; the repository is `hoffman-clossius-real-estate`. Confirm before launch (`CONTENT_PENDING.md` 2.5). |
 | 8 | No automated a11y/perf testing yet | 🟠 med | Structural checks (single `h1`, landmarks, skip link, title, description, lang, viewport across all 30 pages) and a computed contrast pass are done. Screen-reader, keyboard-path and Lighthouse passes still to come once real pages exist. |
+| 9a | Four homepage sections are empty in production | 🟠 med | Featured properties, developments, testimonials and insights all show empty states until their data arrives. Each carries a distinct, useful call to action, and this is the honest state — but the page is visibly lighter than it will be. `npm run build:demo` shows the populated design. |
+| 9b | Homepage has no photography | 🔴 high | Fourteen media placeholders. The design is built around real imagery and reads flat without it. `CONTENT_PENDING.md` §9. |
 | 9 | Gold on white is 2.4:1 | 🟢 low | By design — gold is ornament only. The wordmark ampersand is a logotype (SC 1.4.3 exempt). Do not extend gold to body text or links on light surfaces. |
 
 ---
@@ -233,15 +297,12 @@ primitive rather than adding a near-duplicate.
 ## Next tasks
 
 ### Immediate — next session
-1. **Build the homepage** (`/`). Hero, introduction to Martin and MaryEllen,
-   the buy/sell/relocate paths, an honest listings placeholder, contact.
-   Blocked on hero photography (`CONTENT_PENDING.md` 9.1) for the image
-   treatment; the plain treatment can ship without it. The global chrome is
-   done, so the homepage only needs its own sections.
+1. **`/about/` and the two profile pages.** `AgentCard` and `MediaSlot` are
+   already built and reusable. Blocked on biographies and portraits
+   (`CONTENT_PENDING.md` 8.1–8.3) for the copy; the layout can be built now.
 
 ### Then, roughly in order
-2. `/about/` and the two individual profiles — blocked on bios + portraits.
-3. `/contact/` — blocked on the form destination and office address.
+2. `/contact/` — blocked on the form destination and office address.
 4. `/buy/` and `/sell/` overviews — buildable now, process copy only.
 5. `/relocation/` — buildable once MaryEllen's service description arrives.
 6. `/mortgage-calculator/` — buildable now; vanilla JS, estimates clearly
@@ -312,3 +373,32 @@ Three real bugs were found by testing rather than by reading the code:
 
 Also corrected: a missing space around the footer's WCAG note, and the previous
 "KEYES" text placeholder, which approximated the trademark as styled type.
+
+### Session 3 — 2026-08-24 · Homepage
+Built all twelve homepage sections plus the demo-content layer, `MediaSlot`,
+`ListingCard`, `AgentCard`, `DemoNotice` and `QueryEcho`. The search and
+valuation forms now carry real criteria to their destination pages, which read
+them back.
+
+Four bugs found by testing rather than by reading the code:
+
+1. **SVG gradient ids collide across the document.** Every `MediaSlot` defined
+   its wash as an SVG `<linearGradient>` with an id derived from its seed — and
+   SVG ids are document-global, so the first definition won for every slot
+   sharing that id. Light listing cards rendered with the hero's dark palette,
+   and the evergreen Buy panel rendered pale. The wash is now a CSS gradient
+   with no `<defs>` at all.
+2. **117px of horizontal overflow on a 390px phone.** The community card passed
+   `absolute inset-0` into `MediaSlot`, which sets its own `position: relative`;
+   the two fought and the grid item sized itself from the slot's aspect ratio
+   instead of the track. The slot is now wrapped in a positioned element, the
+   pattern `HomeHero` already used.
+3. **Portrait slots ran to 800px tall** in the two-column agent grid and swamped
+   the copy. Capped.
+4. **Placeholder text at 3.66:1** in the valuation address field, and the search
+   inputs left on the browser's default placeholder grey, which sits right on
+   the 4.5:1 line. Both raised and re-verified.
+
+Also corrected: a missing space in the demo notice, hero copy that claimed
+experience we cannot evidence, and the Buy/Sell panels floating in a white band
+instead of running full-bleed.

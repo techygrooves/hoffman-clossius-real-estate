@@ -223,6 +223,7 @@ docs/         Authoring notes
 | `npm run dev` | Dev server |
 | `npm run build` | `astro check` then `astro build` → `dist/` |
 | `npm run build:fast` | Build without the type check |
+| `npm run build:demo` | Build with demo content on, for design review only |
 | `npm run build:portable` | Build, then rewrite `dist/` URLs to relative so `dist/index.html` opens straight off the filesystem |
 | `npm run preview` | Serve `dist/` |
 
@@ -301,6 +302,27 @@ correct state until the client confirms the corresponding source.
   placeholder markup — this is a live real estate site and fabricated listing
   data is a legal problem, not a design one.
 - Pages consuming empty data must render an honest empty state.
+
+**The demo-content mechanism.** `src/config/flags.ts` exposes one flag,
+`demoContent`: ON in `astro dev`, OFF in a production build, overridable with
+`PUBLIC_DEMO_CONTENT=true|false`. `npm run build:demo` produces a populated
+build for design review.
+
+- Demo records live only in `src/data/demo/`, are typed `isDemo: true`, and are
+  resolved through `src/lib/content.ts`. **Real data always wins** — a demo
+  record is never shown alongside real client data.
+- Any section showing demo content renders a visible `<DemoNotice>`, and each
+  card carries a "Sample" badge. It must be impossible to mistake for real
+  inventory in a screenshot.
+- **Testimonials are excluded from this mechanism entirely** and always will
+  be. A fabricated review is unacceptable in every environment, including local
+  development. Only entries marked `verified: true` — meaning the client has
+  confirmed the quote and that we may publish it — ever render.
+- **Developments are excluded too.** Inventing a development, its builder,
+  pricing or delivery date is a claim about the market, not a design
+  placeholder.
+- To remove the demo layer for good: delete `src/data/demo/` and its import in
+  `src/lib/content.ts`. Nothing else references it.
 - Forms are not wired up until the destination endpoint is confirmed. A form
   that silently discards an enquiry is worse than no form.
 - Community and market figures are published **only with a cited source and a
@@ -353,7 +375,24 @@ about the client. No lorem ipsum in any visible, production-facing section.
 
 ---
 
-## 11. Performance
+## 11. Imagery
+
+Every image position goes through `src/components/ui/MediaSlot.astro`.
+
+- With a `src` it renders a responsive, layout-stable `<img>`.
+- Without one it renders a neutral abstract placeholder — a wash and a line
+  motif. **Never a stock photograph, never a borrowed picture, never anything
+  a viewer could take for a real property.**
+- The slot always reserves its aspect ratio, so nothing shifts when an image
+  loads. Pass real `width`/`height` and a `sizes` hint.
+- Placeholder wash and motif are CSS + inline SVG strokes with **no `<defs>`**:
+  SVG element ids are document-global, so a shared gradient id made separate
+  slots borrow each other's palette. Do not reintroduce one.
+- Never pass a positioning utility (`absolute`, `fixed`) into MediaSlot's
+  `class` — it sets its own `position`, and the two fight. Wrap it in a
+  positioned element instead, as `HomeHero` and `CommunitiesGrid` do.
+
+## 12. Performance
 
 - Optimise for Core Web Vitals. Ship no JavaScript a page does not need.
 - Images: correct intrinsic `width`/`height`, `loading="lazy"` below the fold,

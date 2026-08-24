@@ -1,0 +1,168 @@
+---
+/**
+ * MediaSlot — every image position on the site.
+ *
+ * With a `src` it renders a real, responsive, layout-stable <img>.
+ * Without one it renders a neutral, clearly non-photographic placeholder, so
+ * the page composes correctly while the client's photography is outstanding
+ * (CONTENT_PENDING.md §9).
+ *
+ * The placeholder is deliberately abstract. It is never a stock photograph, a
+ * borrowed picture, or anything a viewer could mistake for a real property.
+ * Dropping a `src` in later needs no other change.
+ *
+ * Layout stability: the slot always reserves its aspect ratio, so nothing
+ * shifts when the image loads.
+ */
+import { cn } from '@lib/cn';
+
+interface Props {
+  /** Path under /public. Omit to render the placeholder. */
+  src?: string | null;
+  /** Required when `src` is set. Empty string marks a decorative image. */
+  alt?: string;
+  /** Intrinsic size, used for the width/height attributes. */
+  width?: number;
+  height?: number;
+  /** CSS aspect ratio for the slot, e.g. "4/3". Defaults from width/height. */
+  ratio?: string;
+  sizes?: string;
+  loading?: 'lazy' | 'eager';
+  fetchpriority?: 'high' | 'low' | 'auto';
+  /** Varies the placeholder motif so a grid of them is not visually uniform. */
+  seed?: number;
+  /** Shows the small "image pending" marker. Off for small thumbnails. */
+  marker?: boolean;
+  /** Placeholder palette — `deep` for use on evergreen surfaces. */
+  tone?: 'light' | 'deep';
+  class?: string;
+  /** Applied to the <img> itself, e.g. hover transforms. */
+  imgClass?: string;
+}
+
+const {
+  src = null,
+  alt = '',
+  width = 1200,
+  height = 800,
+  ratio,
+  sizes,
+  loading = 'lazy',
+  fetchpriority,
+  seed = 0,
+  marker = true,
+  tone = 'light',
+  class: className,
+  imgClass,
+} = Astro.props;
+
+const aspect = ratio ?? `${width}/${height}`;
+const isDeep = tone === 'deep';
+
+/* Three abstract motifs — arcs, contours, a soft grid. Nothing representational. */
+const motif = Math.abs(seed) % 3;
+
+/*
+ * The wash is a CSS gradient rather than an SVG <linearGradient>: SVG ids are
+ * document-global, so two slots sharing a seed would have shared one
+ * definition and one palette. CSS keeps every instance independent.
+ */
+const wash = isDeep
+  ? 'linear-gradient(135deg, #05322b 0%, #03211c 100%)'
+  : 'linear-gradient(135deg, #eef5f1 0%, #dbe8e0 100%)';
+---
+
+{
+  src ? (
+    <div
+      class={cn('relative overflow-hidden bg-evergreen-50', className)}
+      style={`aspect-ratio:${aspect}`}
+    >
+      <img
+        src={src}
+        alt={alt}
+        width={width}
+        height={height}
+        sizes={sizes}
+        loading={loading}
+        fetchpriority={fetchpriority}
+        decoding="async"
+        class={cn('h-full w-full object-cover', imgClass)}
+      />
+    </div>
+  ) : (
+    <div
+      class={cn(
+        'relative isolate overflow-hidden',
+        isDeep ? 'bg-evergreen-900' : 'bg-evergreen-50',
+        className,
+      )}
+      style={`aspect-ratio:${aspect};background-image:${wash}`}
+      data-media-placeholder
+      aria-hidden="true"
+    >
+      <svg
+        class="absolute inset-0 h-full w-full"
+        viewBox="0 0 400 300"
+        preserveAspectRatio="xMidYMid slice"
+        role="presentation"
+        focusable="false"
+      >
+        <g
+          fill="none"
+          stroke={isDeep ? '#c9a34a' : '#063f35'}
+          stroke-opacity={isDeep ? '0.22' : '0.12'}
+          stroke-width="1"
+        >
+          {motif === 0 && (
+            <>
+              <circle cx="300" cy="240" r="150" />
+              <circle cx="300" cy="240" r="110" />
+              <circle cx="300" cy="240" r="70" />
+              <circle cx="300" cy="240" r="30" />
+            </>
+          )}
+          {motif === 1 && (
+            <>
+              <path d="M-20 220 C 80 170, 160 250, 260 190 S 400 150, 460 190" />
+              <path d="M-20 250 C 80 200, 160 280, 260 220 S 400 180, 460 220" />
+              <path d="M-20 280 C 80 230, 160 310, 260 250 S 400 210, 460 250" />
+              <path d="M-20 190 C 80 140, 160 220, 260 160 S 400 120, 460 160" />
+            </>
+          )}
+          {motif === 2 && (
+            <>
+              <path d="M0 90 H400 M0 150 H400 M0 210 H400" />
+              <path d="M80 0 V300 M180 0 V300 M280 0 V300" />
+            </>
+          )}
+        </g>
+      </svg>
+
+      {marker && (
+        <span
+          class={cn(
+            'absolute bottom-3 left-3 inline-flex items-center gap-1.5 rounded-xs border border-dashed px-2 py-1',
+            'font-sans text-[0.5rem] uppercase tracking-eyebrow',
+            isDeep ? 'border-white/25 text-white/50' : 'border-evergreen-800/20 text-evergreen-800/40',
+          )}
+        >
+          <svg
+            class="h-2.5 w-2.5"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <rect x="3" y="5" width="18" height="14" rx="1.5" />
+            <circle cx="8.5" cy="10" r="1.25" />
+            <path d="M21 16l-4.5-4.5L9 19" />
+          </svg>
+          Image pending
+        </span>
+      )}
+    </div>
+  )
+}

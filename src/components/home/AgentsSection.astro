@@ -1,0 +1,57 @@
+---
+/**
+ * AgentsSection — the two people behind the name.
+ * Intro copy is role-descriptive only; see AgentCard for the rule.
+ */
+import Section from '@components/ui/Section.astro';
+import SectionHeader from '@components/ui/SectionHeader.astro';
+import Button from '@components/ui/Button.astro';
+import AgentCard from '@components/ui/AgentCard.astro';
+import { getProfessional } from '@config/site';
+
+const martin = getProfessional('martin-hoffman');
+const maryellen = getProfessional('maryellen-closius');
+
+/** Keyed by slug so a copy change never lands on the wrong person. */
+const INTROS: Record<string, { intro: string; cta: string }> = {
+  'martin-hoffman': {
+    intro:
+      'Martin holds a Broker-Associate licence and represents buyers and sellers across South Florida.',
+    cta: 'Meet Martin',
+  },
+  'maryellen-closius': {
+    intro:
+      'MaryEllen is a Realtor Associate and Relocation Specialist, working with buyers, sellers and families moving to South Florida.',
+    cta: 'Meet MaryEllen',
+  },
+};
+---
+
+<Section tone="warm" labelledby="agents-heading">
+  <SectionHeader
+    id="agents-heading"
+    eyebrow="Who you work with"
+    title="Meet Martin & MaryEllen"
+    lead="You deal with the two of them directly — not a call centre, not a rotating team."
+  />
+
+  <div class="mt-14 grid gap-12 md:grid-cols-2 md:gap-10 lg:gap-16">
+    {
+      [martin, maryellen].map(
+        (person, index) =>
+          person && (
+            <AgentCard
+              person={person}
+              intro={INTROS[person.slug]?.intro ?? ''}
+              ctaLabel={INTROS[person.slug]?.cta ?? 'Read more'}
+              seed={index + 1}
+            />
+          ),
+      )
+    }
+  </div>
+
+  <div class="mt-14 flex justify-center" data-reveal>
+    <Button href="/about/" variant="ghost" withArrow>About Us</Button>
+  </div>
+</Section>

@@ -1,0 +1,114 @@
+---
+/**
+ * CommunitiesGrid — Explore South Florida.
+ *
+ * Driven entirely by src/data/communities.ts, so adding a community there puts
+ * it on the homepage and in the navigation with no markup change. The cards
+ * show only what that file holds: a name, its county, and a one-line
+ * locational fact. Guide copy is written with the client
+ * (CONTENT_PENDING.md 10.5).
+ */
+import Section from '@components/ui/Section.astro';
+import SectionHeader from '@components/ui/SectionHeader.astro';
+import Button from '@components/ui/Button.astro';
+import MediaSlot from '@components/ui/MediaSlot.astro';
+import { communities } from '@data/communities';
+
+interface Props {
+  limit?: number;
+}
+
+const { limit = 6 } = Astro.props;
+const items = communities.slice(0, limit);
+---
+
+<Section tone="white" labelledby="communities-heading">
+  <div class="flex flex-col gap-8 md:flex-row md:items-end md:justify-between">
+    <SectionHeader
+      id="communities-heading"
+      eyebrow="Neighbourhoods"
+      title="Explore South Florida"
+      lead="From the Intracoastal to the western suburbs — the places we know and work in."
+    />
+    <div class="hidden shrink-0 md:block" data-reveal>
+      <Button href="/communities/" variant="secondary" withArrow>
+        Explore All Communities
+      </Button>
+    </div>
+  </div>
+
+  {
+    items.length > 0 ? (
+      <ul class="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        {items.map((community, index) => (
+          <li>
+            <a
+              href={`/communities/${community.slug}/`}
+              class="group relative isolate flex h-full min-h-[24rem] flex-col overflow-hidden rounded-xs bg-evergreen-900 text-white sm:min-h-[26rem]"
+              data-surface="dark"
+              data-reveal
+              style={`--reveal-delay:${Math.min(index, 5) * 60}ms`}
+            >
+              <span class="absolute inset-0 -z-10">
+                <MediaSlot
+                  src={community.heroImage?.src ?? null}
+                  alt=""
+                  width={800}
+                  height={1000}
+                  ratio="auto"
+                  tone="deep"
+                  seed={index}
+                  marker={false}
+                  sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+                  class="h-full w-full"
+                  imgClass="h-full w-full object-cover transition-transform duration-700 ease-[var(--ease-editorial)] motion-safe:group-hover:scale-105"
+                />
+              </span>
+
+              <span
+                aria-hidden="true"
+                class="absolute inset-0 bg-gradient-to-t from-evergreen-950/90 via-evergreen-950/40 to-transparent transition-opacity duration-500 group-hover:from-evergreen-950/95"
+              />
+
+              <span class="relative mt-auto flex flex-col p-6">
+                <span class="text-[0.625rem] uppercase tracking-eyebrow text-gold-300">
+                  {community.county}
+                </span>
+                <span class="mt-2 font-serif text-2xl text-white">
+                  {community.name}
+                </span>
+                <span class="mt-2 text-sm leading-snug text-white/70">
+                  {community.summary}
+                </span>
+                <span class="mt-4 inline-flex items-center gap-2 text-[0.625rem] uppercase tracking-eyebrow text-white/80">
+                  View community
+                  <svg
+                    class="h-3 w-3 transition-transform duration-300 ease-[var(--ease-editorial)] motion-safe:group-hover:translate-x-1"
+                    viewBox="0 0 16 16"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                    stroke-linecap="square"
+                    aria-hidden="true"
+                  >
+                    <path d="M1 8h13M9 3l5 5-5 5" />
+                  </svg>
+                </span>
+              </span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    ) : (
+      <p class="mt-12 text-ink-muted" data-reveal>
+        Community guides are on the way.
+      </p>
+    )
+  }
+
+  <div class="mt-10 md:hidden" data-reveal>
+    <Button href="/communities/" variant="secondary" block withArrow>
+      Explore All Communities
+    </Button>
+  </div>
+</Section>

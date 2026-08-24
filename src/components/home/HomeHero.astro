@@ -1,0 +1,123 @@
+---
+/**
+ * HomeHero — the one full-bleed statement on the site.
+ *
+ * Carries the page's single <h1>. The background is a MediaSlot, so the
+ * client's hero photograph drops in by setting `heroImage` below with no other
+ * change; a lightweight muted background video can replace the same slot later
+ * (keep it muted, `playsinline`, poster-backed and behind a reduced-motion
+ * check when it arrives).
+ */
+import { professionals, serviceArea } from '@config/site';
+import Container from '@components/ui/Container.astro';
+import Button from '@components/ui/Button.astro';
+import MediaSlot from '@components/ui/MediaSlot.astro';
+
+/**
+ * Set to a path under /public once the client's photography is supplied —
+ * e.g. '/images/home/hero.jpg'. CONTENT_PENDING.md 9.1.
+ */
+const heroImage: string | null = null;
+
+const counties = serviceArea.counties
+  .map((c) => c.replace(' County', ''))
+  .join(' · ');
+---
+
+<section
+  class="relative isolate overflow-hidden bg-evergreen-900 text-white"
+  data-surface="dark"
+  aria-labelledby="home-hero-heading"
+>
+  {/* Background */}
+  <div class="absolute inset-0 -z-20">
+    <MediaSlot
+      src={heroImage}
+      alt=""
+      width={2400}
+      height={1400}
+      ratio="auto"
+      tone="deep"
+      seed={1}
+      marker={false}
+      loading="eager"
+      fetchpriority="high"
+      sizes="100vw"
+      class="h-full w-full"
+      imgClass="h-full w-full object-cover"
+    />
+  </div>
+
+  {/* Scrim — keeps text at AA over any photograph that lands here later. */}
+  <div
+    aria-hidden="true"
+    class="absolute inset-0 -z-10 bg-gradient-to-br from-evergreen-950/85 via-evergreen-900/70 to-evergreen-950/85"
+  >
+  </div>
+
+  <Container class="relative flex min-h-[clamp(34rem,72vh,46rem)] flex-col justify-center py-20 sm:py-28">
+    <div class="max-w-4xl">
+      <p class="eyebrow text-gold-300" data-reveal>
+        <span class="rule-gold" aria-hidden="true"></span>
+        {counties}
+      </p>
+
+      <h1
+        id="home-hero-heading"
+        class="mt-6 text-display-lg text-white"
+        data-reveal
+        style="--reveal-delay:60ms"
+      >
+        South Florida Real Estate.
+        <span class="block text-evergreen-100">Personal Expertise.</span>
+        <span class="block">Exceptional Results.</span>
+      </h1>
+
+      <p
+        class="mt-7 max-w-xl text-lg leading-relaxed text-white/80 sm:text-xl"
+        data-reveal
+        style="--reveal-delay:120ms"
+      >
+        Two experienced professionals, working directly with the people they
+        represent — from the first search to the closing table.
+      </p>
+
+      <div
+        class="mt-10 flex flex-col gap-3 sm:flex-row sm:items-center"
+        data-reveal
+        style="--reveal-delay:180ms"
+      >
+        <Button href="/properties/search/" size="lg" variant="gold" withArrow>
+          Search Properties
+        </Button>
+        <Button href="/sell/home-evaluation/" size="lg" variant="inverse">
+          What&rsquo;s My Home Worth?
+        </Button>
+      </div>
+    </div>
+
+    {/* The two people behind the name. No claims, just who they are. */}
+    <ul
+      class="mt-14 flex flex-col gap-6 border-t border-line-inverse pt-8 sm:flex-row sm:gap-14"
+      data-reveal
+      style="--reveal-delay:240ms"
+    >
+      {
+        professionals.map((person) => (
+          <li>
+            <a href={person.href} class="group block">
+              <p class="font-serif text-2xl text-white transition-colors group-hover:text-gold-300">
+                {person.name}
+              </p>
+              <p class="mt-1 text-xs uppercase tracking-eyebrow text-white/60">
+                {person.specialty
+                  ? `${person.title} · ${person.specialty}`
+                  : person.title}
+              </p>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </Container>
+</section>

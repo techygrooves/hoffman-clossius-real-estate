@@ -1,0 +1,141 @@
+---
+/**
+ * BuySellPanels — the two journeys, side by side.
+ * Evergreen for buying, warm white for selling, so the pair reads as a
+ * deliberate contrast rather than two identical boxes.
+ */
+import Section from '@components/ui/Section.astro';
+import Button from '@components/ui/Button.astro';
+import MediaSlot from '@components/ui/MediaSlot.astro';
+
+const BUY_LINKS = [
+  { label: 'Search homes', href: '/properties/search/' },
+  { label: 'Explore communities', href: '/communities/' },
+  { label: 'New developments', href: '/developments/new/' },
+  { label: 'Dream Home Finder', href: '/buy/dream-home-finder/' },
+  { label: 'Relocation', href: '/relocation/' },
+];
+
+const SELL_LINKS = [
+  { label: 'Home evaluation', href: '/sell/home-evaluation/' },
+  { label: 'Market positioning', href: '/sell/median-home-values/' },
+  { label: 'Seller services', href: '/sell/' },
+];
+---
+
+<Section tone="white" space="none" contained={false} labelledby="buy-sell-heading">
+  <h2 id="buy-sell-heading" class="sr-only">Buying and selling with Hoffman &amp; Closius</h2>
+
+  <div class="grid lg:grid-cols-2">
+    {/* Buy */}
+    <div
+      class="group relative isolate flex min-h-[30rem] flex-col justify-end overflow-hidden bg-evergreen-800 p-[var(--gutter)] py-16 text-white lg:py-20"
+      data-surface="dark"
+      data-reveal
+    >
+      <div class="absolute inset-0 -z-20">
+        <MediaSlot
+          src={null}
+          width={1200}
+          height={900}
+          ratio="auto"
+          tone="deep"
+          seed={0}
+          marker={false}
+          class="h-full w-full"
+          imgClass="h-full w-full object-cover transition-transform duration-700 ease-[var(--ease-editorial)] motion-safe:group-hover:scale-105"
+        />
+      </div>
+      <div
+        aria-hidden="true"
+        class="absolute inset-0 -z-10 bg-gradient-to-t from-evergreen-950/90 via-evergreen-900/70 to-evergreen-900/40"
+      >
+      </div>
+
+      <div class="mx-auto w-full max-w-xl lg:mr-0 lg:ml-auto lg:pr-[max(0px,calc((100vw-var(--container-page))/2))]">
+        <p class="eyebrow text-gold-300">
+          <span class="rule-gold" aria-hidden="true"></span>
+          Buying
+        </p>
+        <h3 class="mt-5 text-display-sm text-white">Looking to Buy?</h3>
+
+        <ul class="mt-8 flex flex-col divide-y divide-line-inverse border-y border-line-inverse">
+          {
+            BUY_LINKS.map((link) => (
+              <li>
+                <a
+                  href={link.href}
+                  class="group/link flex items-center justify-between gap-4 py-3.5 text-sm text-white/85 transition-colors hover:text-white"
+                >
+                  {link.label}
+                  <svg
+                    class="h-3 w-3 shrink-0 text-white/40 transition-all duration-300 ease-[var(--ease-editorial)] group-hover/link:text-gold-300 motion-safe:group-hover/link:translate-x-1"
+                    viewBox="0 0 16 16"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                    stroke-linecap="square"
+                    aria-hidden="true"
+                  >
+                    <path d="M1 8h13M9 3l5 5-5 5" />
+                  </svg>
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+
+        <div class="mt-9">
+          <Button href="/buy/" variant="gold" withArrow>Find Your Home</Button>
+        </div>
+      </div>
+    </div>
+
+    {/* Sell */}
+    <div
+      class="relative flex min-h-[30rem] flex-col justify-end bg-cream-100 p-[var(--gutter)] py-16 lg:py-20"
+      data-reveal
+      style="--reveal-delay:100ms"
+    >
+      <div class="mx-auto w-full max-w-xl lg:ml-0 lg:mr-auto lg:pl-[max(0px,calc((100vw-var(--container-page))/2))]">
+        <p class="eyebrow text-evergreen-600">
+          <span class="rule-gold" aria-hidden="true"></span>
+          Selling
+        </p>
+        <h3 class="mt-5 text-display-sm text-evergreen-800">Thinking of Selling?</h3>
+
+        <ul class="mt-8 flex flex-col divide-y divide-line border-y border-line">
+          {
+            SELL_LINKS.map((link) => (
+              <li>
+                <a
+                  href={link.href}
+                  class="group/link flex items-center justify-between gap-4 py-3.5 text-sm text-ink-muted transition-colors hover:text-evergreen-800"
+                >
+                  {link.label}
+                  <svg
+                    class="h-3 w-3 shrink-0 text-ink-subtle transition-all duration-300 ease-[var(--ease-editorial)] group-hover/link:text-gold-600 motion-safe:group-hover/link:translate-x-1"
+                    viewBox="0 0 16 16"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                    stroke-linecap="square"
+                    aria-hidden="true"
+                  >
+                    <path d="M1 8h13M9 3l5 5-5 5" />
+                  </svg>
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+
+        <div class="mt-9">
+          <Button href="/sell/home-evaluation/" withArrow>
+            What&rsquo;s My Home Worth?
+          </Button>
+        </div>
+      </div>
+    </div>
+  </div>
+</Section>
