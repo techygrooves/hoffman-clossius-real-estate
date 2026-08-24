@@ -3,25 +3,98 @@
 Living record of what exists, what is broken and what comes next.
 **Update this file at the end of every session.**
 
-Last updated: **2026-08-21** — Session 1 (project foundation)
+Last updated: **2026-08-24** — Session 2 (global header, navigation and footer)
 
 ---
 
 ## Current state
 
-Foundation complete. Astro + Tailwind configured, design tokens established,
-base layout architecture built, all 32 routes scaffolded, build green.
+Foundation complete, and the **global chrome — header, navigation, footer and
+mobile action bar — is now built**.
 
-**No page content has been written yet — that is intentional.** Every route
-except `/404` renders a hero plus an honest "in preparation" band.
+**Page content is still deliberately unwritten.** Every route except `/404`
+renders a hero plus an honest "in preparation" band. The homepage is next.
 
 | Metric | Value |
 | --- | --- |
 | Build | ✅ passing — `astro check`: 0 errors, 0 warnings, 0 hints |
-| Pages generated | 30 static HTML pages (4 dynamic routes generate 0 until data exists) |
-| CSS bundle | ~36 KB uncompressed, one file |
-| JavaScript | ~3.6 KB total, inlined, no dependencies |
+| Pages generated | 36 static HTML pages |
+| Internal links | ✅ 39 distinct links + 35 nav entries, all resolve (`npm run verify:links`) |
+| Navigation tests | ✅ 21/21 behavioural checks, plus 5/5 with JavaScript disabled |
+| CSS bundle | ~40 KB uncompressed, one file |
+| JavaScript | ~4.4 KB total, inlined, no dependencies |
 | Third-party runtime requests | none |
+
+---
+
+## ✅ Completed — Session 2 (2026-08-24) · Global chrome
+
+### Header
+- [x] Rebuilt as three desktop rows — evergreen utility bar (both direct lines,
+      social slot, Contact, account links), a spacious white brand row
+      (wordmark · **Keyes logo, prominent** · Search Homes), and a nav row.
+- [x] **Sticky after scrolling**: the utility and brand rows scroll away and
+      the nav row pins to the top, taking a subtle shadow and revealing a
+      condensed Keyes logo + Search Homes call to action.
+- [x] Navigation restructured to the specified map — Home, Properties,
+      Developments, Buy, Sell, Communities (7 entries, two columns),
+      About, Resources (6 entries, two columns), Contact.
+- [x] Dropdown panels right-align for the last groups so none can overflow the
+      viewport edge.
+- [x] Compact sticky bar below xl: wordmark · Keyes logo · menu button.
+
+### Mobile navigation
+- [x] Drawer rebuilt rather than shrunk — quick-action tiles (Search Homes /
+      Home Value), then an **exclusive accordion** (`<details name="mobile-nav">`)
+      so only one category is open at a time, nested links set off by a hairline
+      rule, then both agents' direct contacts, social slot and account links.
+- [x] **Sticky mobile action bar**: Call · Search · Home Value · Contact, with
+      `aria-label`s that read as full sentences. The footer absorbs its height
+      so nothing is trapped behind it at the bottom of the page.
+- [x] **Call** opens a chooser listing both agents rather than dialling one of
+      them — there is no confirmed shared number and lead routing is unconfirmed
+      (`CONTENT_PENDING.md` 2.2 / 6.3).
+
+### Footer
+- [x] Rebuilt as a substantial four-column footer: identity, Keyes logo, both
+      agents' full contacts, and Properties / Services / Explore / Legal columns.
+- [x] **"Accessibility / ADA Compliance"** in the Legal column and the bottom
+      legal row, plus a compact accessibility note naming WCAG 2.2 AA and
+      inviting reports. **No compliance or certification is claimed** — verified
+      by scanning the built output.
+- [x] Dynamic copyright year. No "Powered by" vendor line.
+- [x] Fair Housing / brokerage disclosure renders automatically once
+      `pending.legal` is populated; nothing invented meanwhile.
+
+### Keyes logo
+- [x] Placeholder replaced with a **neutral graphic** — a generic image glyph in
+      a dashed slot. The previous placeholder set the word "Keyes" as styled
+      text, which approximated the trademark; it no longer does.
+- [x] The image slot is documented in the component header, `docs/keyes-logo.md`
+      and `CONTENT_PENDING.md`. Dropping the real file in swaps it with no code
+      change.
+
+### New components
+- [x] `SocialLinks` — icon row that renders **nothing** until a URL is confirmed.
+- [x] `MobileActionBar` — the sticky bottom bar.
+
+### Routes
+- [x] Six community pages added so every navigation link resolves: Hollywood,
+      Fort Lauderdale, Dania Beach, Hallandale Beach, Pembroke Pines, Aventura.
+      Each carries only a verifiable locational one-liner — see
+      `CONTENT_PENDING.md` 10.5.
+
+### Verification
+- [x] `scripts/verify-links.mjs` — walks the built output *and* the navigation
+      config and fails on any dead link. Wired into `npm run build`.
+- [x] 21 behavioural checks in Chromium at 390 / 1440 px: dropdown open/close,
+      `aria-expanded`, Escape, focus return, one-panel-at-a-time, no overflow,
+      sticky pinning, drawer focus trap, exclusive accordion, Call disclosure,
+      action-bar clearance.
+- [x] 5 checks with **JavaScript disabled**: dropdowns still open on keyboard
+      focus, no content hidden, footer still exposes the full sitemap.
+
+**Three bugs found and fixed by that testing** (see Session log).
 
 ---
 
@@ -122,9 +195,11 @@ except `/404` renders a hero plus an honest "in preparation" band.
 | --- | --- | --- |
 | `BaseLayout` | `src/layouts/BaseLayout.astro` | ✅ stable |
 | `StubPage` | `src/layouts/StubPage.astro` | ⚠️ temporary — delete when the last page is built |
-| `Header` | `src/components/layout/Header.astro` | ✅ stable |
-| `Footer` | `src/components/layout/Footer.astro` | ✅ stable |
-| `KeyesLogo` | `src/components/layout/KeyesLogo.astro` | ⚠️ placeholder until the asset arrives |
+| `Header` | `src/components/layout/Header.astro` | ✅ stable — rebuilt in session 2 |
+| `Footer` | `src/components/layout/Footer.astro` | ✅ stable — rebuilt in session 2 |
+| `MobileActionBar` | `src/components/layout/MobileActionBar.astro` | ✅ stable — new in session 2 |
+| `SocialLinks` | `src/components/layout/SocialLinks.astro` | ✅ stable — renders nothing until URLs are confirmed |
+| `KeyesLogo` | `src/components/layout/KeyesLogo.astro` | ⚠️ neutral graphic placeholder until the asset arrives |
 | `Wordmark` | `src/components/layout/Wordmark.astro` | ✅ stable |
 | `Container` | `src/components/ui/Container.astro` | ✅ stable |
 | `Section` | `src/components/ui/Section.astro` | ✅ stable |
@@ -143,12 +218,12 @@ primitive rather than adding a near-duplicate.
 
 | # | Item | Severity | Detail |
 | --- | --- | --- | --- |
-| 1 | Keyes logo is a placeholder | 🔴 high | Header, drawer and footer show a dashed "KEYES" box. Resolves itself the moment the real files land in `public/brand/`. `CONTENT_PENDING.md` 1.1–1.3. |
+| 1 | Keyes logo is a placeholder | 🔴 high | Header, drawer and footer show a **neutral dashed image-glyph slot** — deliberately not a wordmark, so nothing approximates the trademark. Resolves itself the moment the real files land in `public/brand/`. `CONTENT_PENDING.md` 1.1–1.3. |
 | 2 | No canonical URLs | 🟠 med | Suppressed on purpose while `site.urlConfirmed` is false. Flip it once the domain is confirmed. |
-| 3 | Parent paths 404 | 🟠 med | `/properties/`, `/developments/`, `/resources/` have no index page — they were not in the specified route list. Nothing links to them (the nav points at leaf routes) but a typed URL will 404. **Decide with the client:** add index pages, or redirect to the first child. |
+| 3 | Parent paths 404 | 🟠 med | `/properties/`, `/developments/`, `/resources/` have no index page — they were not in the specified route list. Nothing links to them (verified by `verify:links`; the nav points at leaf routes) but a typed URL will 404. **Decide with the client:** add index pages, or redirect to the first child. |
 | 4 | Build logs a benign content warning | 🟢 low | `The collection "blog" does not exist or is empty` and `No files found matching …` — expected with zero posts. Disappears with the first article. |
 | 5 | `PageHero` image variant unverified | 🟢 low | Built but never rendered with a real photograph. Re-check contrast over the scrim when imagery arrives. |
-| 6 | Tailwind display-utility pitfall | 🟢 low | `.inline-flex` is emitted after `.hidden`, so `class="hidden xl:block"` passed into `Button`/`KeyesLogo` is silently ignored. Fixed in the header by using wrapper elements — **apply the same pattern everywhere.** |
+| 6 | Tailwind display-utility pitfall | 🟢 low | `.inline-flex` is emitted after `.hidden`, so `class="hidden xl:block"` passed into `Button`/`KeyesLogo` is silently ignored. Responsive visibility goes on a **wrapper element** — apply that pattern everywhere. (Alignment utilities like `self-start` are safe to pass through.) |
 | 7 | Team-name spelling | 🟠 med | Site uses "Closius"; the repository is `hoffman-clossius-real-estate`. Confirm before launch (`CONTENT_PENDING.md` 2.5). |
 | 8 | No automated a11y/perf testing yet | 🟠 med | Structural checks (single `h1`, landmarks, skip link, title, description, lang, viewport across all 30 pages) and a computed contrast pass are done. Screen-reader, keyboard-path and Lighthouse passes still to come once real pages exist. |
 | 9 | Gold on white is 2.4:1 | 🟢 low | By design — gold is ornament only. The wordmark ampersand is a logotype (SC 1.4.3 exempt). Do not extend gold to body text or links on light surfaces. |
@@ -161,7 +236,8 @@ primitive rather than adding a near-duplicate.
 1. **Build the homepage** (`/`). Hero, introduction to Martin and MaryEllen,
    the buy/sell/relocate paths, an honest listings placeholder, contact.
    Blocked on hero photography (`CONTENT_PENDING.md` 9.1) for the image
-   treatment; the plain treatment can ship without it.
+   treatment; the plain treatment can ship without it. The global chrome is
+   done, so the homepage only needs its own sections.
 
 ### Then, roughly in order
 2. `/about/` and the two individual profiles — blocked on bios + portraits.
@@ -209,3 +285,30 @@ every token pairing (`ink-subtle` on cream, outline-button borders, footer
 column headings, and a gold focus ring that was only 2.4:1 on white).
 
 Homepage deliberately **not** built — that is the next task.
+
+### Session 2 — 2026-08-24 · Global header, navigation and footer
+Rebuilt the whole global chrome: three-row desktop header with the Keyes logo
+given real prominence, the specified nine-group navigation, a rebuilt mobile
+drawer, a new sticky mobile action bar, and a substantial four-column footer
+carrying "Accessibility / ADA Compliance". Added `SocialLinks` and
+`MobileActionBar`, six community routes, and `scripts/verify-links.mjs`.
+
+Three real bugs were found by testing rather than by reading the code:
+
+1. **The sticky header never stuck.** A `position: sticky` child can only stick
+   inside its parent's box, and the `<header>` box was only as tall as its rows
+   — so the nav row scrolled away with it. (This dated from session 1 and had
+   never been verified.) The `<header>` itself now sticks, pulled up by exactly
+   the measured height of the rows above the pinning one.
+2. **Two dropdowns could sit open at once**, because `:focus-within` stays true
+   after a mouse click on a trigger. Worse, the same thing meant **Escape could
+   not actually close a menu** — closing returns focus to the trigger, which
+   immediately reopened it. Open state now lives in `[data-open]` on the group,
+   managed by the script; the CSS-only `:focus-visible` fallback is scoped to a
+   nav the script has *not* enhanced, so keyboard users keep working with no
+   JavaScript and Escape works when there is.
+3. **The logo placeholder stretched to full width** inside flex-column parents
+   and **clipped its own label** at small sizes.
+
+Also corrected: a missing space around the footer's WCAG note, and the previous
+"KEYES" text placeholder, which approximated the trademark as styled type.

@@ -13,7 +13,7 @@ Status key: 🔴 blocking · 🟠 needed soon · 🟡 needed before launch
 
 | # | Item | Status | Notes |
 | --- | --- | --- | --- |
-| 1.1 | **Official Keyes logo — light background** | 🔴 | Drop at `public/brand/keyes-logo.svg` (`.png`/`.webp` accepted). The header currently shows a visible "KEYES" placeholder box. |
+| 1.1 | **Official Keyes logo — light background** | 🔴 | Drop at `public/brand/keyes-logo.svg` (`.png`/`.webp` accepted). Until then the header, drawer and footer show a **neutral graphic placeholder** — a generic image glyph, deliberately not a wordmark, so nothing on the site approximates the Keyes trademark. |
 | 1.2 | **Official Keyes logo — reversed / white** | 🔴 | `public/brand/keyes-logo-white.svg`, for the evergreen footer. |
 | 1.3 | Logo intrinsic dimensions | 🔴 | Set `brokerageBrand.width` / `.height` in `src/config/site.ts` once the file exists, so the aspect ratio is exact. |
 | 1.4 | Any Keyes brand-usage guidelines | 🟠 | Minimum clear space, minimum size, permitted backgrounds. |
@@ -54,7 +54,7 @@ Status key: 🔴 blocking · 🟠 needed soon · 🟡 needed before launch
 | 4.1 | **Brokerage legal name for the footer** | 🔴 | Exact wording as the brokerage requires it. |
 | 4.2 | **Required brokerage/Keyes footer disclosure** | 🔴 | Verbatim text, if any is mandated. |
 | 4.3 | Florida real estate licence numbers | 🔴 | For Martin and MaryEllen individually. |
-| 4.4 | Equal Housing Opportunity / REALTOR® marks | 🟠 | Confirm whether they must appear, and supply the approved artwork. |
+| 4.4 | **Fair Housing / Equal Housing Opportunity** | 🟠 | Confirm whether the Fair Housing statement and/or the Equal Housing Opportunity and REALTOR® marks must appear in the footer, and supply the approved wording and artwork. The footer renders them automatically once `pending.legal` is populated — nothing is invented meanwhile. |
 | 4.5 | MLS attribution + IDX disclaimer wording | 🔴 | Mandated by the MLS; exact text comes from the IDX provider. |
 | 4.6 | DMCA notice text | 🟡 | |
 | 4.7 | Privacy policy source text | 🟠 | Drafted only once forms, analytics and embeds are known — the policy must describe what the site actually does. |
@@ -86,7 +86,7 @@ Status key: 🔴 blocking · 🟠 needed soon · 🟡 needed before launch
 | --- | --- | --- | --- |
 | 6.1 | **Form destination** | 🔴 | Email inbox, CRM, Formspree/Netlify Forms, or the IDX provider's lead capture. Blocks `/contact/`, `/buy/dream-home-finder/`, `/sell/home-evaluation/`. |
 | 6.2 | Which fields are required | 🟠 | Especially for the Dream Home Finder and the home evaluation request. |
-| 6.3 | Lead routing | 🟠 | Do enquiries go to Martin, MaryEllen, or both? |
+| 6.3 | **Lead routing** | 🟠 | Do enquiries go to Martin, MaryEllen, or both? Also governs the mobile action bar's **Call** button: with no confirmed shared number and no routing rule, it opens a chooser listing both direct lines rather than silently picking an agent. Confirm a single number and it can dial directly. |
 | 6.4 | Spam protection | 🟠 | Honeypot, hCaptcha, provider-side — affects whether third-party script is added. |
 | 6.5 | Consent / opt-in wording | 🟠 | Required text under the submit button. |
 | 6.6 | Confirmation behaviour | 🟡 | Inline message or a thank-you page. |
@@ -140,7 +140,8 @@ Status key: 🔴 blocking · 🟠 needed soon · 🟡 needed before launch
 | 10.2 | **FAQ answers** | 🟠 | Questions touching process, fees and Florida practice must be client-reviewed. |
 | 10.3 | Buying guide content | 🟠 | |
 | 10.4 | Selling guide content | 🟠 | |
-| 10.5 | Community guides — which communities | 🟠 | Priority list, then copy. |
+| 10.5 | **Community guide copy — six pages already live** | 🟠 | The navigation names Hollywood, Fort Lauderdale, Dania Beach, Hallandale Beach, Pembroke Pines and Aventura, so those six routes now exist. Each currently carries **only a one-line verifiable locational fact** (which county it sits in and where, relative to its neighbours) and an "in preparation" band. Real guide copy, photography and any figures — with sources — are needed. No statistics, school ratings, median values or superlatives may be added without them. |
+| 10.5a | Any further communities to add | 🟡 | Beyond the six above. |
 | 10.6 | Developments to feature | 🟠 | Plus permitted renderings and developer material. |
 | 10.7 | Median home value data source | 🟠 | Every figure needs a source and a date. |
 | 10.8 | Relocation content | 🟠 | What MaryEllen's relocation service actually includes. |
@@ -166,10 +167,12 @@ Every placeholder shipped today, so none can be forgotten:
 
 | Placeholder | Where | Removed when |
 | --- | --- | --- |
-| "KEYES" dashed box in header, drawer and footer | `src/components/layout/KeyesLogo.astro` | 1.1 / 1.2 supplied |
+| Neutral dashed image-glyph box in the header, drawer and footer | `src/components/layout/KeyesLogo.astro` | 1.1 / 1.2 supplied |
 | `site.url = 'https://hoffmanclosius.com'`, `urlConfirmed: false` | `src/config/site.ts` | 3.1 confirmed |
 | "Content for this page is on the way" band | `src/components/sections/InPreparation.astro`, on every stub route | Each page is built out |
 | Empty data modules | `src/data/*.ts` | The matching source is confirmed |
+| Six community pages carrying only a locational one-liner | `src/data/communities.ts` | 10.5 supplied |
+| Social icon slots rendering nothing | `src/components/layout/SocialLinks.astro` | §7 URLs supplied |
 
 No placeholder above is phrased as a factual claim about the client, and none
 uses lorem ipsum.

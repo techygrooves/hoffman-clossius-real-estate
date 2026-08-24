@@ -2,25 +2,28 @@
  * ---------------------------------------------------------------------------
  * NAVIGATION MAP
  * ---------------------------------------------------------------------------
- * Single source of truth for header, mobile drawer and footer menus.
- * Adding a route here is what makes it appear in the UI — pages themselves
+ * Single source of truth for the header, mobile drawer, mobile action bar and
+ * footer menus. Adding a route here is what makes it appear in the UI — pages
  * never declare their own nav position.
+ *
+ * Every href here must resolve to a real route. `npm run verify:links` walks
+ * this file against the built output and fails on any dead link.
  * ---------------------------------------------------------------------------
  */
 
 export type NavLink = {
   readonly label: string;
   readonly href: string;
-  /** Short supporting line shown in the desktop mega-menu and mobile drawer. */
+  /** Short supporting line shown in the desktop dropdown. */
   readonly description?: string;
-  /** Hidden from menus but kept here so route metadata stays centralised. */
-  readonly hidden?: boolean;
 };
 
 export type NavGroup = {
   readonly label: string;
-  /** Present when the group's own landing page exists. */
+  /** The group's own landing page, when it has one. */
   readonly href?: string;
+  /** Renders the dropdown in two columns — for longer lists only. */
+  readonly columns?: 1 | 2;
   readonly items: readonly NavLink[];
 };
 
@@ -34,6 +37,8 @@ export const isNavGroup = (entry: NavEntry): entry is NavGroup =>
 /* -------------------------------------------------------------------------- */
 
 export const primaryNav: readonly NavEntry[] = [
+  { label: 'Home', href: '/' },
+
   {
     label: 'Properties',
     href: '/properties/search/',
@@ -56,10 +61,11 @@ export const primaryNav: readonly NavEntry[] = [
       {
         label: 'Property Search',
         href: '/properties/search/',
-        description: 'Search the market by location, price and features.',
+        description: 'Search by location, price and features.',
       },
     ],
   },
+
   {
     label: 'Developments',
     items: [
@@ -69,86 +75,73 @@ export const primaryNav: readonly NavEntry[] = [
         description: 'Pre-construction and newly delivered communities.',
       },
       {
-        label: 'Established Developments',
+        label: 'Existing Developments',
         href: '/developments/existing/',
         description: 'Long-established South Florida communities.',
       },
     ],
   },
+
   {
     label: 'Buy',
     href: '/buy/',
     items: [
       {
-        label: 'Buying With Us',
+        label: 'Buyer Services',
         href: '/buy/',
         description: 'How representation works from search to closing.',
       },
       {
         label: 'Dream Home Finder',
         href: '/buy/dream-home-finder/',
-        description: 'Tell us what you are looking for and we will find it.',
-      },
-      {
-        label: 'Buying Guide',
-        href: '/resources/buying-guide/',
-        description: 'A step-by-step walkthrough of the purchase process.',
-      },
-      {
-        label: 'Mortgage Calculator',
-        href: '/mortgage-calculator/',
-        description: 'Estimate monthly payments before you tour.',
+        description: 'Tell us what you are looking for.',
       },
     ],
   },
+
   {
     label: 'Sell',
     href: '/sell/',
     items: [
       {
-        label: 'Selling With Us',
+        label: 'Seller Services',
         href: '/sell/',
-        description: 'Marketing, positioning and negotiation.',
+        description: 'Preparation, pricing, marketing and negotiation.',
       },
       {
-        label: 'Home Evaluation',
+        label: 'Free Home Evaluation',
         href: '/sell/home-evaluation/',
         description: 'Request a considered opinion of value.',
       },
       {
         label: 'Median Home Values',
         href: '/sell/median-home-values/',
-        description: 'Understand where your neighbourhood stands.',
-      },
-      {
-        label: 'Selling Guide',
-        href: '/resources/selling-guide/',
-        description: 'What to expect from listing to closing.',
+        description: 'See where your neighbourhood stands.',
       },
     ],
   },
+
   {
     label: 'Communities',
     href: '/communities/',
+    columns: 2,
     items: [
-      {
-        label: 'All Communities',
-        href: '/communities/',
-        description: 'Neighbourhood guides across South Florida.',
-      },
-      {
-        label: 'Relocation',
-        href: '/relocation/',
-        description: 'Moving to South Florida from out of state or abroad.',
-      },
+      { label: 'Explore Communities', href: '/communities/' },
+      { label: 'Hollywood', href: '/communities/hollywood/' },
+      { label: 'Fort Lauderdale', href: '/communities/fort-lauderdale/' },
+      { label: 'Dania Beach', href: '/communities/dania-beach/' },
+      { label: 'Hallandale Beach', href: '/communities/hallandale-beach/' },
+      { label: 'Pembroke Pines', href: '/communities/pembroke-pines/' },
+      { label: 'Aventura', href: '/communities/aventura/' },
     ],
   },
+
   {
     label: 'About',
     href: '/about/',
     items: [
       {
-        label: 'About Us',
+        label: 'About Hoffman & Closius',
         href: '/about/',
         description: 'How we work and who we work with.',
       },
@@ -159,15 +152,71 @@ export const primaryNav: readonly NavEntry[] = [
         href: '/testimonials/',
         description: 'In the words of the people we have represented.',
       },
-      {
-        label: 'Journal',
-        href: '/blog/',
-        description: 'Market notes and neighbourhood writing.',
-      },
-      { label: 'FAQ', href: '/faq/' },
     ],
   },
+
+  {
+    label: 'Resources',
+    columns: 2,
+    items: [
+      { label: 'Blog', href: '/blog/' },
+      { label: 'Mortgage Calculator', href: '/mortgage-calculator/' },
+      { label: 'Buying Guide', href: '/resources/buying-guide/' },
+      { label: 'Selling Guide', href: '/resources/selling-guide/' },
+      { label: 'Relocation', href: '/relocation/' },
+      { label: 'FAQs', href: '/faq/' },
+    ],
+  },
+
   { label: 'Contact', href: '/contact/' },
+];
+
+/** The single primary call to action in the header. */
+export const headerCta = {
+  label: 'Search Homes',
+  href: '/properties/search/',
+} as const;
+
+/* -------------------------------------------------------------------------- */
+/* Mobile sticky action bar                                                    */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * The four thumb-reachable actions pinned to the bottom of the viewport on
+ * phones and tablets. `kind: 'call'` opens a disclosure listing both direct
+ * lines — there is no confirmed shared number and lead routing is unconfirmed
+ * (CONTENT_PENDING.md 2.2 / 6.3), so the site must not pick an agent for the
+ * caller.
+ */
+export type MobileAction =
+  | { readonly kind: 'call'; readonly label: string; readonly srLabel: string }
+  | {
+      readonly kind: 'link';
+      readonly label: string;
+      readonly srLabel: string;
+      readonly href: string;
+    };
+
+export const mobileActions: readonly MobileAction[] = [
+  { kind: 'call', label: 'Call', srLabel: 'Call — choose an agent' },
+  {
+    kind: 'link',
+    label: 'Search',
+    srLabel: 'Search homes for sale',
+    href: '/properties/search/',
+  },
+  {
+    kind: 'link',
+    label: 'Home Value',
+    srLabel: 'Request a free home evaluation',
+    href: '/sell/home-evaluation/',
+  },
+  {
+    kind: 'link',
+    label: 'Contact',
+    srLabel: 'Contact Hoffman & Closius',
+    href: '/contact/',
+  },
 ];
 
 /* -------------------------------------------------------------------------- */
@@ -183,17 +232,16 @@ export const footerNav: readonly NavGroup[] = [
       { label: 'Our Listings', href: '/properties/our-listings/' },
       { label: 'Property Search', href: '/properties/search/' },
       { label: 'New Developments', href: '/developments/new/' },
-      { label: 'Established Developments', href: '/developments/existing/' },
     ],
   },
   {
-    label: 'Buying & Selling',
+    label: 'Services',
     items: [
       { label: 'Buy', href: '/buy/' },
-      { label: 'Dream Home Finder', href: '/buy/dream-home-finder/' },
       { label: 'Sell', href: '/sell/' },
+      { label: 'Dream Home Finder', href: '/buy/dream-home-finder/' },
       { label: 'Home Evaluation', href: '/sell/home-evaluation/' },
-      { label: 'Median Home Values', href: '/sell/median-home-values/' },
+      { label: 'Relocation', href: '/relocation/' },
       { label: 'Mortgage Calculator', href: '/mortgage-calculator/' },
     ],
   },
@@ -201,30 +249,27 @@ export const footerNav: readonly NavGroup[] = [
     label: 'Explore',
     items: [
       { label: 'Communities', href: '/communities/' },
-      { label: 'Relocation', href: '/relocation/' },
-      { label: 'Buying Guide', href: '/resources/buying-guide/' },
-      { label: 'Selling Guide', href: '/resources/selling-guide/' },
-      { label: 'Journal', href: '/blog/' },
-      { label: 'FAQ', href: '/faq/' },
+      { label: 'About', href: '/about/' },
+      { label: 'Testimonials', href: '/testimonials/' },
+      { label: 'Blog', href: '/blog/' },
+      { label: 'Contact', href: '/contact/' },
     ],
   },
   {
-    label: 'Our Team',
+    label: 'Legal',
     items: [
-      { label: 'About Us', href: '/about/' },
-      { label: 'Martin Hoffman P.A.', href: '/about/martin-hoffman/' },
-      { label: 'MaryEllen Closius P.A.', href: '/about/maryellen-closius/' },
-      { label: 'Testimonials', href: '/testimonials/' },
-      { label: 'Contact', href: '/contact/' },
+      { label: 'Accessibility / ADA Compliance', href: '/accessibility/' },
+      { label: 'Privacy Policy', href: '/privacy-policy/' },
+      { label: 'Terms', href: '/terms/' },
     ],
   },
 ];
 
 /** Small print row at the very bottom of the footer. */
 export const legalNav: readonly NavLink[] = [
-  { label: 'Accessibility', href: '/accessibility/' },
+  { label: 'Accessibility / ADA Compliance', href: '/accessibility/' },
   { label: 'Privacy Policy', href: '/privacy-policy/' },
-  { label: 'Terms of Use', href: '/terms/' },
+  { label: 'Terms', href: '/terms/' },
 ];
 
 /** Account routes — deliberately kept out of the primary menu. */
@@ -259,6 +304,31 @@ export const isWithin = (href: string, current: string): boolean => {
 /** True when any link inside a nav entry matches the current page. */
 export const entryIsActive = (entry: NavEntry, current: string): boolean =>
   isNavGroup(entry)
-    ? entry.items.some((item) => isWithin(item.href, current)) ||
-      (entry.href ? isWithin(entry.href, current) : false)
+    ? entry.items.some((item) => isWithin(item.href, current))
     : isWithin(entry.href, current);
+
+/** Every href referenced anywhere in the navigation, de-duplicated. */
+export const allNavHrefs = (): string[] => {
+  const hrefs = new Set<string>();
+  const add = (href: string) => {
+    if (href.startsWith('/')) hrefs.add(href);
+  };
+
+  for (const entry of primaryNav) {
+    if (isNavGroup(entry)) {
+      if (entry.href) add(entry.href);
+      entry.items.forEach((item) => add(item.href));
+    } else {
+      add(entry.href);
+    }
+  }
+  for (const group of footerNav) group.items.forEach((i) => add(i.href));
+  legalNav.forEach((l) => add(l.href));
+  accountNav.forEach((l) => add(l.href));
+  mobileActions.forEach((a) => {
+    if (a.kind === 'link') add(a.href);
+  });
+  add(headerCta.href);
+
+  return [...hrefs].sort();
+};

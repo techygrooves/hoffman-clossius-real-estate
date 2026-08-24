@@ -1,0 +1,116 @@
+---
+/**
+ * MobileActionBar — thumb-reachable actions pinned to the bottom of the
+ * viewport on phones and tablets. Hidden from ≥xl, where the header carries
+ * the same actions.
+ *
+ * "Call" is a disclosure rather than a direct tel: link. There is no confirmed
+ * shared office number, and lead routing between Martin and MaryEllen has not
+ * been decided (CONTENT_PENDING.md 2.2 / 6.3) — so the site must not silently
+ * pick an agent on the caller's behalf. It is a native <details>, which keeps
+ * it keyboard-operable with no JavaScript; the header script only adds
+ * Escape-to-close and outside-click-to-close.
+ *
+ * Sits below the mobile drawer in the stacking order, so opening the menu
+ * covers it without any extra state.
+ */
+import { professionals } from '@config/site';
+import { mobileActions } from '@config/navigation';
+import { cn } from '@lib/cn';
+
+const ICONS: Record<string, string> = {
+  Call: 'M4 4h3.5l1.5 4-2 1.5a12 12 0 0 0 5.5 5.5L14 13l4 1.5V18a2 2 0 0 1-2.2 2A15.5 15.5 0 0 1 4 6.2 2 2 0 0 1 6 4',
+  Search: 'M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14ZM20 20l-4-4',
+  'Home Value': 'M4 10.5 12 4l8 6.5V19a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-8.5ZM9.5 15l2-2 1.5 1.5 2.5-3',
+  Contact: 'M3 6.5A1.5 1.5 0 0 1 4.5 5h15A1.5 1.5 0 0 1 21 6.5v11a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 17.5v-11ZM3.5 7l8.5 6 8.5-6',
+};
+
+const itemClass =
+  'flex h-full w-full flex-col items-center justify-center gap-1 px-1 py-2 text-[0.6875rem] font-medium tracking-wide-sm text-evergreen-800 transition-colors hover:bg-evergreen-50';
+---
+
+<div
+  class="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-white/97 backdrop-blur-sm shadow-[0_-4px_24px_rgb(6_63_53_/_0.08)] xl:hidden"
+  style="padding-bottom: env(safe-area-inset-bottom, 0px)"
+  data-mobile-action-bar
+>
+  <nav aria-label="Quick actions">
+    <ul class="grid grid-cols-4">
+      {
+        mobileActions.map((action) => (
+          <li class="relative h-14 border-r border-line last:border-r-0">
+            {action.kind === 'link' ? (
+              <a href={action.href} class={itemClass}>
+                <svg
+                  class="h-[18px] w-[18px]"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d={ICONS[action.label]} />
+                </svg>
+                <span aria-hidden="true">{action.label}</span>
+                <span class="sr-only">{action.srLabel}</span>
+              </a>
+            ) : (
+              <details class="group/call h-full" data-call-disclosure>
+                <summary
+                  class={cn(itemClass, 'cursor-pointer list-none [&::-webkit-details-marker]:hidden')}
+                >
+                  <svg
+                    class="h-[18px] w-[18px]"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d={ICONS[action.label]} />
+                  </svg>
+                  <span aria-hidden="true">{action.label}</span>
+                  <span class="sr-only">{action.srLabel}</span>
+                </summary>
+
+                {/* Opens upward, out of the bar. */}
+                <div class="absolute bottom-full left-0 z-10 mb-px w-[min(20rem,calc(100vw-1.5rem))] overflow-hidden rounded-t-xs border border-line bg-white shadow-elevated">
+                  <span class="block h-px w-full bg-gold-500/60" aria-hidden="true" />
+                  <p class="px-4 pt-3 text-[0.6875rem] uppercase tracking-eyebrow text-ink-subtle">
+                    Call direct
+                  </p>
+                  <ul class="flex flex-col p-2 pt-1">
+                    {professionals.map((person) => (
+                      <li>
+                        <a
+                          href={person.phone.href}
+                          class="block rounded-xs px-2 py-2.5 transition-colors hover:bg-evergreen-50"
+                        >
+                          <span class="block text-sm text-evergreen-800">
+                            {person.name}
+                          </span>
+                          <span class="mt-0.5 block text-xs text-ink-muted">
+                            {person.specialty
+                              ? `${person.title} · ${person.specialty}`
+                              : person.title}
+                          </span>
+                          <span class="mt-1 block text-sm tracking-wide-sm text-evergreen-700">
+                            {person.phone.value}
+                          </span>
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </details>
+            )}
+          </li>
+        ))
+      }
+    </ul>
+  </nav>
+</div>

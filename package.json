@@ -7,12 +7,13 @@
   "scripts": {
     "dev": "astro dev",
     "start": "astro dev",
-    "build": "astro check && astro build",
+    "build": "astro check && astro build && node scripts/verify-links.mjs",
     "build:fast": "astro build",
     "build:portable": "astro build && node scripts/make-portable.mjs",
     "preview": "astro preview",
     "check": "astro check",
-    "astro": "astro"
+    "astro": "astro",
+    "verify:links": "node scripts/verify-links.mjs"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.3",

@@ -8,6 +8,7 @@
 import { site, brand, professionals, pending, absoluteUrl } from '@config/site';
 import Header from '@components/layout/Header.astro';
 import Footer from '@components/layout/Footer.astro';
+import MobileActionBar from '@components/layout/MobileActionBar.astro';
 import '@styles/global.css';
 
 interface Props {
@@ -151,6 +152,8 @@ const structuredData = {
     </main>
 
     <Footer />
+
+    <MobileActionBar />
 
     <script>
       import { initReveal } from '@lib/reveal';

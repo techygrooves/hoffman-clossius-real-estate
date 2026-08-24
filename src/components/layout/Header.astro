@@ -2,110 +2,160 @@
 /**
  * Header — global site header.
  *
- * Structure
- *   Utility bar (desktop)  evergreen strip with both agents' direct lines.
- *   Main bar (sticky)      Hoffman & Closius wordmark · primary nav ·
- *                          Keyes logo · contact call to action.
- *   Mobile drawer          full-screen panel, native <details> disclosures.
+ * ── Structure ─────────────────────────────────────────────────────────────
+ *  Utility bar   (≥lg)  Evergreen strip: both direct lines, social slot,
+ *                       Contact link.
+ *  Brand row     (≥xl)  Hoffman & Closius wordmark · Keyes logo, prominent ·
+ *                       Search Homes call to action. Scrolls away.
+ *  Nav row       (≥xl)  Sticky. Pins to the top once the rows above scroll
+ *                       past, and takes a shadow while pinned.
+ *  Compact bar   (<xl)  Sticky. Wordmark · Keyes logo · menu button.
+ *  Drawer        (<xl)  Full-height panel with quick actions, an exclusive
+ *                       accordion for nested categories, and direct contacts.
  *
- * Accessibility
- *   - Desktop menus open on hover AND focus with no JavaScript; the script
- *     only upgrades them with click-toggle, aria-expanded and Escape.
- *   - The drawer traps nothing it should not: Escape closes it, focus returns
- *     to the toggle, and background scrolling is locked while it is open.
+ * ── Accessibility ─────────────────────────────────────────────────────────
+ *  - Dropdowns open on hover AND on keyboard focus with no JavaScript; the
+ *    script only adds click-toggle, aria-expanded and Escape-to-close. No
+ *    behaviour is hover-only.
+ *  - The drawer's nested categories are native <details> elements with a
+ *    shared `name`, so only one opens at a time and it all works without JS.
+ *  - Escape closes the drawer and focus returns to the button that opened it.
+ *  - <nav> landmarks are individually labelled: Primary, Utility, Mobile.
  */
 import { professionals } from '@config/site';
 import {
   primaryNav,
+  headerCta,
   accountNav,
   isNavGroup,
   entryIsActive,
+  isCurrent,
 } from '@config/navigation';
 import { cn } from '@lib/cn';
 import Container from '@components/ui/Container.astro';
 import Button from '@components/ui/Button.astro';
 import KeyesLogo from './KeyesLogo.astro';
 import Wordmark from './Wordmark.astro';
+import SocialLinks from './SocialLinks.astro';
 
 const current = Astro.url.pathname;
+
+/* Panels for the last groups are right-aligned so they cannot overflow the
+   viewport edge. */
+const RIGHT_ALIGN_FROM = primaryNav.length - 3;
 ---
 
-<header class="relative z-50" data-site-header>
-  {/* ---------------------------------------------------------- utility bar */}
+<header data-site-header>
+  {/* ══════════════════════════════════════════════ utility bar (desktop) ══ */}
   <div class="hidden bg-evergreen-800 text-white lg:block" data-surface="dark">
-    <Container class="flex h-10 items-center justify-between gap-6 text-xs">
-      <ul class="flex items-center gap-6">
-        {
-          professionals.map((person) => (
-            <li class="flex items-center gap-2">
-              <span class="text-white/55">{person.firstName}</span>
-              <a
-                href={person.phone.href}
-                class="link-underline tracking-wide-sm text-white/90 transition-colors hover:text-white"
-              >
-                {person.phone.value}
-              </a>
-            </li>
-          ))
-        }
-      </ul>
+    <Container class="flex h-11 items-center justify-between gap-6">
+      <nav aria-label="Direct lines" class="flex items-center">
+        <ul class="flex items-center gap-6 text-xs">
+          {
+            professionals.map((person) => (
+              <li class="flex items-center gap-2">
+                <span class="text-white/55">{person.firstName}</span>
+                <a
+                  href={person.phone.href}
+                  class="link-underline tracking-wide-sm text-white/90 transition-colors hover:text-white"
+                >
+                  <span class="sr-only">Call {person.name} on </span>
+                  {person.phone.value}
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </nav>
 
-      <ul class="flex items-center gap-5">
-        {
-          accountNav.map((link) => (
+      <div class="flex items-center gap-4">
+        <SocialLinks tone="light" />
+
+        <nav aria-label="Utility" class="flex items-center">
+          <ul class="flex items-center gap-5 text-xs">
             <li>
               <a
-                href={link.href}
-                class="link-underline text-white/70 transition-colors hover:text-white"
+                href="/contact/"
+                class="link-underline text-white/80 transition-colors hover:text-white"
               >
-                {link.label}
+                Contact
               </a>
             </li>
-          ))
-        }
-      </ul>
+            {
+              accountNav.map((link) => (
+                <li>
+                  <a
+                    href={link.href}
+                    class="link-underline text-white/60 transition-colors hover:text-white"
+                  >
+                    {link.label}
+                  </a>
+                </li>
+              ))
+            }
+          </ul>
+        </nav>
+      </div>
     </Container>
   </div>
 
-  {/* ------------------------------------------------------------- main bar */}
-  <div
-    class="sticky top-0 z-50 border-b border-line bg-white/95 backdrop-blur-sm transition-shadow duration-300 data-[scrolled]:shadow-header"
-    data-header-bar
-  >
-    <Container class="flex h-[var(--header-height)] items-center justify-between gap-4 lg:h-[var(--header-height-lg)]">
-      {/* Brand */}
+  {/* ═══════════════════════════════════════════════ brand row (desktop) ══ */}
+  <div class="hidden bg-white xl:block">
+    <Container class="flex items-center justify-between gap-10 py-7">
       <a
         href="/"
-        class="min-w-0 shrink rounded-xs transition-opacity duration-300 hover:opacity-80"
+        class="rounded-xs transition-opacity duration-300 hover:opacity-80"
         aria-label="Hoffman & Closius — home"
       >
-        <Wordmark size="md" />
+        <Wordmark size="lg" />
       </a>
 
-      {/* Primary navigation */}
-      <nav
-        class="hidden xl:block"
-        aria-label="Primary"
-        data-primary-nav
-      >
+      {/*
+        Keyes brand asset, given real presence. Displayed unmodified and
+        without any accompanying explanatory wording.
+      */}
+      <div class="flex items-center gap-7">
+        <KeyesLogo height={52} />
+        <span class="h-10 w-px bg-line" aria-hidden="true"></span>
+        <Button href={headerCta.href} size="md" withArrow>
+          {headerCta.label}
+        </Button>
+      </div>
+    </Container>
+  </div>
+
+  {/* ══════════════════════════════════════════ nav row (desktop, sticky) ══ */}
+  <div
+    class="hidden border-y border-line bg-white/95 backdrop-blur-sm transition-shadow duration-300 data-[scrolled]:shadow-header xl:block"
+    data-header-bar
+  >
+    <Container class="flex items-center justify-between gap-6">
+      <nav aria-label="Primary" data-primary-nav>
         <ul class="flex items-center">
           {
             primaryNav.map((entry, index) => {
               const active = entryIsActive(entry, current);
               const panelId = `nav-panel-${index}`;
+              const alignRight = index >= RIGHT_ALIGN_FROM;
+
+              const triggerClass = cn(
+                'relative flex items-center gap-1.5 px-4 py-4 text-sm tracking-wide-sm transition-colors',
+                'after:absolute after:inset-x-4 after:bottom-2 after:h-px after:origin-right after:scale-x-0',
+                'after:bg-gold-500 after:transition-transform after:duration-300 after:ease-[var(--ease-editorial)]',
+                'hover:after:origin-left hover:after:scale-x-100',
+                'focus-visible:after:origin-left focus-visible:after:scale-x-100',
+                active
+                  ? 'text-evergreen-800 after:origin-left after:scale-x-100'
+                  : 'text-ink-muted hover:text-evergreen-800',
+              );
 
               if (!isNavGroup(entry)) {
                 return (
                   <li>
                     <a
                       href={entry.href}
-                      aria-current={active ? 'page' : undefined}
-                      class={cn(
-                        'link-underline mx-3 block py-2 text-sm tracking-wide-sm transition-colors',
-                        active
-                          ? 'text-evergreen-800'
-                          : 'text-ink-muted hover:text-evergreen-800',
-                      )}
+                      aria-current={isCurrent(entry.href, current) ? 'page' : undefined}
+                      class={triggerClass}
                     >
                       {entry.label}
                     </a>
@@ -120,16 +170,11 @@ const current = Astro.url.pathname;
                     aria-expanded="false"
                     aria-controls={panelId}
                     data-nav-trigger
-                    class={cn(
-                      'mx-3 flex items-center gap-1.5 py-2 text-sm tracking-wide-sm transition-colors',
-                      active
-                        ? 'text-evergreen-800'
-                        : 'text-ink-muted hover:text-evergreen-800',
-                    )}
+                    class={triggerClass}
                   >
                     {entry.label}
                     <svg
-                      class="h-2.5 w-2.5 transition-transform duration-300 ease-[var(--ease-editorial)] group-hover:rotate-180 group-focus-within:rotate-180"
+                      class="h-2.5 w-2.5 shrink-0 transition-transform duration-300 ease-[var(--ease-editorial)] group-hover:rotate-180 group-data-[open]:rotate-180"
                       viewBox="0 0 10 6"
                       fill="none"
                       stroke="currentColor"
@@ -144,24 +189,27 @@ const current = Astro.url.pathname;
                     id={panelId}
                     data-nav-panel
                     class={cn(
-                      'invisible absolute left-1/2 top-full z-50 w-80 -translate-x-1/2 pt-4 opacity-0',
+                      'invisible absolute top-full z-50 translate-y-1 pt-1 opacity-0',
                       'transition-[opacity,transform,visibility] duration-300 ease-[var(--ease-editorial)]',
-                      'translate-y-1',
                       'group-hover:visible group-hover:translate-y-0 group-hover:opacity-100',
-                      'group-focus-within:visible group-focus-within:translate-y-0 group-focus-within:opacity-100',
-                      'data-[open]:visible data-[open]:translate-y-0 data-[open]:opacity-100',
+                      'group-data-[open]:visible group-data-[open]:translate-y-0 group-data-[open]:opacity-100',
+                      entry.columns === 2 ? 'w-[26rem]' : 'w-80',
+                      alignRight ? 'right-0' : 'left-0',
                     )}
                   >
-                    <div class="overflow-hidden rounded-xs border border-line bg-white p-2 shadow-elevated">
-                      <span
-                        class="pointer-events-none absolute inset-x-0 top-4 mx-auto block h-px w-full max-w-[calc(100%-1rem)] bg-gold-500/50"
-                        aria-hidden="true"
-                      />
-                      <ul class="flex flex-col">
+                    <div class="overflow-hidden rounded-xs border border-line bg-white shadow-elevated">
+                      <span class="block h-px w-full bg-gold-500/60" aria-hidden="true"></span>
+                      <ul
+                        class={cn(
+                          'p-2',
+                          entry.columns === 2 ? 'grid grid-cols-2 gap-x-1' : 'flex flex-col',
+                        )}
+                      >
                         {entry.items.map((item) => (
                           <li>
                             <a
                               href={item.href}
+                              aria-current={isCurrent(item.href, current) ? 'page' : undefined}
                               class="block rounded-xs px-4 py-3 transition-colors hover:bg-evergreen-50"
                             >
                               <span class="block text-sm text-evergreen-800">
@@ -186,31 +234,40 @@ const current = Astro.url.pathname;
       </nav>
 
       {/*
-        Keyes brand asset + call to action.
-
-        Responsive visibility lives on wrapper elements, never on the child
-        component: Tailwind emits `.inline-flex` after `.hidden`, so a `hidden`
-        class handed to a component that sets its own display would lose.
+        Condensed identity + call to action, revealed only once the bar is
+        pinned — so the sticky strip still carries the brand and the primary
+        action without duplicating them while the full brand row is visible.
       */}
-      <div class="flex shrink-0 items-center gap-3 sm:gap-5">
-        <KeyesLogo height={36} />
+      <div class="flex shrink-0 items-center gap-4 opacity-0 transition-opacity duration-300 data-[scrolled]:opacity-100" data-header-condensed>
+        <KeyesLogo height={26} decorative />
+        <Button href={headerCta.href} size="sm">{headerCta.label}</Button>
+      </div>
+    </Container>
+  </div>
 
-        <span
-          class="hidden h-8 w-px bg-line xl:block"
-          aria-hidden="true"
-        ></span>
+  {/* ═════════════════════════════════════════ compact bar (mobile, sticky) ══ */}
+  <div
+    class="flex border-b border-line bg-white/95 backdrop-blur-sm transition-shadow duration-300 data-[scrolled]:shadow-header xl:hidden"
+    data-header-bar
+  >
+    <Container class="flex h-[var(--header-height)] items-center justify-between gap-3">
+      <a
+        href="/"
+        class="min-w-0 shrink rounded-xs transition-opacity duration-300 hover:opacity-80"
+        aria-label="Hoffman & Closius — home"
+      >
+        <Wordmark size="md" />
+      </a>
 
-        <span class="hidden xl:block">
-          <Button href="/contact/" size="sm">Contact</Button>
-        </span>
+      <div class="flex shrink-0 items-center gap-3">
+        <KeyesLogo height={30} />
 
-        {/* Drawer toggle */}
         <button
           type="button"
           data-drawer-toggle
           aria-expanded="false"
           aria-controls="mobile-drawer"
-          class="-mr-2 flex h-11 w-11 items-center justify-center rounded-xs text-evergreen-800 transition-colors hover:bg-evergreen-50 xl:hidden"
+          class="-mr-2 flex h-11 w-11 items-center justify-center rounded-xs text-evergreen-800 transition-colors hover:bg-evergreen-50"
         >
           <span class="sr-only">Open menu</span>
           <svg
@@ -222,23 +279,18 @@ const current = Astro.url.pathname;
             stroke-linecap="square"
             aria-hidden="true"
           >
-            <path d="M3 6h18M3 12h18M3 18h18" />
+            <path d="M3 6h18M3 12h18M3 18h18"></path>
           </svg>
         </button>
       </div>
     </Container>
   </div>
 
-  {/* -------------------------------------------------------- mobile drawer */}
-  <div
-    id="mobile-drawer"
-    data-drawer
-    hidden
-    class="fixed inset-0 z-[60] xl:hidden"
-  >
+  {/* ════════════════════════════════════════════════════ drawer (mobile) ══ */}
+  <div id="mobile-drawer" data-drawer hidden class="fixed inset-0 z-[70] xl:hidden">
     <div
       data-drawer-scrim
-      class="absolute inset-0 bg-evergreen-950/45 opacity-0 transition-opacity duration-300 data-[open]:opacity-100"
+      class="absolute inset-0 bg-evergreen-950/50 opacity-0 transition-opacity duration-300 data-[open]:opacity-100"
     >
     </div>
 
@@ -247,131 +299,177 @@ const current = Astro.url.pathname;
       role="dialog"
       aria-modal="true"
       aria-label="Site menu"
-      class="absolute inset-y-0 right-0 flex w-full max-w-sm translate-x-full flex-col bg-white transition-transform duration-400 ease-[var(--ease-editorial)] data-[open]:translate-x-0"
+      class="absolute inset-y-0 right-0 flex w-full max-w-[26rem] translate-x-full flex-col bg-white transition-transform duration-300 ease-[var(--ease-editorial)] data-[open]:translate-x-0"
     >
-      <div class="flex h-[var(--header-height)] shrink-0 items-center justify-between border-b border-line px-[var(--gutter)]">
-        <KeyesLogo height={30} />
-        <button
-          type="button"
-          data-drawer-close
-          class="-mr-2 flex h-11 w-11 items-center justify-center rounded-xs text-evergreen-800 transition-colors hover:bg-evergreen-50"
-        >
-          <span class="sr-only">Close menu</span>
-          <svg
-            class="h-5 w-5"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.5"
-            stroke-linecap="square"
-            aria-hidden="true"
+      <div class="flex h-[var(--header-height)] shrink-0 items-center justify-between gap-3 border-b border-line px-[var(--gutter)]">
+        <Wordmark size="sm" showTagline={false} />
+        <div class="flex items-center gap-2">
+          <KeyesLogo height={26} />
+          <button
+            type="button"
+            data-drawer-close
+            class="-mr-2 flex h-11 w-11 items-center justify-center rounded-xs text-evergreen-800 transition-colors hover:bg-evergreen-50"
           >
-            <path d="M6 6l12 12M18 6L6 18" />
-          </svg>
-        </button>
+            <span class="sr-only">Close menu</span>
+            <svg
+              class="h-5 w-5"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.5"
+              stroke-linecap="square"
+              aria-hidden="true"
+            >
+              <path d="M6 6l12 12M18 6L6 18"></path>
+            </svg>
+          </button>
+        </div>
       </div>
 
-      <nav
-        class="flex-1 overflow-y-auto overscroll-contain px-[var(--gutter)] py-6"
-        aria-label="Mobile"
-      >
-        <ul class="flex flex-col divide-y divide-line">
-          {
-            primaryNav.map((entry) => {
-              if (!isNavGroup(entry)) {
-                return (
-                  <li>
-                    <a
-                      href={entry.href}
-                      aria-current={
-                        entryIsActive(entry, current) ? 'page' : undefined
-                      }
-                      class="block py-4 font-serif text-xl text-evergreen-800"
-                    >
-                      {entry.label}
-                    </a>
-                  </li>
-                );
-              }
-
-              return (
-                <li>
-                  <details
-                    class="group/details"
-                    open={entryIsActive(entry, current)}
-                  >
-                    <summary class="flex cursor-pointer list-none items-center justify-between py-4 font-serif text-xl text-evergreen-800 [&::-webkit-details-marker]:hidden">
-                      {entry.label}
-                      <svg
-                        class="h-3 w-3 shrink-0 text-ink-subtle transition-transform duration-300 group-open/details:rotate-180"
-                        viewBox="0 0 10 6"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="1.25"
-                        aria-hidden="true"
-                      >
-                        <path d="M1 1l4 4 4-4" />
-                      </svg>
-                    </summary>
-                    <ul class="flex flex-col gap-1 pb-4 pl-1">
-                      {entry.items.map((item) => (
-                        <li>
-                          <a
-                            href={item.href}
-                            class="block py-2 text-sm text-ink-muted transition-colors hover:text-evergreen-800"
-                          >
-                            {item.label}
-                          </a>
-                        </li>
-                      ))}
-                    </ul>
-                  </details>
-                </li>
-              );
-            })
-          }
-        </ul>
-
-        <div class="mt-8 flex flex-col gap-3">
-          <Button href="/contact/" block withArrow>Contact Us</Button>
+      <div class="flex-1 overflow-y-auto overscroll-contain">
+        {/* Quick actions — the two things most visitors came for. */}
+        <div class="grid grid-cols-2 gap-2 border-b border-line px-[var(--gutter)] py-5">
+          <Button href={headerCta.href} size="sm" block>{headerCta.label}</Button>
+          <Button href="/sell/home-evaluation/" size="sm" variant="secondary" block>
+            Home Value
+          </Button>
         </div>
 
-        <ul class="mt-8 flex flex-col gap-4 border-t border-line pt-6">
-          {
-            professionals.map((person) => (
-              <li class="text-sm">
-                <p class="font-serif text-lg text-evergreen-800">
-                  {person.name}
-                </p>
-                <p class="text-xs uppercase tracking-wide-sm text-ink-subtle">
-                  {person.title}
-                </p>
-                <a
-                  href={person.phone.href}
-                  class="mt-1 inline-block text-ink-muted transition-colors hover:text-evergreen-800"
-                >
-                  {person.phone.value}
-                </a>
-              </li>
-            ))
-          }
-        </ul>
+        <nav aria-label="Mobile" class="px-[var(--gutter)] py-2">
+          <ul class="flex flex-col divide-y divide-line">
+            {
+              primaryNav.map((entry) => {
+                if (!isNavGroup(entry)) {
+                  return (
+                    <li>
+                      <a
+                        href={entry.href}
+                        aria-current={isCurrent(entry.href, current) ? 'page' : undefined}
+                        class="flex items-center justify-between py-4 font-serif text-xl text-evergreen-800"
+                      >
+                        {entry.label}
+                        <svg
+                          class="h-3 w-3 shrink-0 text-ink-subtle"
+                          viewBox="0 0 16 16"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="1.5"
+                          stroke-linecap="square"
+                          aria-hidden="true"
+                        >
+                          <path d="M1 8h13M9 3l5 5-5 5" />
+                        </svg>
+                      </a>
+                    </li>
+                  );
+                }
 
-        <ul class="mt-6 flex items-center gap-5 border-t border-line pt-6 text-xs">
-          {
-            accountNav.map((link) => (
-              <li>
-                <a
-                  href={link.href}
-                  class="link-underline text-ink-muted transition-colors hover:text-evergreen-800"
-                >
-                  {link.label}
-                </a>
-              </li>
-            ))
-          }
-        </ul>
-      </nav>
+                return (
+                  <li>
+                    {/*
+                      Shared `name` makes these an exclusive accordion in
+                      supporting browsers — one category open at a time, so a
+                      long nested menu never becomes a wall of links. Where
+                      `name` is unsupported they simply behave as independent
+                      disclosures.
+                    */}
+                    <details
+                      name="mobile-nav"
+                      class="group/details"
+                      open={entryIsActive(entry, current)}
+                    >
+                      <summary class="flex cursor-pointer list-none items-center justify-between py-4 font-serif text-xl text-evergreen-800 [&::-webkit-details-marker]:hidden">
+                        {entry.label}
+                        <span
+                          class="flex h-7 w-7 items-center justify-center rounded-full border border-line text-ink-subtle transition-transform duration-300 group-open/details:rotate-180"
+                          aria-hidden="true"
+                        >
+                          <svg
+                            class="h-2.5 w-2.5"
+                            viewBox="0 0 10 6"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="1.5"
+                          >
+                            <path d="M1 1l4 4 4-4" />
+                          </svg>
+                        </span>
+                      </summary>
+
+                      <ul class="mb-4 ml-1 flex flex-col border-l border-line pl-4">
+                        {entry.items.map((item) => (
+                          <li>
+                            <a
+                              href={item.href}
+                              aria-current={isCurrent(item.href, current) ? 'page' : undefined}
+                              class="block py-2.5 text-sm text-ink-muted transition-colors hover:text-evergreen-800 aria-[current=page]:text-evergreen-800"
+                            >
+                              {item.label}
+                            </a>
+                          </li>
+                        ))}
+                      </ul>
+                    </details>
+                  </li>
+                );
+              })
+            }
+          </ul>
+        </nav>
+
+        {/* Direct contacts */}
+        <div class="border-t border-line px-[var(--gutter)] py-6">
+          <h2 class="eyebrow text-ink-subtle">Speak to us</h2>
+          <ul class="mt-4 flex flex-col gap-5">
+            {
+              professionals.map((person) => (
+                <li>
+                  <p class="font-serif text-lg text-evergreen-800">{person.name}</p>
+                  <p class="text-xs uppercase tracking-wide-sm text-ink-subtle">
+                    {person.specialty
+                      ? `${person.title} · ${person.specialty}`
+                      : person.title}
+                  </p>
+                  <div class="mt-1.5 flex flex-col gap-1 text-sm">
+                    <a
+                      href={person.phone.href}
+                      class="link-underline w-fit text-ink-muted transition-colors hover:text-evergreen-800"
+                    >
+                      <span class="sr-only">Call {person.firstName} on </span>
+                      {person.phone.value}
+                    </a>
+                    <a
+                      href={person.email.href}
+                      class="link-underline w-fit break-all text-ink-muted transition-colors hover:text-evergreen-800"
+                    >
+                      <span class="sr-only">Email {person.firstName} at </span>
+                      {person.email.value}
+                    </a>
+                  </div>
+                </li>
+              ))
+            }
+          </ul>
+        </div>
+
+        <div class="border-t border-line px-[var(--gutter)] py-5">
+          <SocialLinks class="-ml-2 mb-3" />
+          <ul class="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs">
+            {
+              accountNav.map((link) => (
+                <li>
+                  <a
+                    href={link.href}
+                    class="link-underline text-ink-muted transition-colors hover:text-evergreen-800"
+                  >
+                    {link.label}
+                  </a>
+                </li>
+              ))
+            }
+          </ul>
+        </div>
+      </div>
     </div>
   </div>
 </header>

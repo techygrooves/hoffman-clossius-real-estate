@@ -107,6 +107,10 @@ the footer.
    paraphrase of them. The logo stands on its own with no explanation.
 3. The logo is rendered only through `src/components/layout/KeyesLogo.astro`.
    Do not inline `<img src="/brand/...">` anywhere else.
+4. **While the asset is missing, the placeholder must stay neutral** — a
+   generic image glyph in a dashed slot. Never set "Keyes" as styled type, or
+   draw an approximate mark, as a stand-in. A placeholder that looks like a
+   logo is worse than an obviously empty slot.
 
 ### Asset status
 
@@ -129,6 +133,8 @@ intrinsic dimensions. Details in `docs/keyes-logo.md`.
 
 Routes are defined by files in `src/pages/`. Menu placement is defined **only**
 in `src/config/navigation.ts` — pages never declare their own nav position.
+`npm run verify:links` walks the built output *and* that config, and fails on
+any dead link; it runs as part of `npm run build`.
 
 ```
 /                                 Home
@@ -150,6 +156,9 @@ in `src/config/navigation.ts` — pages never declare their own nav position.
 /sell/median-home-values/         Median values, each with a cited source
 /communities/                     Community guide index
 /communities/[slug]/              Community guide          — dynamic
+                                  Live: hollywood, fort-lauderdale,
+                                  dania-beach, hallandale-beach,
+                                  pembroke-pines, aventura
 /relocation/                      Relocation
 /testimonials/                    Client testimonials
 /mortgage-calculator/             Client-side calculator
@@ -240,6 +249,12 @@ Target: **WCAG 2.2 Level AA**.
   certified".** No such certification exists. The accessibility statement
   describes the standard the site is *built toward* and how to report a
   barrier.
+- The footer link is worded **"Accessibility / ADA Compliance"** at the
+  client's request, alongside a note naming WCAG 2.2 AA as the target and
+  inviting reports. Naming the topic is fine; claiming conformance is not.
+- **No behaviour may be hover-only.** The header dropdowns open on hover *and*
+  on keyboard focus, and they work with JavaScript disabled. When adding a
+  menu or disclosure, keep both paths.
 - Every page: one `<h1>`, headings in order, landmarks (`header`, `nav`,
   `main`, `footer`), a working skip link.
 - Visible focus on every interactive element. The ring colour is the

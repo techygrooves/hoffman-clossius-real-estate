@@ -17,6 +17,34 @@
     border-color: var(--color-line);
   }
 
+  /*
+   * The mobile action bar is fixed to the bottom of the viewport below xl.
+   * The footer — not the body — absorbs its height, so the evergreen surface
+   * continues behind the bar instead of leaving a pale strip under it.
+   */
+  @media (width < 80rem) {
+    body > footer {
+      padding-bottom: calc(4rem + env(safe-area-inset-bottom, 0px));
+    }
+  }
+
+  /*
+   * Sticky header.
+   *
+   * Only the LAST row is meant to pin — the utility and brand rows above it
+   * scroll away first. A `position: sticky` child cannot do that, because it
+   * is confined to its parent's box and leaves the viewport with it. So the
+   * <header> itself sticks, pulled up by exactly the height of the rows above
+   * the pinning one. src/lib/header.ts measures that and sets the offset;
+   * with no JavaScript the whole header simply pins, which is still correct,
+   * just taller.
+   */
+  [data-site-header] {
+    position: sticky;
+    top: var(--header-sticky-offset, 0px);
+    z-index: 50;
+  }
+
   html {
     scroll-behavior: smooth;
     /* Anchor targets clear the sticky header. */
@@ -189,6 +217,25 @@
     transform: scaleX(1);
     transform-origin: left;
   }
+}
+
+/* ------------------------------------------- dropdowns without JS ------- */
+
+/*
+ * Keyboard access to the header dropdowns with no JavaScript at all: focusing
+ * a trigger opens its panel.
+ *
+ * Scoped to a nav that header.ts has NOT marked as enhanced. Once the script
+ * runs it owns the open state via [data-open], and this rule steps aside —
+ * otherwise :focus-visible would hold a panel open against Escape, since
+ * closing a menu returns focus to the trigger that opened it.
+ */
+[data-primary-nav]:not([data-nav-enhanced])
+  [data-nav-group]:has(:focus-visible)
+  [data-nav-panel] {
+  visibility: visible;
+  opacity: 1;
+  transform: none;
 }
 
 /* ----------------------------------------------- progressive reveal ----- */
