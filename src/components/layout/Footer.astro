@@ -3,31 +3,34 @@
  * Footer — global site footer.
  *
  * Anything the client has not confirmed (office address, social profiles,
- * brokerage legal wording, licence numbers) renders as nothing rather than a
- * guess. See CONTENT_PENDING.md for the outstanding list.
+ * brokerage legal wording, Fair Housing disclosure, licence numbers) renders
+ * as nothing rather than a guess. See CONTENT_PENDING.md §2, §4 and §7.
+ *
+ * The accessibility link is deliberately worded "Accessibility / ADA
+ * Compliance" and the note beside it states the standard the site is built
+ * toward. It must never claim certification or full compliance — see
+ * PROJECT_CONTEXT.md §7.
  */
-import { professionals, pending, activeSocialLinks, site } from '@config/site';
+import { professionals, pending, site } from '@config/site';
 import { footerNav, legalNav } from '@config/navigation';
 import Container from '@components/ui/Container.astro';
 import KeyesLogo from './KeyesLogo.astro';
 import Wordmark from './Wordmark.astro';
+import SocialLinks from './SocialLinks.astro';
 
 const year = new Date().getFullYear();
 
-const socialLabels: Record<string, string> = {
-  facebook: 'Facebook',
-  instagram: 'Instagram',
-  linkedin: 'LinkedIn',
-  youtube: 'YouTube',
-  x: 'X',
-};
+const hasLegalCopy =
+  Boolean(pending.legal.brokerageLegalName) ||
+  Boolean(pending.legal.brokerageLicense) ||
+  Boolean(pending.legal.footerDisclosure);
 ---
 
 <footer class="bg-evergreen-800 text-white" data-surface="dark">
-  {/* ------------------------------------------------------------- masthead */}
-  <Container class="grid gap-12 border-b border-line-inverse py-16 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.35fr)] lg:gap-20 lg:py-20">
+  {/* ══════════════════════════════════════════════════════════ masthead ══ */}
+  <Container class="grid gap-14 border-b border-line-inverse py-16 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.25fr)] lg:gap-20 lg:py-20">
     <div class="flex flex-col gap-8">
-      <a href="/" class="inline-flex rounded-xs" aria-label="Hoffman & Closius — home">
+      <a href="/" class="w-fit rounded-xs" aria-label="Hoffman & Closius — home">
         <Wordmark tone="light" size="lg" />
       </a>
 
@@ -35,7 +38,7 @@ const socialLabels: Record<string, string> = {
         Representation for buyers, sellers and relocating families across {site.region}.
       </p>
 
-      <KeyesLogo tone="dark" height={44} />
+      <KeyesLogo tone="dark" height={46} />
 
       {
         pending.officeAddress && (
@@ -54,24 +57,7 @@ const socialLabels: Record<string, string> = {
         )
       }
 
-      {
-        activeSocialLinks.length > 0 && (
-          <ul class="flex flex-wrap items-center gap-5 text-xs">
-            {activeSocialLinks.map(({ key, href }) => (
-              <li>
-                <a
-                  href={href}
-                  rel="noopener noreferrer"
-                  target="_blank"
-                  class="link-underline tracking-wide-sm text-white/70 transition-colors hover:text-white"
-                >
-                  {socialLabels[key] ?? key}
-                </a>
-              </li>
-            ))}
-          </ul>
-        )
-      }
+      <SocialLinks tone="light" class="-ml-2" />
     </div>
 
     {/* Direct contacts */}
@@ -90,24 +76,26 @@ const socialLabels: Record<string, string> = {
                 : person.title}
             </p>
             <dl class="mt-2 flex flex-col gap-1.5 text-sm text-white/75">
-              <div class="flex gap-2">
-                <dt class="sr-only">{person.phone.label}</dt>
+              <div>
+                <dt class="sr-only">Phone</dt>
                 <dd>
                   <a
                     href={person.phone.href}
                     class="link-underline transition-colors hover:text-white"
                   >
+                    <span class="sr-only">Call {person.firstName} on </span>
                     {person.phone.value}
                   </a>
                 </dd>
               </div>
-              <div class="flex gap-2">
-                <dt class="sr-only">{person.email.label}</dt>
+              <div>
+                <dt class="sr-only">Email</dt>
                 <dd class="break-all">
                   <a
                     href={person.email.href}
                     class="link-underline transition-colors hover:text-white"
                   >
+                    <span class="sr-only">Email {person.firstName} at </span>
                     {person.email.value}
                   </a>
                 </dd>
@@ -119,7 +107,7 @@ const socialLabels: Record<string, string> = {
     </div>
   </Container>
 
-  {/* ---------------------------------------------------------- sitemap nav */}
+  {/* ═══════════════════════════════════════════════════════ sitemap nav ══ */}
   <Container class="grid gap-10 border-b border-line-inverse py-14 sm:grid-cols-2 lg:grid-cols-4">
     {
       footerNav.map((group) => (
@@ -142,43 +130,53 @@ const socialLabels: Record<string, string> = {
     }
   </Container>
 
-  {/* --------------------------------------------------------------- legal */}
+  {/* ═══════════════════════════════════════════════ accessibility note ══ */}
+  <Container class="border-b border-line-inverse py-8">
+    <p class="max-w-3xl text-xs leading-relaxed text-white/65">
+      We are working to meet{' '}
+      <strong class="font-medium text-white/85">WCAG 2.2 Level AA</strong>{' '}
+      across this website. If you encounter a barrier, or need information in
+      another format, please tell us and we will put it right —{' '}
+      <a href="/accessibility/" class="link-underline text-white hover:text-gold-300">
+        Accessibility / ADA Compliance
+      </a>.
+    </p>
+  </Container>
+
+  {/* ════════════════════════════════════════════════════════════ legal ══ */}
   <Container class="flex flex-col gap-6 py-10">
     {
-      (pending.legal.footerDisclosure ||
-        pending.legal.brokerageLegalName ||
-        pending.legal.brokerageLicense) && (
-        <div class="flex flex-col gap-2 text-xs leading-relaxed text-white/55">
-          {pending.legal.brokerageLegalName && (
-            <p>{pending.legal.brokerageLegalName}</p>
-          )}
-          {pending.legal.brokerageLicense && (
-            <p>{pending.legal.brokerageLicense}</p>
-          )}
-          {pending.legal.footerDisclosure && (
-            <p>{pending.legal.footerDisclosure}</p>
-          )}
+      hasLegalCopy && (
+        <div class="flex flex-col gap-2 text-xs leading-relaxed text-white/60">
+          {pending.legal.brokerageLegalName && <p>{pending.legal.brokerageLegalName}</p>}
+          {pending.legal.brokerageLicense && <p>{pending.legal.brokerageLicense}</p>}
+          {pending.legal.footerDisclosure && <p>{pending.legal.footerDisclosure}</p>}
         </div>
       )
     }
+    {/*
+      Fair Housing / Equal Housing Opportunity and the brokerage's required
+      disclosure wording are NOT yet confirmed (CONTENT_PENDING.md 4.1, 4.2,
+      4.4). They render here the moment `pending.legal` is populated. Nothing
+      is invented in the meantime.
+    */}
 
-    <div class="flex flex-col gap-4 text-xs text-white/55 md:flex-row md:items-center md:justify-between">
+    <div class="flex flex-col gap-4 text-xs text-white/60 md:flex-row md:items-center md:justify-between">
       <p>&copy; {year} {site.name}. All rights reserved.</p>
 
-      <ul class="flex flex-wrap items-center gap-x-6 gap-y-2">
-        {
-          legalNav.map((link) => (
-            <li>
-              <a
-                href={link.href}
-                class="link-underline transition-colors hover:text-white"
-              >
-                {link.label}
-              </a>
-            </li>
-          ))
-        }
-      </ul>
+      <nav aria-label="Legal">
+        <ul class="flex flex-wrap items-center gap-x-6 gap-y-2">
+          {
+            legalNav.map((link) => (
+              <li>
+                <a href={link.href} class="link-underline transition-colors hover:text-white">
+                  {link.label}
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </nav>
     </div>
   </Container>
 </footer>

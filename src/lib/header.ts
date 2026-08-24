@@ -1,38 +1,86 @@
 /**
  * Header behaviour — the only interactive script in the global chrome.
  *
- * Everything here is an enhancement: without it the desktop menus still open
- * on hover/focus via CSS and the drawer link list is unreachable only because
- * the drawer is a genuine overlay, so the same links are duplicated in the
- * footer. Keep this file small.
+ * Everything here is an enhancement. Without it: the desktop dropdowns still
+ * open on hover and on keyboard focus via CSS, the drawer's nested categories
+ * are native <details>, and the mobile Call disclosure is a native <details>
+ * too. The script adds aria-expanded bookkeeping, Escape-to-close, outside
+ * clicks and the drawer's focus trap. Keep this file small.
  */
 
 const FOCUSABLE =
   'a[href], button:not([disabled]), input, select, textarea, summary, [tabindex]:not([tabindex="-1"])';
 
+const DESKTOP_QUERY = '(min-width: 1280px)';
+
 export function initHeader(): void {
   initScrolledState();
   initDesktopMenus();
   initDrawer();
+  initCallDisclosure();
 }
 
-/* ------------------------------------------------------ sticky bar shadow */
+/* ------------------------------------------------- sticky header, pinned state */
 
+/**
+ * Two jobs:
+ *
+ *  1. Set --header-sticky-offset to the height of the rows sitting above the
+ *     row that should pin, so the header slides up by exactly that much and
+ *     leaves the last row against the top of the viewport. The rows differ by
+ *     breakpoint (nav row on desktop, compact bar on mobile), so the offset is
+ *     measured from whichever bar is actually visible.
+ *
+ *  2. Flag the bars once pinned, which drives their shadow and reveals the
+ *     condensed brand + call to action inside the desktop nav row.
+ */
 function initScrolledState(): void {
-  const bar = document.querySelector<HTMLElement>('[data-header-bar]');
-  if (!bar) return;
+  const header = document.querySelector<HTMLElement>('[data-site-header]');
+  if (!header) return;
 
+  const bars = Array.from(
+    header.querySelectorAll<HTMLElement>('[data-header-bar]'),
+  );
+  if (bars.length === 0) return;
+
+  const visibleBar = () => bars.find((bar) => bar.offsetParent !== null);
+
+  const setOffset = () => {
+    const bar = visibleBar();
+    if (!bar) return;
+    // offsetTop is measured against the header, which is a positioned element.
+    const offset = Math.max(0, Math.round(bar.offsetTop));
+    header.style.setProperty('--header-sticky-offset', `-${offset}px`);
+  };
+
+  setOffset();
+  // Web fonts land after first paint and change the brand row's height.
+  document.fonts?.ready.then(setOffset).catch(() => {});
+
+  let resizeTimer = 0;
+  window.addEventListener('resize', () => {
+    window.clearTimeout(resizeTimer);
+    resizeTimer = window.setTimeout(setOffset, 150);
+  });
+
+  if (!('IntersectionObserver' in window)) return;
+
+  // The sentinel must sit OUTSIDE the header, or it would stick along with it.
   const sentinel = document.createElement('div');
   sentinel.setAttribute('aria-hidden', 'true');
   sentinel.style.cssText = 'position:absolute;top:0;height:1px;width:100%';
-  bar.parentElement?.insertBefore(sentinel, bar);
-
-  if (!('IntersectionObserver' in window)) return;
+  header.parentElement?.insertBefore(sentinel, header);
 
   new IntersectionObserver(
     ([entry]) => {
       if (!entry) return;
-      bar.toggleAttribute('data-scrolled', !entry.isIntersecting);
+      const pinned = !entry.isIntersecting;
+      for (const bar of bars) {
+        bar.toggleAttribute('data-scrolled', pinned);
+        bar
+          .querySelector('[data-header-condensed]')
+          ?.toggleAttribute('data-scrolled', pinned);
+      }
     },
     { threshold: 0 },
   ).observe(sentinel);
@@ -40,55 +88,79 @@ function initScrolledState(): void {
 
 /* ---------------------------------------------------------- desktop menus */
 
+/**
+ * Dropdown open state.
+ *
+ * The panel is visible when its group is hovered (pure CSS) or carries
+ * [data-open] (managed here). Marking the nav as enhanced disables the
+ * CSS-only :focus-visible rule in global.css, so this script becomes the sole
+ * owner of the keyboard state — which is what lets Escape actually close a
+ * menu, given that closing returns focus to the trigger that opened it.
+ */
 function initDesktopMenus(): void {
+  const nav = document.querySelector<HTMLElement>('[data-primary-nav]');
   const groups = Array.from(
     document.querySelectorAll<HTMLElement>('[data-nav-group]'),
   );
-  if (groups.length === 0) return;
+  if (!nav || groups.length === 0) return;
+
+  nav.setAttribute('data-nav-enhanced', '');
+
+  const setOpen = (group: HTMLElement, open: boolean) => {
+    group.toggleAttribute('data-open', open);
+    group
+      .querySelector('[data-nav-trigger]')
+      ?.setAttribute('aria-expanded', String(open));
+  };
 
   const closeAll = (except?: HTMLElement) => {
     for (const group of groups) {
-      if (group === except) continue;
-      group.querySelector('[data-nav-panel]')?.removeAttribute('data-open');
-      group
-        .querySelector('[data-nav-trigger]')
-        ?.setAttribute('aria-expanded', 'false');
+      if (group !== except) setOpen(group, false);
     }
   };
 
   for (const group of groups) {
     const trigger = group.querySelector<HTMLButtonElement>('[data-nav-trigger]');
-    const panel = group.querySelector<HTMLElement>('[data-nav-panel]');
-    if (!trigger || !panel) continue;
+    if (!trigger) continue;
 
     trigger.addEventListener('click', () => {
-      const open = panel.hasAttribute('data-open');
+      const open = group.hasAttribute('data-open');
       closeAll(group);
-      panel.toggleAttribute('data-open', !open);
-      trigger.setAttribute('aria-expanded', String(!open));
+      setOpen(group, !open);
     });
 
-    // Keep aria-expanded honest when the menu opens via hover or focus.
-    group.addEventListener('pointerenter', () =>
-      trigger.setAttribute('aria-expanded', 'true'),
-    );
+    /* Keyboard focus opens the menu; a mouse click does not (the click
+       handler above owns that), which keeps the two from fighting. */
+    trigger.addEventListener('focus', () => {
+      if (!trigger.matches(':focus-visible')) return;
+      closeAll(group);
+      setOpen(group, true);
+    });
+
+    /* Hovering a different group dismisses whatever was open, including a
+       menu pinned by click or keyboard. Hover itself needs no state. */
+    group.addEventListener('pointerenter', () => {
+      closeAll(group);
+      trigger.setAttribute('aria-expanded', 'true');
+    });
     group.addEventListener('pointerleave', () => {
-      if (!panel.hasAttribute('data-open')) {
+      if (!group.hasAttribute('data-open')) {
         trigger.setAttribute('aria-expanded', 'false');
       }
     });
+
     group.addEventListener('focusout', (event) => {
       const next = event.relatedTarget;
       if (next instanceof Node && group.contains(next)) return;
-      panel.removeAttribute('data-open');
-      trigger.setAttribute('aria-expanded', 'false');
+      setOpen(group, false);
     });
   }
 
   document.addEventListener('keydown', (event) => {
     if (event.key !== 'Escape') return;
     const active = document.activeElement;
-    const group = active instanceof Element ? active.closest('[data-nav-group]') : null;
+    const group =
+      active instanceof Element ? active.closest('[data-nav-group]') : null;
     closeAll();
     if (group instanceof HTMLElement) {
       group.querySelector<HTMLButtonElement>('[data-nav-trigger]')?.focus();
@@ -97,9 +169,7 @@ function initDesktopMenus(): void {
 
   document.addEventListener('click', (event) => {
     const target = event.target;
-    if (target instanceof Node && target instanceof Element && target.closest('[data-nav-group]')) {
-      return;
-    }
+    if (target instanceof Element && target.closest('[data-nav-group]')) return;
     closeAll();
   });
 }
@@ -120,7 +190,7 @@ function initDrawer(): void {
     if (isOpen) return;
     isOpen = true;
     drawer.hidden = false;
-    // Next frame so the transition has a start state to animate from.
+    // Next frame, so the transition has a start state to animate from.
     requestAnimationFrame(() => {
       panel.setAttribute('data-open', '');
       scrim.setAttribute('data-open', '');
@@ -143,8 +213,8 @@ function initDrawer(): void {
       if (!isOpen) drawer.hidden = true;
     };
     panel.addEventListener('transitionend', finish, { once: true });
-    // Fallback for reduced-motion, where transitionend may never fire.
-    window.setTimeout(finish, 450);
+    // Fallback for reduced motion, where transitionend may never fire.
+    window.setTimeout(finish, 400);
   };
 
   toggle.addEventListener('click', open);
@@ -177,8 +247,36 @@ function initDrawer(): void {
     }
   });
 
-  // A resize past the desktop breakpoint should not leave the body locked.
-  window.matchMedia('(min-width: 1280px)').addEventListener('change', (event) => {
+  // Resizing past the desktop breakpoint must not leave the body scroll-locked.
+  window.matchMedia(DESKTOP_QUERY).addEventListener('change', (event) => {
     if (event.matches) close();
+  });
+}
+
+/* --------------------------------------- mobile action bar: Call disclosure */
+
+/**
+ * The Call disclosure is a native <details>, so it already opens, closes and
+ * takes keyboard focus on its own. This adds the two behaviours <details>
+ * lacks: Escape closes it, and so does a click anywhere outside.
+ */
+function initCallDisclosure(): void {
+  const disclosure =
+    document.querySelector<HTMLDetailsElement>('[data-call-disclosure]');
+  if (!disclosure) return;
+
+  const summary = disclosure.querySelector('summary');
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key !== 'Escape' || !disclosure.open) return;
+    disclosure.open = false;
+    if (summary instanceof HTMLElement) summary.focus();
+  });
+
+  document.addEventListener('click', (event) => {
+    if (!disclosure.open) return;
+    const target = event.target;
+    if (target instanceof Node && disclosure.contains(target)) return;
+    disclosure.open = false;
   });
 }

@@ -2,18 +2,28 @@
 /**
  * KeyesLogo — renders the official Keyes brand asset.
  *
- * RULES (PROJECT_CONTEXT.md):
+ * RULES (PROJECT_CONTEXT.md §4):
  *  - The asset is displayed UNMODIFIED. Never recolour, redraw, stretch, crop,
  *    rotate, add filters/effects, or place it inside a decorative frame.
  *    Only the rendered height changes; aspect ratio is always preserved.
  *  - Never write relationship wording ("affiliated with", "backed by", ...)
  *    next to it. The logo stands on its own.
+ *  - While the asset is missing this component renders a NEUTRAL GRAPHIC
+ *    placeholder. It must never approximate the Keyes trademark — no styled
+ *    wordmark, no lettering standing in for the logo, no invented mark.
  *
- * The official files are not in the repository yet. Drop them at:
- *    public/brand/keyes-logo.svg        (for light backgrounds)
- *    public/brand/keyes-logo-white.svg  (reversed, for evergreen backgrounds)
- * and this component switches from the placeholder to the real asset
- * automatically at build time. .png / .webp are accepted as fallbacks.
+ * ── THE IMAGE SLOT ────────────────────────────────────────────────────────
+ * Drop the official files here and this component switches to them at build
+ * time with no code change:
+ *
+ *    public/brand/keyes-logo.svg        light backgrounds (header, drawer)
+ *    public/brand/keyes-logo-white.svg  reversed, for evergreen backgrounds
+ *
+ * .png and .webp are accepted fallbacks; resolution order is .svg → .png →
+ * .webp. Afterwards set `brokerageBrand.width` / `.height` in
+ * src/config/site.ts to the asset's true intrinsic dimensions.
+ * Full notes: docs/keyes-logo.md · tracked in CONTENT_PENDING.md 1.1–1.3.
+ * ──────────────────────────────────────────────────────────────────────────
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -27,8 +37,8 @@ interface Props {
   height?: number;
   class?: string;
   /**
-   * When true the logo is purely decorative because an adjacent element
-   * already names it. Defaults to false so it carries its accessible name.
+   * True when an adjacent element already names the brokerage, so the logo
+   * can be exposed as decorative to assistive technology.
    */
   decorative?: boolean;
 }
@@ -58,6 +68,14 @@ const src = resolveAsset(preferred) ?? resolveAsset('keyes-logo');
 
 const ratio = brokerageBrand.width / brokerageBrand.height;
 const width = Math.round(height * ratio);
+
+/* Placeholder geometry mirrors the real asset's aspect ratio, so swapping in
+   the official file does not shift the surrounding layout. The ratio is only
+   an assumption until the real file lands, so the box may grow past it rather
+   than clip its own label — and the label is dropped entirely at small sizes,
+   where only the glyph fits. */
+const isDark = tone === 'dark';
+const showPlaceholderLabel = height >= 36;
 ---
 
 {
@@ -71,31 +89,46 @@ const width = Math.round(height * ratio);
       loading="eager"
       decoding="async"
       style={`height:${height}px;width:auto`}
-      class={cn('block w-auto object-contain', className)}
+      class={cn('block w-auto self-start object-contain', className)}
     />
   ) : (
     /*
-     * PLACEHOLDER — visible on purpose so the missing asset cannot ship
-     * unnoticed. Tracked in CONTENT_PENDING.md. This is NOT a logo and must
-     * never be treated as one.
+     * NEUTRAL PLACEHOLDER — deliberately visible so the missing asset cannot
+     * ship unnoticed, and deliberately generic so it cannot be mistaken for,
+     * or serve as, the Keyes mark. Tracked in CONTENT_PENDING.md 1.1.
      */
     <span
       role="img"
-      aria-label="Keyes logo — official asset pending"
-      title="Official Keyes logo asset has not been supplied yet"
-      style={`height:${height}px`}
+      aria-label="Brokerage logo — official asset pending"
+      title="Official brokerage logo asset has not been supplied yet"
+      data-pending-asset="keyes-logo"
+      style={`height:${height}px;min-width:${width}px`}
       class={cn(
-        'inline-flex select-none items-center justify-center gap-2 rounded-xs border border-dashed px-3',
-        'font-sans text-[0.625rem] uppercase tracking-eyebrow',
-        tone === 'dark'
-          ? 'border-white/40 text-white/70'
-          : 'border-evergreen-800/30 text-evergreen-800/60',
+        'inline-flex w-fit shrink-0 self-start items-center justify-center gap-1.5 rounded-xs border border-dashed px-2',
+        isDark ? 'border-white/35 text-white/55' : 'border-evergreen-800/25 text-evergreen-800/45',
         className,
       )}
-      data-pending-asset="keyes-logo"
     >
-      <span>Keyes</span>
-      <span class="hidden sm:inline">logo pending</span>
+      {/* Generic image-placeholder glyph. Not a logo, not lettering. */}
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.25"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+        style={`height:${Math.max(14, Math.round(height * 0.42))}px;width:auto`}
+      >
+        <rect x="3" y="5" width="18" height="14" rx="1.5" />
+        <circle cx="8.5" cy="10" r="1.25" />
+        <path d="M21 16l-4.5-4.5L9 19" />
+      </svg>
+      {showPlaceholderLabel && (
+        <span class="font-sans text-[0.5rem] uppercase tracking-eyebrow whitespace-nowrap">
+          Logo pending
+        </span>
+      )}
     </span>
   )
 }
