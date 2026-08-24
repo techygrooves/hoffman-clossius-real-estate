@@ -1,13 +1,22 @@
 /**
  * make-portable.mjs — post-build pass over dist/.
  *
- * Astro emits root-absolute URLs (/_astro/..., /about/). Those are correct for
- * a web server but break when dist/index.html is opened straight off the
- * filesystem. This rewrites them to document-relative paths so the built site
- * also runs by double-clicking dist/index.html.
+ * Astro emits root-absolute URLs (/_astro/..., /about/), which are correct
+ * only when the site sits at a domain root. Two other situations need
+ * rewriting, and this script covers both:
  *
- * Run with: npm run build:portable
- * The plain `npm run build` output is left untouched for normal hosting.
+ *   node scripts/make-portable.mjs
+ *       → document-relative URLs (./_astro/…, ../about/index.html).
+ *         Works from any folder AND straight off the filesystem, so
+ *         dist/index.html opens by double-clicking.
+ *
+ *   node scripts/make-portable.mjs --base=/my-repo
+ *       → absolute URLs under a prefix (/my-repo/_astro/…, /my-repo/about/).
+ *         For a site hosted at a known subpath, such as GitHub Pages project
+ *         pages. Preferred there over relative URLs because 404.html is served
+ *         for arbitrary depths, and relative asset paths would break under it.
+ *
+ * The plain `npm run build` output is left untouched for hosting at a root.
  */
 import fs from 'node:fs/promises';
 import path from 'node:path';
@@ -18,6 +27,12 @@ const DIST = path.resolve(
   '..',
   'dist',
 );
+
+/** `--base=/prefix` switches from relative rewriting to prefixed-absolute. */
+const baseArg = process.argv.find((a) => a.startsWith('--base='));
+const BASE = baseArg
+  ? `/${baseArg.slice('--base='.length).replace(/^\/+|\/+$/g, '')}`.replace(/^\/$/, '')
+  : null;
 
 /** Recursively collect files with one of the given extensions. */
 async function collect(dir, extensions, found = []) {
@@ -41,13 +56,21 @@ function prefixFor(file) {
 }
 
 /**
- * Turns an absolute site path into a relative one.
- * Directory routes gain an explicit index.html so file:// resolves them.
+ * Rewrites one absolute site path.
+ *
+ * In base mode it simply gains the prefix and keeps directory URLs intact —
+ * a real web server resolves /about/ to /about/index.html on its own.
+ * In relative mode directory routes gain an explicit index.html, because
+ * file:// has no server to do that for it.
  */
-function toRelative(target, prefix) {
+function rewriteUrl(target, prefix) {
   const [pathname, suffix = ''] = target.split(/(?=[?#])/);
-  let out = pathname.replace(/^\//, '');
 
+  if (BASE !== null) {
+    return `${BASE}${pathname}${suffix}`;
+  }
+
+  let out = pathname.replace(/^\//, '');
   const isFile = path.extname(out) !== '';
   if (!isFile) {
     out = out === '' ? 'index.html' : `${out.replace(/\/$/, '')}/index.html`;
@@ -67,7 +90,7 @@ async function rewriteHtml(file) {
 
   html = html.replace(
     HTML_ATTR,
-    (_m, attr, quote, rest) => `${attr}=${quote}${toRelative(`/${rest}`, prefix)}${quote}`,
+    (_m, attr, quote, rest) => `${attr}=${quote}${rewriteUrl(`/${rest}`, prefix)}${quote}`,
   );
 
   html = html.replace(SRCSET, (match, quote, value) => {
@@ -78,7 +101,7 @@ async function rewriteHtml(file) {
         const trimmed = candidate.trim();
         if (!trimmed.startsWith('/') || trimmed.startsWith('//')) return trimmed;
         const [url, ...descriptor] = trimmed.split(/\s+/);
-        return [toRelative(url, prefix), ...descriptor].join(' ');
+        return [rewriteUrl(url, prefix), ...descriptor].join(' ');
       })
       .join(', ');
     return `srcset=${quote}${rewritten}${quote}`;
@@ -92,7 +115,7 @@ async function rewriteCss(file) {
   const css = await fs.readFile(file, 'utf8');
   const next = css.replace(
     CSS_URL,
-    (_m, quote, rest) => `url(${quote}${toRelative(`/${rest}`, prefix)}${quote})`,
+    (_m, quote, rest) => `url(${quote}${rewriteUrl(`/${rest}`, prefix)}${quote})`,
   );
   if (next !== css) await fs.writeFile(file, next);
 }
@@ -113,7 +136,9 @@ async function main() {
   await Promise.all(css.map(rewriteCss));
 
   console.log(
-    `make-portable: rewrote ${html.length} HTML and ${css.length} CSS files — dist/index.html now opens directly from disk.`,
+    BASE !== null
+      ? `make-portable: rewrote ${html.length} HTML and ${css.length} CSS files under the base path "${BASE}".`
+      : `make-portable: rewrote ${html.length} HTML and ${css.length} CSS files — dist/index.html now opens directly from disk.`,
   );
 }
 

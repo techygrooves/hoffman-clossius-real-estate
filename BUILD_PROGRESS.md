@@ -374,6 +374,31 @@ Three real bugs were found by testing rather than by reading the code:
 Also corrected: a missing space around the footer's WCAG note, and the previous
 "KEYES" text placeholder, which approximated the trademark as styled type.
 
+### Session 3a — 2026-08-24 · GitHub Pages preview
+Added `.github/workflows/preview.yml` so the site can be reviewed at a URL
+before it goes to Hostinger. It replaces GitHub's built-in Pages workflow,
+which was failing: that one runs Jekyll over the repository root, and Jekyll
+reads the `---` fences in `.astro` files as YAML front matter. Nothing was
+wrong with the site — **the repository owner must switch Settings → Pages →
+Source to "GitHub Actions"** for the new workflow to take over.
+
+`make-portable.mjs` gained a `--base=/prefix` mode for hosting at a known
+subpath, which is what Pages project sites are. Absolute-with-prefix rather
+than relative, because `404.html` is served for arbitrary depths and relative
+asset paths break under it. Verified by serving the output at a subpath and
+rendering it: styles, fonts, navigation and the 404 page all resolve.
+
+Two bugs caught before pushing, both by running the workflow's own steps
+locally first:
+
+1. **The workflow YAML was invalid.** `run: printf 'User-agent: *…'` — YAML
+   read the colon inside the string as a second mapping key.
+2. **The demo build shipped three dead links.** Listing cards link to
+   `/property/<slug>/`, but that route generated pages from real listings only,
+   so the demo cards pointed at pages that were never built. Route generation
+   now uses the same resolver the cards use. `npm run verify:links` catches
+   this class of mistake, which is why it runs in the workflow.
+
 ### Session 3 — 2026-08-24 · Homepage
 Built all twelve homepage sections plus the demo-content layer, `MediaSlot`,
 `ListingCard`, `AgentCard`, `DemoNotice` and `QueryEcho`. The search and
