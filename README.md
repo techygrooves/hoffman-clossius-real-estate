@@ -38,9 +38,56 @@ npm run dev          # http://localhost:4321
 
 ## Deploying
 
-`dist/` is plain static HTML, CSS and JavaScript — upload it to any static
-host, or point a web server at it. After `npm run build:portable` the same
-folder also works when `dist/index.html` is opened directly, with no server.
+`dist/` is plain static HTML, CSS and JavaScript. No Node, no database and no
+build step on the server — every route is a real folder with its own
+`index.html`.
+
+### Preview on GitHub Pages
+
+`.github/workflows/preview.yml` builds the site and publishes it, so the work
+can be reviewed at a URL before it goes anywhere near Hostinger.
+
+**One manual step, once:** Settings → Pages → Build and deployment → Source:
+**GitHub Actions**. Until that is changed, GitHub keeps running its own
+built-in Jekyll workflow instead, which fails — Jekyll reads the `---` fences
+at the top of every `.astro` file as YAML front matter and chokes on the
+TypeScript inside. Nothing is wrong with the site.
+
+The workflow runs on every push to `main`, and can be run by hand from any
+branch: Actions → Preview on GitHub Pages → Run workflow.
+
+The preview differs from production in three deliberate ways:
+
+- Served from a subpath (`…github.io/<repo>/`), so the build is rewritten to
+  match with `make-portable.mjs --base`.
+- **Includes the clearly-marked sample properties**, so the design reads fully
+  before the MLS feed exists. Untick the option when running the workflow by
+  hand to see the true production state.
+- `robots.txt` blocks all crawlers, so the preview URL can never compete with
+  the real domain in search results.
+
+### Hostinger / cPanel / any Apache host
+
+```bash
+npm run build
+```
+
+Upload **the contents of `dist/`** — not the `dist` folder itself — into
+`public_html/`, so you end up with `public_html/index.html` at the top level.
+
+If the site goes into a subfolder rather than the domain root, the ordinary
+build loads unstyled, because its asset paths start at `/`. Use
+`node scripts/make-portable.mjs --base=/your-subfolder` after building.
+
+### Opening the files with no server at all
+
+`npm run build:portable` rewrites `dist/` to document-relative URLs, so
+`dist/index.html` works when opened straight off the filesystem — useful for
+sending the site to someone as a folder.
+
+### Other hosts
+
+Netlify, Vercel, Cloudflare Pages and S3 serve `dist/` as-is.
 
 ## Structure
 

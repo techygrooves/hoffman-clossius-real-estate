@@ -2,22 +2,24 @@
 /**
  * Individual property detail page.
  *
- * `listings` is intentionally empty until the client's IDX/MLS feed is
- * connected, so this route currently generates no pages. That is correct —
- * inventing a sample property would put fabricated listing data on a live
- * real estate site.
+ * Generated from `resolveRoutableListings()` — real listings when they exist,
+ * the clearly-marked demo records when the demo flag is on, and nothing at all
+ * in a production build with no MLS feed. It must use the same resolver the
+ * listing cards use, or a demo build links to pages that were never built.
  */
 import type { GetStaticPaths } from 'astro';
 import StubPage from '@layouts/StubPage.astro';
-import { listings } from '@data/listings';
+import { resolveRoutableListings } from '@lib/content';
 
-export const getStaticPaths = (() =>
-  listings.map((listing) => ({
+export const getStaticPaths = (() => {
+  const { items, isDemo } = resolveRoutableListings();
+  return items.map((listing) => ({
     params: { slug: listing.slug },
-    props: { listing },
-  }))) satisfies GetStaticPaths;
+    props: { listing, isDemo },
+  }));
+}) satisfies GetStaticPaths;
 
-const { listing } = Astro.props;
+const { listing, isDemo } = Astro.props;
 ---
 
 <StubPage
@@ -30,5 +32,10 @@ const { listing } = Astro.props;
     { label: 'For Sale', href: '/properties/for-sale/' },
     { label: listing.addressLine },
   ]}
-  note="The property detail template — gallery, specification, map and enquiry form — is built once the MLS feed defines the real field set."
+  note={
+    isDemo
+      ? 'This is a sample record, not a real property — placeholder content used to review the design before the MLS feed is connected. The property detail template (gallery, specification, map and enquiry form) is built once the feed defines the real field set.'
+      : 'The property detail template — gallery, specification, map and enquiry form — is built once the MLS feed defines the real field set.'
+  }
+  noindex={isDemo}
 />

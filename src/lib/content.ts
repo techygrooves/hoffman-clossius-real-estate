@@ -32,6 +32,15 @@ export const resolveFeaturedListings = (limit = 3): Resolved<Listing> => {
 };
 
 /**
+ * Every listing that should have a detail page generated.
+ *
+ * Must use the same resolver the cards use, or a demo build links to detail
+ * pages that were never built. `npm run verify:links` catches that.
+ */
+export const resolveRoutableListings = (): Resolved<Listing> =>
+  resolve<Listing>(listings, demoListings);
+
+/**
  * Testimonials are deliberately NOT part of the demo mechanism: a fabricated
  * review is unacceptable in any mode. Only entries the client has supplied and
  * marked `verified` are ever rendered.

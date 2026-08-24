@@ -1,0 +1,93 @@
+# ---------------------------------------------------------------------------
+# Preview the built site on GitHub Pages.
+#
+# This replaces GitHub's built-in "pages build and deployment" workflow, which
+# runs Jekyll against the repository root. Jekyll reads the `---` fences at the
+# top of every .astro file as YAML front matter, chokes on the TypeScript
+# inside, and fails the build. Nothing was wrong with the site.
+#
+# ⚠️  One manual step is required, once:
+#     Settings → Pages → Build and deployment → Source: **GitHub Actions**
+#     Until that is changed, the old Jekyll workflow keeps running and failing.
+#
+# This is a PREVIEW, not production:
+#   - it is served from a subpath (…github.io/<repo>/), so the build is
+#     rewritten to match with scripts/make-portable.mjs --base
+#   - it includes the clearly-marked sample properties by default, so the
+#     design can be reviewed before the MLS feed exists
+#   - robots.txt blocks all crawlers, so the preview URL can never compete
+#     with the real domain in search results
+# ---------------------------------------------------------------------------
+name: Preview on GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  # Run by hand from any branch: Actions → Preview on GitHub Pages → Run workflow
+  workflow_dispatch:
+    inputs:
+      demo_content:
+        description: 'Include the clearly-marked sample properties'
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# One deployment at a time; a newer push supersedes an in-flight one.
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - run: npm ci
+
+      - name: Configure Pages
+        id: pages
+        uses: actions/configure-pages@v5
+
+      # Type check and link check, exactly as `npm run build` does locally.
+      - name: Build
+        env:
+          # Defaults to true, including for push events where no input exists.
+          PUBLIC_DEMO_CONTENT: ${{ inputs.demo_content == false && 'false' || 'true' }}
+        run: |
+          npx astro check
+          npx astro build
+          node scripts/verify-links.mjs
+
+      # Pages serves project sites from /<repo>/, so every absolute URL needs
+      # that prefix. Absolute-with-prefix rather than relative, because
+      # 404.html is served for arbitrary depths and relative paths break there.
+      - name: Rewrite URLs for the Pages subpath
+        run: node scripts/make-portable.mjs --base="${{ steps.pages.outputs.base_path }}"
+
+      - name: Keep the preview out of search results
+        run: |
+          printf 'User-agent: *\nDisallow: /\n' > dist/robots.txt
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
