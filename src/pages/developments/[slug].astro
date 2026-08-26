@@ -1,33 +1,239 @@
 ---
 /**
- * Individual development page. Generates nothing until the client supplies
- * development material — see src/data/developments.ts.
+ * Development detail page.
+ *
+ * Generated from `developmentProvider.getAll()`, so the route set follows
+ * whatever provider is active: client-supplied developments when they exist,
+ * the demo dataset in development, and nothing at all in a production build
+ * with neither.
+ *
+ * Every block renders only if the data behind it was supplied. A project with
+ * no announced architect shows no architect row — not a heading over an empty
+ * space, and never a guess about someone else's project.
  */
 import type { GetStaticPaths } from 'astro';
-import StubPage from '@layouts/StubPage.astro';
-import { developments } from '@data/developments';
+import BaseLayout from '@layouts/BaseLayout.astro';
+import Container from '@components/ui/Container.astro';
+import Breadcrumbs from '@components/ui/Breadcrumbs.astro';
+import Section from '@components/ui/Section.astro';
+import Button from '@components/ui/Button.astro';
+import DevelopmentGallery from '@components/developments/DevelopmentGallery.astro';
+import DevelopmentStatusBadge from '@components/developments/DevelopmentStatusBadge.astro';
+import DevelopmentFacts from '@components/developments/DevelopmentFacts.astro';
+import DevelopmentAmenities from '@components/developments/DevelopmentAmenities.astro';
+import DevelopmentResidences from '@components/developments/DevelopmentResidences.astro';
+import DevelopmentMap from '@components/developments/DevelopmentMap.astro';
+import DevelopmentContactCTA from '@components/developments/DevelopmentContactCTA.astro';
+import DevelopmentGrid from '@components/developments/DevelopmentGrid.astro';
+import { developmentProvider } from '@lib/developments/provider';
+import { DEVELOPMENT_TYPE_LABELS } from '@lib/developments/query';
+import { formatPrice, formatDate } from '@lib/format';
 
-export const getStaticPaths = (() =>
-  developments.map((development) => ({
+export const getStaticPaths = (async () => {
+  const developments = await developmentProvider.getAll();
+  return developments.map((development) => ({
     params: { slug: development.slug },
     props: { development },
-  }))) satisfies GetStaticPaths;
+  }));
+}) satisfies GetStaticPaths;
 
 const { development } = Astro.props;
+const related = await developmentProvider.getRelated(development, 3);
+
+const typeLabel =
+  development.developmentTypeLabel ??
+  DEVELOPMENT_TYPE_LABELS[development.developmentType];
+
+const locationLine = [development.city, development.address.state]
+  .filter(Boolean)
+  .join(', ');
+
+const hasAmenities =
+  development.amenities.building.length > 0 ||
+  development.amenities.outdoor.length > 0 ||
+  development.amenities.services.length > 0;
+
+const categoryCrumb =
+  development.category === 'new'
+    ? { label: 'New', href: '/developments/new/' }
+    : { label: 'Established', href: '/developments/existing/' };
 ---
 
-<StubPage
+<BaseLayout
   title={development.name}
-  heading={development.name}
-  eyebrow="Development"
-  description={development.summary}
-  breadcrumbs={[
-    { label: 'Developments' },
-    {
-      label: development.kind === 'new' ? 'New' : 'Established',
-      href: development.kind === 'new' ? '/developments/new/' : '/developments/existing/',
-    },
-    { label: development.name },
-  ]}
-  note="The development template is built alongside the first set of developments the client supplies."
-/>
+  description={development.summary ?? `${typeLabel} in ${locationLine}.`}
+  noindex={development.demo}
+>
+  {/* Breadcrumb */}
+  <div class="border-b border-line bg-cream-100">
+    <Container class="py-4">
+      <Breadcrumbs
+        items={[
+          { label: 'Developments' },
+          categoryCrumb,
+          { label: development.name },
+        ]}
+      />
+    </Container>
+  </div>
+
+  {/* Hero gallery */}
+  <Container class="pt-6">
+    <DevelopmentGallery development={development} />
+  </Container>
+
+  <Container class="pb-24 pt-10 lg:pb-28">
+    <div class="grid gap-12 lg:grid-cols-[minmax(0,1fr)_22rem] lg:gap-14">
+      <div class="min-w-0">
+        {/* Name and location */}
+        <div class="flex flex-wrap items-center gap-2">
+          <DevelopmentStatusBadge status={development.status} size="md" />
+          {
+            development.demo && (
+              <span class="rounded-xs border border-dashed border-gold-600/60 bg-gold-100 px-2.5 py-1 text-[0.625rem] uppercase tracking-eyebrow text-charcoal-600">
+                Sample record
+              </span>
+            )
+          }
+        </div>
+
+        <p class="mt-5 text-[0.625rem] uppercase tracking-eyebrow text-evergreen-600">
+          {locationLine} · {typeLabel}
+        </p>
+
+        <h1 class="mt-2 font-serif text-display-sm text-evergreen-800">
+          {development.name}
+        </h1>
+
+        {
+          development.startingPrice !== null && (
+            <p class="mt-3 text-lg text-ink">
+              From{' '}
+              <span class="font-medium text-evergreen-800">
+                {formatPrice(development.startingPrice)}
+              </span>
+            </p>
+          )
+        }
+
+        <DevelopmentFacts
+          development={development}
+          class="mt-7 border-t border-line pt-6"
+        />
+
+        {/* Description */}
+        {
+          development.description && (
+            <section class="mt-10" aria-labelledby="development-about">
+              <h2 id="development-about" class="font-serif text-2xl text-evergreen-800">
+                About {development.name}
+              </h2>
+              <p class="mt-4 max-w-prose leading-relaxed text-ink-muted">
+                {development.description}
+              </p>
+            </section>
+          )
+        }
+
+        {/* Key facts */}
+        <section class="mt-10" aria-labelledby="development-details">
+          <h2 id="development-details" class="font-serif text-2xl text-evergreen-800">
+            Development details
+          </h2>
+          <DevelopmentFacts development={development} variant="full" class="mt-4" />
+          {
+            development.updatedAt && (
+              <p class="mt-3 text-xs text-ink-subtle">
+                Information last updated {formatDate(development.updatedAt)}.
+              </p>
+            )
+          }
+        </section>
+
+        {/* Residences + floor-plan slots */}
+        {
+          development.residences.length > 0 && (
+            <section class="mt-10" aria-labelledby="development-residences">
+              <h2 id="development-residences" class="font-serif text-2xl text-evergreen-800">
+                Residences
+              </h2>
+              <DevelopmentResidences development={development} class="mt-5" />
+            </section>
+          )
+        }
+
+        {/* Amenities */}
+        {
+          hasAmenities && (
+            <section class="mt-10" aria-labelledby="development-amenities">
+              <h2 id="development-amenities" class="font-serif text-2xl text-evergreen-800">
+                Amenities
+              </h2>
+              <DevelopmentAmenities amenities={development.amenities} class="mt-5" />
+            </section>
+          )
+        }
+
+        {/* Availability */}
+        <section class="mt-10" aria-labelledby="development-availability">
+          <h2 id="development-availability" class="font-serif text-2xl text-evergreen-800">
+            Availability
+          </h2>
+          {
+            development.availabilityNote ? (
+              <p class="mt-4 max-w-prose leading-relaxed text-ink-muted">
+                {development.availabilityNote}
+              </p>
+            ) : (
+              <p class="mt-4 max-w-prose leading-relaxed text-ink-muted">
+                Availability in a development changes constantly and is rarely
+                published accurately anywhere. Ask us what is actually released
+                and we will find out for you.
+              </p>
+            )
+          }
+          <div class="mt-6 flex flex-wrap gap-3">
+            <Button
+              href={`/contact/?intent=information&property=${encodeURIComponent(development.name)}&reference=${encodeURIComponent(development.slug)}`}
+              withArrow
+            >
+              Ask about availability
+            </Button>
+            <Button href="/properties/search/" variant="secondary">
+              Search resale properties
+            </Button>
+          </div>
+        </section>
+
+        {/* Location */}
+        <section class="mt-10" aria-labelledby="development-location">
+          <h2 id="development-location" class="font-serif text-2xl text-evergreen-800">
+            Location
+          </h2>
+          <DevelopmentMap development={development} class="mt-4" />
+        </section>
+      </div>
+
+      {/* Enquiry + agent */}
+      <div class="lg:sticky lg:top-28 lg:self-start">
+        <DevelopmentContactCTA development={development} />
+      </div>
+    </div>
+  </Container>
+
+  {/* Related developments */}
+  {
+    related.length > 0 && (
+      <Section tone="warm" labelledby="related-developments">
+        <h2 id="related-developments" class="text-display-sm text-evergreen-800">
+          Related developments
+        </h2>
+        <DevelopmentGrid
+          developments={related}
+          category={development.category}
+          class="mt-10"
+        />
+      </Section>
+    )
+  }
+</BaseLayout>

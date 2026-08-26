@@ -1,17 +1,17 @@
 /**
- * Content resolution for testimonials and developments.
+ * Content resolution for testimonials.
  *
- * Listings are NOT here: they come from the provider architecture in
- * src/lib/listings/, which handles the same real/demo/empty decision behind a
- * swappable interface. This file covers the two content types that have no
- * provider and never get a demo counterpart.
+ * Listings and developments are NOT here: each has its own provider
+ * architecture (src/lib/listings/ and src/lib/developments/) handling the same
+ * real/demo/empty decision behind a swappable interface. Testimonials have no
+ * provider and never get a demo counterpart — a fabricated review is
+ * unacceptable in every environment.
  *
  * Both are gated on the client having supplied the content. `isDemo` is
  * always false here, and is kept in the return shape so callers can treat
  * these the same way they treat provider-backed content.
  */
 import { testimonials, type Testimonial } from '@data/testimonials';
-import { developments, type Development } from '@data/developments';
 
 export type Resolved<T> = {
   readonly items: readonly T[];
@@ -26,15 +26,5 @@ export type Resolved<T> = {
  */
 export const resolveTestimonials = (limit = 3): Resolved<Testimonial> => ({
   items: testimonials.filter((t) => t.verified).slice(0, limit),
-  isDemo: false,
-});
-
-/**
- * Developments carry no demo counterpart either — inventing a development,
- * its delivery date or its pricing would be a claim about the market, not a
- * design placeholder.
- */
-export const resolveDevelopments = (limit = 3): Resolved<Development> => ({
-  items: developments.filter((d) => d.kind === 'new').slice(0, limit),
   isDemo: false,
 });

@@ -1,12 +1,16 @@
 ---
-import StubPage from '@layouts/StubPage.astro';
+import DevelopmentIndex from '@components/developments/DevelopmentIndex.astro';
 ---
 
-<StubPage
-  title={'New Developments'}
-  heading={'New developments'}
-  eyebrow={'Developments'}
-  description={'Pre-construction and newly delivered communities across South Florida.'}
+<DevelopmentIndex
+  title="New Developments"
+  heading="New developments"
+  eyebrow="New construction"
+  description="Pre-construction and newly delivered communities across Broward, Palm Beach and Miami-Dade."
+  lead="Pre-construction and newly delivered communities across South Florida."
+  intro="New construction rarely reaches the open market the way resale does. Allocations move through relationships, release schedules shift, and the best positions in a building are often spoken for before a sales gallery opens. Martin and MaryEllen watch what is coming and can tell you what is genuinely available — not what a brochure says."
   breadcrumbs={[{ label: 'Developments' }, { label: 'New' }]}
-  note={'Developments are added from material the client supplies. Nothing appears here until then.'}
+  category="new"
+  statuses={['pre-construction', 'under-construction', 'now-selling']}
+  path="/developments/new/"
 />

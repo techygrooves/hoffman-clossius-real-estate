@@ -1,0 +1,77 @@
+---
+/**
+ * DevelopmentEmptyState — what a development page shows when it has nothing.
+ *
+ * 'not-supplied'  no developments have been supplied yet. Plain language: no
+ *                 "provider", no "data source", no jargon.
+ * 'no-results'    filters matched nothing.
+ */
+import Button from '@components/ui/Button.astro';
+import { professionals } from '@config/site';
+import { cn } from '@lib/cn';
+
+interface Props {
+  variant?: 'not-supplied' | 'no-results';
+  category?: 'new' | 'existing';
+  class?: string;
+}
+
+const { variant = 'no-results', category = 'new', class: className } = Astro.props;
+
+const COPY = {
+  'not-supplied': {
+    new: {
+      title: 'New developments are added as they are released.',
+      body: 'Pre-construction moves quickly and quietly, and the best releases are often spoken for before they are advertised. Tell us what you are watching for and we will let you know when it opens.',
+    },
+    existing: {
+      title: 'Community guides are on the way.',
+      body: 'We are putting together guides to the established communities across South Florida. In the meantime, ask us about any building or neighbourhood you are considering.',
+    },
+  },
+  'no-results': {
+    new: {
+      title: 'No developments match those filters.',
+      body: 'Try widening the price range or clearing a filter. If nothing here fits, tell us what you are looking for and we will watch for it.',
+    },
+    existing: {
+      title: 'No communities match those filters.',
+      body: 'Try widening the price range or clearing a filter, or ask us about a specific community.',
+    },
+  },
+} as const;
+
+const copy = COPY[variant][category];
+---
+
+<div
+  class={cn(
+    'rounded-xs border border-dashed border-line-strong bg-cream-50 px-8 py-14 text-center',
+    className,
+  )}
+  data-reveal
+>
+  <p class="mx-auto max-w-xl font-serif text-2xl text-evergreen-800">{copy.title}</p>
+  <p class="mx-auto mt-3 max-w-xl text-sm leading-relaxed text-ink-muted">{copy.body}</p>
+
+  <div class="mt-8 flex flex-wrap justify-center gap-3">
+    <Button href="/contact/" withArrow>Register your interest</Button>
+    <Button href="/buy/dream-home-finder/" variant="secondary">
+      Tell us what you want
+    </Button>
+  </div>
+
+  <p class="mt-8 border-t border-line pt-6 text-sm text-ink-muted">
+    Or call directly:
+    {
+      professionals.map((person, index) => (
+        <>
+          {index > 0 && <span aria-hidden="true"> · </span>}
+          <a href={person.phone.href} class="link-underline text-evergreen-800">
+            {person.firstName} {person.phone.value}
+          </a>
+        </>
+      ))
+    }
+  </p>
+</div>

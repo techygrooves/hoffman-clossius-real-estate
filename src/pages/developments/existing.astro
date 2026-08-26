@@ -1,12 +1,16 @@
 ---
-import StubPage from '@layouts/StubPage.astro';
+import DevelopmentIndex from '@components/developments/DevelopmentIndex.astro';
 ---
 
-<StubPage
-  title={'Established Developments'}
-  heading={'Established developments'}
-  eyebrow={'Developments'}
-  description={'Long-established South Florida communities, and what living in each of them is actually like.'}
+<DevelopmentIndex
+  title="Established Developments"
+  heading="Established developments"
+  eyebrow="Communities"
+  description="Long-established South Florida communities — what living in each of them is actually like."
+  lead="Long-established South Florida communities, and what living in each of them is actually like."
+  intro="An established community is a known quantity in a way new construction never is: the landscaping has grown in, the association has a track record, and the resale history tells you something. These guides cover what each one is like to live in — the layout, the amenities and the character — alongside what is currently available."
   breadcrumbs={[{ label: 'Developments' }, { label: 'Established' }]}
-  note={'Developments are added from material the client supplies. Nothing appears here until then.'}
+  category="existing"
+  statuses={['completed', 'sold-out']}
+  path="/developments/existing/"
 />

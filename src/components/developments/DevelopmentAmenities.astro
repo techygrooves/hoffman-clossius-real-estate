@@ -1,0 +1,44 @@
+---
+/**
+ * DevelopmentAmenities — what the project offers, in the groups a buyer reads.
+ * Lists exactly what was supplied; a group with nothing in it is omitted, not
+ * shown as an empty heading.
+ */
+import type { DevelopmentAmenityGroups } from '@lib/developments/types';
+import { cn } from '@lib/cn';
+
+interface Props {
+  amenities: DevelopmentAmenityGroups;
+  class?: string;
+}
+
+const { amenities, class: className } = Astro.props;
+
+const groups = [
+  { label: 'Building', items: amenities.building },
+  { label: 'Outdoor', items: amenities.outdoor },
+  { label: 'Services', items: amenities.services },
+].filter((group) => group.items.length > 0);
+---
+
+{
+  groups.length > 0 && (
+    <div class={cn('grid gap-8 sm:grid-cols-3', className)}>
+      {groups.map((group) => (
+        <div>
+          <h3 class="text-xs uppercase tracking-wide-sm text-ink-subtle">
+            {group.label}
+          </h3>
+          <ul class="mt-3 flex flex-col gap-2 text-sm text-ink-muted">
+            {group.items.map((item) => (
+              <li class="flex gap-2.5">
+                <span class="mt-2 h-1 w-1 shrink-0 rounded-full bg-gold-500" aria-hidden="true" />
+                {item}
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))}
+    </div>
+  )
+}

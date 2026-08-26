@@ -1,40 +1,40 @@
 ---
 /**
- * ListingGallery — the photography on a property detail page.
+ * DevelopmentGallery — the imagery on a development detail page.
  *
- * Built on a native <dialog>, which is what keeps the JavaScript small:
- * `showModal()` traps focus and closes on Escape without any of it being
- * hand-written. The script only handles moving between images, restoring
- * focus to the thumbnail that opened the lightbox, and touch swipes.
+ * Uses the shared lightbox in src/lib/gallery.ts, which is built on a native
+ * <dialog>: the focus trap and Escape come from the platform.
  *
- * With no images — the state today, since there is no photography — it renders
- * placeholder slots and no interactive affordance at all, rather than opening
- * an empty lightbox.
+ * Renderings are labelled. A buyer must never be shown an artist's impression
+ * as though it were a photograph of a finished building — and for a
+ * pre-construction project, nearly every image is one.
+ *
+ * With no imagery — the state today, since developer material is copyrighted
+ * and none has been supplied — it renders placeholder slots and no interactive
+ * affordance, rather than an empty lightbox.
  */
-import type { Listing } from '@lib/listings/types';
+import type { Development } from '@lib/developments/types';
 import MediaSlot from '@components/ui/MediaSlot.astro';
 import { cn } from '@lib/cn';
 
 interface Props {
-  listing: Listing;
+  development: Development;
   class?: string;
 }
 
-const { listing, class: className } = Astro.props;
+const { development, class: className } = Astro.props;
 
-const images = listing.images;
+const images = development.images;
 const hasImages = images.length > 0;
-const addressLabel = listing.address.line1;
-
-/** Desktop mosaic: one large frame plus up to four supporting frames. */
 const lead = images[0] ?? null;
 const rest = images.slice(1, 5);
 const overflow = Math.max(0, images.length - 5);
+const anyRendering = images.some((image) => image.isRendering);
 ---
 
 <section
   class={cn('relative', className)}
-  aria-label={`Photographs of ${addressLabel}`}
+  aria-label={`Images of ${development.name}`}
   data-gallery
 >
   {
@@ -58,7 +58,12 @@ const overflow = Math.max(0, images.length - 5);
               sizes="(min-width: 640px) 50vw, 100vw"
               imgClass="transition-transform duration-700 ease-[var(--ease-editorial)] motion-safe:group-hover:scale-[1.03]"
             />
-            <span class="sr-only">Open photograph 1 of {images.length} full screen</span>
+            {lead?.isRendering && (
+              <span class="absolute bottom-3 left-3 rounded-xs bg-charcoal-900/75 px-2.5 py-1 text-[0.625rem] uppercase tracking-eyebrow text-white backdrop-blur-sm">
+                Artist's rendering
+              </span>
+            )}
+            <span class="sr-only">Open image 1 of {images.length} full screen</span>
           </button>
 
           {rest.map((image, index) => (
@@ -78,7 +83,7 @@ const overflow = Math.max(0, images.length - 5);
                 imgClass="transition-transform duration-700 ease-[var(--ease-editorial)] motion-safe:group-hover:scale-[1.05]"
               />
               <span class="sr-only">
-                Open photograph {index + 2} of {images.length} full screen
+                Open image {index + 2} of {images.length} full screen
               </span>
               {index === rest.length - 1 && overflow > 0 && (
                 <span
@@ -92,36 +97,32 @@ const overflow = Math.max(0, images.length - 5);
           ))}
         </div>
 
-        <button
-          type="button"
-          data-gallery-open
-          data-index="0"
-          class="mt-3 inline-flex h-11 items-center gap-2 rounded-xs border border-line-control px-5 text-sm text-evergreen-800 transition-colors hover:bg-evergreen-50"
-        >
-          <svg
-            class="h-4 w-4"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.5"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            aria-hidden="true"
+        <div class="mt-3 flex flex-wrap items-center gap-4">
+          <button
+            type="button"
+            data-gallery-open
+            data-index="0"
+            class="inline-flex h-11 items-center gap-2 rounded-xs border border-line-control px-5 text-sm text-evergreen-800 transition-colors hover:bg-evergreen-50"
           >
-            <rect x="3" y="5" width="18" height="14" rx="1.5" />
-            <circle cx="8.5" cy="10" r="1.25" />
-            <path d="M21 16l-4.5-4.5L9 19" />
-          </svg>
-          View all {images.length} photographs
-        </button>
+            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <rect x="3" y="5" width="18" height="14" rx="1.5" />
+              <circle cx="8.5" cy="10" r="1.25" />
+              <path d="M21 16l-4.5-4.5L9 19" />
+            </svg>
+            View all {images.length} images
+          </button>
 
-        {/*
-          Native <dialog>: focus trap and Escape-to-close come from the
-          platform, so the script stays under a kilobyte.
-        */}
+          {anyRendering && (
+            <p class="text-xs text-ink-muted">
+              Some images are artist's renderings and may differ from the
+              finished building.
+            </p>
+          )}
+        </div>
+
         <dialog
           data-gallery-dialog
-          aria-label={`Photographs of ${addressLabel}`}
+          aria-label={`Images of ${development.name}`}
           class="h-full max-h-none w-full max-w-none bg-evergreen-950/97 p-0 backdrop:bg-evergreen-950/90"
         >
           <div class="flex h-full flex-col" data-surface="dark">
@@ -134,7 +135,7 @@ const overflow = Math.max(0, images.length - 5);
                 data-gallery-close
                 class="flex h-11 w-11 items-center justify-center rounded-xs text-white transition-colors hover:bg-white/10"
               >
-                <span class="sr-only">Close photographs</span>
+                <span class="sr-only">Close images</span>
                 <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
                   <path d="M6 6l12 12M18 6L6 18" />
                 </svg>
@@ -147,7 +148,7 @@ const overflow = Math.max(0, images.length - 5);
                 data-gallery-prev
                 class="absolute left-1 z-10 flex h-12 w-12 items-center justify-center rounded-xs text-white transition-colors hover:bg-white/10 sm:left-3"
               >
-                <span class="sr-only">Previous photograph</span>
+                <span class="sr-only">Previous image</span>
                 <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
                   <path d="M15 5l-7 7 7 7" />
                 </svg>
@@ -164,16 +165,13 @@ const overflow = Math.max(0, images.length - 5);
                     decoding="async"
                     data-gallery-slide
                     data-index={index}
-                    data-caption={image.caption ?? ''}
+                    data-caption={[image.caption, image.isRendering ? "Artist's rendering" : null].filter(Boolean).join(' · ')}
                     hidden={index !== 0}
                     class="max-h-full max-w-full object-contain"
                   />
                 ))}
-                <figcaption
-                  class="min-h-6 text-center text-sm text-white/70"
-                  data-gallery-caption
-                >
-                  {images[0]?.caption ?? ''}
+                <figcaption class="min-h-6 text-center text-sm text-white/70" data-gallery-caption>
+                  {[images[0]?.caption, images[0]?.isRendering ? "Artist's rendering" : null].filter(Boolean).join(' · ')}
                 </figcaption>
               </figure>
 
@@ -182,7 +180,7 @@ const overflow = Math.max(0, images.length - 5);
                 data-gallery-next
                 class="absolute right-1 z-10 flex h-12 w-12 items-center justify-center rounded-xs text-white transition-colors hover:bg-white/10 sm:right-3"
               >
-                <span class="sr-only">Next photograph</span>
+                <span class="sr-only">Next image</span>
                 <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
                   <path d="M9 5l7 7-7 7" />
                 </svg>
@@ -192,16 +190,21 @@ const overflow = Math.max(0, images.length - 5);
         </dialog>
       </>
     ) : (
-      /* No photography yet — a still, honest placeholder, not a dead lightbox. */
-      <div class="grid gap-2 sm:grid-cols-4 sm:grid-rows-2">
-        <div class="col-span-full row-span-2 overflow-hidden rounded-xs sm:col-span-2">
-          <MediaSlot src={null} width={1200} height={900} ratio="4/3" seed={0} loading="eager" />
-        </div>
-        {[1, 2, 3, 4].map((seed) => (
-          <div class="hidden overflow-hidden rounded-xs sm:block">
-            <MediaSlot src={null} width={600} height={450} ratio="4/3" seed={seed} marker={false} />
+      <div>
+        <div class="grid gap-2 sm:grid-cols-4 sm:grid-rows-2">
+          <div class="col-span-full row-span-2 overflow-hidden rounded-xs sm:col-span-2">
+            <MediaSlot src={null} width={1200} height={900} ratio="4/3" seed={0} loading="eager" />
           </div>
-        ))}
+          {[1, 2, 3, 4].map((seed) => (
+            <div class="hidden overflow-hidden rounded-xs sm:block">
+              <MediaSlot src={null} width={600} height={450} ratio="4/3" seed={seed} marker={false} />
+            </div>
+          ))}
+        </div>
+        <p class="mt-3 text-xs text-ink-muted">
+          Images are published once the developer has authorised them for this
+          site.
+        </p>
       </div>
     )
   }
