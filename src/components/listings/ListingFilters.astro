@@ -1,0 +1,257 @@
+---
+/**
+ * ListingFilters — the search panel.
+ *
+ * A real GET form. Without JavaScript it submits, the page reloads, and the
+ * results are filtered — every filter lives in the URL either way, so a search
+ * is always shareable. With JavaScript the client script intercepts changes,
+ * filters in place and updates the URL with history.replaceState.
+ *
+ * `id="listing-filters"` is referenced by ListingSort's `form` attribute, so
+ * the sort select submits with the rest without being nested inside the panel.
+ */
+import {
+  PARAM,
+  PROPERTY_TYPE_LABELS,
+  SELECTABLE_PROPERTY_TYPES,
+} from '@lib/listings/query';
+import type { ListingQuery, PropertyType } from '@lib/listings/types';
+import { cn } from '@lib/cn';
+
+interface Props {
+  query: ListingQuery;
+  /** Where the form submits — the page it lives on. */
+  action: string;
+  /** Hides the status control on pages that fix the status themselves. */
+  showStatus?: boolean;
+  class?: string;
+}
+
+const { query, action, showStatus = false, class: className } = Astro.props;
+
+const PRICES = [
+  100000, 200000, 300000, 400000, 500000, 750000, 1000000, 1500000, 2000000,
+  3000000, 5000000, 10000000,
+];
+
+const usd = new Intl.NumberFormat('en-US', {
+  style: 'currency',
+  currency: 'USD',
+  notation: 'compact',
+  maximumFractionDigits: 1,
+});
+
+const field =
+  'h-12 w-full rounded-xs border border-line-control bg-white px-3.5 text-sm text-ink placeholder:text-ink-subtle ' +
+  'transition-colors hover:border-evergreen-700 focus:border-evergreen-800';
+const label = 'block text-xs uppercase tracking-wide-sm text-ink-muted';
+
+const isTypeChecked = (type: PropertyType) =>
+  query.propertyType?.includes(type) ?? false;
+---
+
+<form
+  id="listing-filters"
+  action={action}
+  method="get"
+  role="search"
+  aria-label="Filter properties"
+  data-listing-filters
+  class={cn('rounded-xs border border-line bg-white p-6 sm:p-8', className)}
+>
+  <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-12">
+    <div class="lg:col-span-4">
+      <label class={label} for="filter-location">Location, city or ZIP</label>
+      <input
+        id="filter-location"
+        name={PARAM.location}
+        type="search"
+        autocomplete="off"
+        value={query.location ?? ''}
+        placeholder="Hollywood, Fort Lauderdale, 33019…"
+        class={`mt-2 ${field}`}
+      />
+    </div>
+
+    <div class="lg:col-span-2">
+      <label class={label} for="filter-min">Min price</label>
+      <select id="filter-min" name={PARAM.minPrice} class={`mt-2 ${field}`}>
+        <option value="">No minimum</option>
+        {
+          PRICES.map((price) => (
+            <option value={price} selected={query.minPrice === price}>
+              {usd.format(price)}
+            </option>
+          ))
+        }
+      </select>
+    </div>
+
+    <div class="lg:col-span-2">
+      <label class={label} for="filter-max">Max price</label>
+      <select id="filter-max" name={PARAM.maxPrice} class={`mt-2 ${field}`}>
+        <option value="">No maximum</option>
+        {
+          PRICES.map((price) => (
+            <option value={price} selected={query.maxPrice === price}>
+              {usd.format(price)}
+            </option>
+          ))
+        }
+      </select>
+    </div>
+
+    <div class="lg:col-span-2">
+      <label class={label} for="filter-beds">Beds</label>
+      <select id="filter-beds" name={PARAM.beds} class={`mt-2 ${field}`}>
+        <option value="">Any</option>
+        {
+          [1, 2, 3, 4, 5, 6].map((n) => (
+            <option value={n} selected={query.beds === n}>{n}+</option>
+          ))
+        }
+      </select>
+    </div>
+
+    <div class="lg:col-span-2">
+      <label class={label} for="filter-baths">Baths</label>
+      <select id="filter-baths" name={PARAM.baths} class={`mt-2 ${field}`}>
+        <option value="">Any</option>
+        {
+          [1, 2, 3, 4, 5].map((n) => (
+            <option value={n} selected={query.baths === n}>{n}+</option>
+          ))
+        }
+      </select>
+    </div>
+  </div>
+
+  {/* Secondary filters, open by default on desktop and collapsed on mobile. */}
+  <details class="group/more mt-5 border-t border-line pt-5" open>
+    <summary class="flex cursor-pointer list-none items-center gap-2 text-xs uppercase tracking-wide-sm text-evergreen-800 [&::-webkit-details-marker]:hidden">
+      More filters
+      <svg
+        class="h-2.5 w-2.5 transition-transform duration-300 group-open/more:rotate-180"
+        viewBox="0 0 10 6"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.5"
+        aria-hidden="true"
+      >
+        <path d="M1 1l4 4 4-4" />
+      </svg>
+    </summary>
+
+    <div class="mt-5 grid gap-6 lg:grid-cols-[minmax(0,1fr)_auto]">
+      <fieldset class="border-0 p-0">
+        <legend class={label}>Property type</legend>
+        <ul class="mt-3 flex flex-wrap gap-2">
+          {
+            SELECTABLE_PROPERTY_TYPES.filter((t) => t !== 'other').map((type) => (
+              <li>
+                <label class="relative inline-flex">
+                  <input
+                    type="checkbox"
+                    name={PARAM.propertyType}
+                    value={type}
+                    checked={isTypeChecked(type)}
+                    class="peer sr-only"
+                  />
+                  <span class="cursor-pointer rounded-xs border border-line-control px-4 py-2 text-sm text-ink-muted transition-colors hover:border-evergreen-700 peer-checked:border-evergreen-800 peer-checked:bg-evergreen-800 peer-checked:text-white">
+                    {PROPERTY_TYPE_LABELS[type]}
+                  </span>
+                </label>
+              </li>
+            ))
+          }
+        </ul>
+      </fieldset>
+
+      <fieldset class="border-0 p-0">
+        <legend class={label}>Features</legend>
+        <ul class="mt-3 flex flex-wrap gap-2">
+          {
+            [
+              { name: PARAM.waterfront, label: 'Waterfront', checked: query.waterfront === true },
+              { name: PARAM.pool, label: 'Pool', checked: query.pool === true },
+            ].map((feature) => (
+              <li>
+                <label class="relative inline-flex">
+                  <input
+                    type="checkbox"
+                    name={feature.name}
+                    value="true"
+                    checked={feature.checked}
+                    class="peer sr-only"
+                  />
+                  <span class="cursor-pointer rounded-xs border border-line-control px-4 py-2 text-sm text-ink-muted transition-colors hover:border-evergreen-700 peer-checked:border-evergreen-800 peer-checked:bg-evergreen-800 peer-checked:text-white">
+                    {feature.label}
+                  </span>
+                </label>
+              </li>
+            ))
+          }
+        </ul>
+      </fieldset>
+    </div>
+
+    {
+      showStatus && (
+        <fieldset class="mt-6 border-0 p-0">
+          <legend class={label}>Status</legend>
+          <ul class="mt-3 flex flex-wrap gap-2">
+            {[
+              { value: 'for-sale', label: 'For Sale' },
+              { value: 'for-rent', label: 'For Rent' },
+              { value: 'coming-soon', label: 'Coming Soon' },
+            ].map((option) => (
+              <li>
+                <label class="relative inline-flex">
+                  <input
+                    type="checkbox"
+                    name={PARAM.status}
+                    value={option.value}
+                    checked={query.status?.includes(option.value as never) ?? false}
+                    class="peer sr-only"
+                  />
+                  <span class="cursor-pointer rounded-xs border border-line-control px-4 py-2 text-sm text-ink-muted transition-colors hover:border-evergreen-700 peer-checked:border-evergreen-800 peer-checked:bg-evergreen-800 peer-checked:text-white">
+                    {option.label}
+                  </span>
+                </label>
+              </li>
+            ))}
+          </ul>
+        </fieldset>
+      )
+    }
+  </details>
+
+  <div class="mt-6 flex flex-col gap-3 border-t border-line pt-5 sm:flex-row sm:items-center sm:justify-between">
+    <a
+      href={action}
+      data-clear-filters
+      class="text-xs uppercase tracking-wide-sm text-ink-muted underline-offset-4 transition-colors hover:text-evergreen-800 hover:underline"
+    >
+      Clear all filters
+    </a>
+
+    {/* Without JS this is how a search runs. With JS it stays as a fallback. */}
+    <button
+      type="submit"
+      class="group inline-flex h-12 items-center justify-center gap-2.5 rounded-xs border border-evergreen-800 bg-evergreen-800 px-8 text-sm font-medium tracking-wide-sm text-white transition-all duration-300 ease-[var(--ease-editorial)] hover:bg-evergreen-900 hover:shadow-card motion-safe:active:translate-y-px"
+    >
+      Search
+      <svg
+        class="h-3.5 w-3.5 shrink-0 transition-transform duration-300 ease-[var(--ease-editorial)] motion-safe:group-hover:translate-x-1"
+        viewBox="0 0 16 16"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.5"
+        stroke-linecap="square"
+        aria-hidden="true"
+      >
+        <path d="M1 8h13M9 3l5 5-5 5"></path>
+      </svg>
+    </button>
+  </div>
+</form>

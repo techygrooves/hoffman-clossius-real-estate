@@ -1,0 +1,107 @@
+---
+/**
+ * ListingFacts — the beds / baths / size row, and the fuller specification
+ * table on a detail page.
+ *
+ * Renders only what the provider supplied. A null is omitted entirely: a
+ * missing bathroom count must never appear as "0 baths", and an unknown lot
+ * size must never appear as a dash that reads like a measurement.
+ */
+import { formatNumber } from '@lib/format';
+import { PROPERTY_TYPE_LABELS } from '@lib/listings/query';
+import type { Listing } from '@lib/listings/types';
+import { cn } from '@lib/cn';
+
+interface Props {
+  listing: Listing;
+  /** 'summary' = the compact row. 'full' = the specification table. */
+  variant?: 'summary' | 'full';
+  class?: string;
+}
+
+const { listing, variant = 'summary', class: className } = Astro.props;
+
+const bathLabel = () => {
+  if (listing.baths === null) return null;
+  const value = listing.halfBaths
+    ? `${listing.baths}.${listing.halfBaths}`
+    : String(listing.baths);
+  return { label: listing.baths === 1 && !listing.halfBaths ? 'Bath' : 'Baths', value };
+};
+
+const summary = [
+  listing.beds !== null && {
+    label: listing.beds === 1 ? 'Bed' : 'Beds',
+    value: String(listing.beds),
+  },
+  bathLabel(),
+  listing.sqft !== null && { label: 'Sq Ft', value: formatNumber(listing.sqft) },
+].filter((f): f is { label: string; value: string } => Boolean(f));
+
+/** Everything worth stating on a detail page, minus anything unsupplied. */
+const full = [
+  { label: 'Property type', value: listing.propertyTypeLabel ?? PROPERTY_TYPE_LABELS[listing.propertyType] },
+  listing.beds !== null && { label: 'Bedrooms', value: String(listing.beds) },
+  listing.baths !== null && {
+    label: 'Full bathrooms',
+    value: String(listing.baths),
+  },
+  listing.halfBaths !== null && listing.halfBaths > 0 && {
+    label: 'Half bathrooms',
+    value: String(listing.halfBaths),
+  },
+  listing.sqft !== null && {
+    label: 'Living area',
+    value: `${formatNumber(listing.sqft)} sq ft`,
+  },
+  listing.lotSize !== null && {
+    label: 'Lot size',
+    value: `${formatNumber(listing.lotSize)} sq ft`,
+  },
+  listing.yearBuilt !== null && { label: 'Year built', value: String(listing.yearBuilt) },
+  listing.garage !== null && {
+    label: 'Garage',
+    value: listing.garage === 0 ? 'None' : `${listing.garage} spaces`,
+  },
+  listing.pool !== null && { label: 'Pool', value: listing.pool ? 'Yes' : 'No' },
+  listing.waterfront !== null && {
+    label: 'Waterfront',
+    value: listing.waterfront ? 'Yes' : 'No',
+  },
+  listing.mlsNumber && { label: 'MLS number', value: listing.mlsNumber },
+].filter((f): f is { label: string; value: string } => Boolean(f));
+---
+
+{
+  variant === 'summary' ? (
+    summary.length > 0 && (
+      <dl class={cn('flex flex-wrap items-center gap-x-5 gap-y-2 text-sm', className)}>
+        {summary.map((fact) => (
+          <div class="flex items-baseline gap-1.5">
+            <dd class="font-medium text-evergreen-800">{fact.value}</dd>
+            <dt class="text-xs uppercase tracking-wide-sm text-ink-subtle">
+              {fact.label}
+            </dt>
+          </div>
+        ))}
+      </dl>
+    )
+  ) : (
+    <dl
+      class={cn(
+        'grid gap-px overflow-hidden rounded-xs border border-line bg-line sm:grid-cols-2',
+        '[&>*:last-child:nth-child(odd)]:sm:col-span-2',
+        className,
+      )}
+    >
+      {full.map((fact) => (
+        <div class="flex items-baseline justify-between gap-4 bg-white px-5 py-3.5">
+          <dt class="text-xs uppercase tracking-wide-sm text-ink-subtle">
+            {fact.label}
+          </dt>
+          <dd class="text-sm text-evergreen-800">{fact.value}</dd>
+        </div>
+      ))}
+    </dl>
+  )
+}

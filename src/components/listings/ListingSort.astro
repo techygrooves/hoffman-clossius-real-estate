@@ -1,0 +1,56 @@
+---
+/**
+ * ListingSort — result count and sort order.
+ *
+ * The select sits inside the filter form, so changing it submits like any
+ * other filter when JavaScript is unavailable. With JS the client script
+ * re-sorts in place and updates the URL.
+ */
+import { SELECTABLE_SORTS, SORT_LABELS } from '@lib/listings/query';
+import { DEFAULT_SORT, type ListingSort as SortValue } from '@lib/listings/types';
+import { cn } from '@lib/cn';
+
+interface Props {
+  total: number;
+  sort?: SortValue;
+  /** Hidden when the provider cannot serve data at all. */
+  showCount?: boolean;
+  class?: string;
+}
+
+const { total, sort = DEFAULT_SORT, showCount = true, class: className } = Astro.props;
+---
+
+<div class={cn('flex flex-wrap items-center justify-between gap-4', className)}>
+  {
+    showCount ? (
+      <p class="text-sm text-ink-muted" data-result-count aria-live="polite">
+        <span data-result-total>{total}</span>
+        <span>{total === 1 ? ' property' : ' properties'}</span>
+      </p>
+    ) : (
+      <span />
+    )
+  }
+
+  <div class="flex items-center gap-3">
+    <label for="listing-sort" class="text-xs uppercase tracking-wide-sm text-ink-subtle">
+      Sort
+    </label>
+    <select
+      id="listing-sort"
+      name="sort"
+      form="listing-filters"
+      data-listing-sort
+      class="h-11 rounded-xs border border-line-control bg-white px-3 text-sm text-ink transition-colors hover:border-evergreen-700 focus:border-evergreen-800"
+    >
+      {
+        SELECTABLE_SORTS.map((option) => (
+          <option value={option} selected={option === sort}>
+            {SORT_LABELS[option]}
+          </option>
+        ))
+      }
+    </select>
+  </div>
+</div>

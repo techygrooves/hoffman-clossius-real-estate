@@ -1,0 +1,39 @@
+---
+/**
+ * ListingStatusBadge — the listing's lifecycle state, as a small solid chip.
+ * Colour distinguishes actionable states from historical ones, but the label
+ * always carries the meaning: colour is never the only signal.
+ */
+import { STATUS_LABELS } from '@lib/listings/query';
+import type { ListingStatus } from '@lib/listings/types';
+import { cn } from '@lib/cn';
+
+interface Props {
+  status: ListingStatus;
+  size?: 'sm' | 'md';
+  class?: string;
+}
+
+const { status, size = 'sm', class: className } = Astro.props;
+
+const TONES: Record<ListingStatus, string> = {
+  'for-sale': 'bg-evergreen-800 text-white',
+  'for-rent': 'bg-evergreen-800 text-white',
+  'coming-soon': 'bg-gold-500 text-evergreen-900',
+  pending: 'bg-charcoal-600 text-white',
+  sold: 'bg-charcoal-700 text-white',
+  leased: 'bg-charcoal-700 text-white',
+  'off-market': 'bg-charcoal-500 text-white',
+};
+---
+
+<span
+  class={cn(
+    'inline-flex items-center rounded-xs uppercase tracking-eyebrow',
+    size === 'md' ? 'px-3 py-1.5 text-[0.6875rem]' : 'px-2.5 py-1 text-[0.625rem]',
+    TONES[status],
+    className,
+  )}
+>
+  {STATUS_LABELS[status]}
+</span>

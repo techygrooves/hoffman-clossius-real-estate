@@ -1,41 +1,331 @@
 ---
 /**
- * Individual property detail page.
+ * Property detail page.
  *
- * Generated from `resolveRoutableListings()` — real listings when they exist,
- * the clearly-marked demo records when the demo flag is on, and nothing at all
- * in a production build with no MLS feed. It must use the same resolver the
- * listing cards use, or a demo build links to pages that were never built.
+ * Generated from `listingProvider.getAll()`, so the route set follows whatever
+ * provider is active: the demo dataset today, an authorised MLS feed later,
+ * and nothing at all in a production build with neither. No component on this
+ * page knows which.
+ *
+ * Every block below renders only if the provider supplied the data behind it.
+ * A listing with no description shows no description section — not a heading
+ * over an empty space, and never filler.
  */
 import type { GetStaticPaths } from 'astro';
-import StubPage from '@layouts/StubPage.astro';
-import { resolveRoutableListings } from '@lib/content';
+import BaseLayout from '@layouts/BaseLayout.astro';
+import Container from '@components/ui/Container.astro';
+import Breadcrumbs from '@components/ui/Breadcrumbs.astro';
+import Section from '@components/ui/Section.astro';
+import Button from '@components/ui/Button.astro';
+import MediaSlot from '@components/ui/MediaSlot.astro';
+import ListingGallery from '@components/listings/ListingGallery.astro';
+import ListingStatusBadge from '@components/listings/ListingStatusBadge.astro';
+import ListingFacts from '@components/listings/ListingFacts.astro';
+import ListingContactCard from '@components/listings/ListingContactCard.astro';
+import ListingGrid from '@components/listings/ListingGrid.astro';
+import FavoriteButton from '@components/listings/FavoriteButton.astro';
+import MortgageEstimate from '@components/listings/MortgageEstimate.astro';
+import { listingProvider } from '@lib/listings/provider';
+import { PROPERTY_TYPE_LABELS } from '@lib/listings/query';
+import { formatPrice, formatDate } from '@lib/format';
 
-export const getStaticPaths = (() => {
-  const { items, isDemo } = resolveRoutableListings();
-  return items.map((listing) => ({
+export const getStaticPaths = (async () => {
+  const listings = await listingProvider.getAll();
+  return listings.map((listing) => ({
     params: { slug: listing.slug },
-    props: { listing, isDemo },
+    props: { listing },
   }));
 }) satisfies GetStaticPaths;
 
-const { listing, isDemo } = Astro.props;
+const { listing } = Astro.props;
+const similar = await listingProvider.getSimilar(listing, 3);
+
+const isRental = listing.status === 'for-rent' || listing.status === 'leased';
+const price = formatPrice(listing.price);
+
+const streetLine = [listing.address.line1, listing.address.line2]
+  .filter(Boolean)
+  .join(', ');
+const cityLine = `${listing.address.city}, ${listing.address.state} ${listing.address.zip}`;
+const fullAddress = `${streetLine}, ${cityLine}`;
+
+const featureGroups = [
+  { label: 'Interior', items: listing.features.interior },
+  { label: 'Exterior', items: listing.features.exterior },
+  { label: 'Community', items: listing.features.community },
+].filter((group) => group.items.length > 0);
+
+const typeLabel =
+  listing.propertyTypeLabel ?? PROPERTY_TYPE_LABELS[listing.propertyType];
+
+/** Structured data, built strictly from fields the provider supplied. */
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Residence',
+  name: streetLine,
+  address: {
+    '@type': 'PostalAddress',
+    streetAddress: streetLine,
+    addressLocality: listing.address.city,
+    addressRegion: listing.address.state,
+    postalCode: listing.address.zip,
+    addressCountry: 'US',
+  },
+  ...(listing.sqft !== null
+    ? { floorSize: { '@type': 'QuantitativeValue', value: listing.sqft, unitCode: 'FTK' } }
+    : {}),
+  ...(listing.beds !== null ? { numberOfRooms: listing.beds } : {}),
+  ...(listing.yearBuilt !== null ? { yearBuilt: listing.yearBuilt } : {}),
+};
 ---
 
-<StubPage
-  title={listing.headline}
-  heading={listing.headline}
-  eyebrow="Property"
-  description={listing.description ?? `${listing.addressLine}, ${listing.city}, ${listing.state}`}
-  breadcrumbs={[
-    { label: 'Properties' },
-    { label: 'For Sale', href: '/properties/for-sale/' },
-    { label: listing.addressLine },
-  ]}
-  note={
-    isDemo
-      ? 'This is a sample record, not a real property — placeholder content used to review the design before the MLS feed is connected. The property detail template (gallery, specification, map and enquiry form) is built once the feed defines the real field set.'
-      : 'The property detail template — gallery, specification, map and enquiry form — is built once the MLS feed defines the real field set.'
+<BaseLayout
+  title={streetLine}
+  description={`${typeLabel} at ${fullAddress}.`}
+  noindex={listing.demo}
+  hideMobileActionBar
+>
+  <script
+    slot="head"
+    type="application/ld+json"
+    is:inline
+    set:html={JSON.stringify(jsonLd)}
+  />
+
+  {/* 1 — Breadcrumb */}
+  <div class="border-b border-line bg-cream-100">
+    <Container class="py-4">
+      <Breadcrumbs
+        items={[
+          { label: 'Properties' },
+          isRental
+            ? { label: 'For Rent', href: '/properties/for-rent/' }
+            : { label: 'For Sale', href: '/properties/for-sale/' },
+          { label: streetLine },
+        ]}
+      />
+    </Container>
+  </div>
+
+  {/* 2 — Gallery */}
+  <Container class="pt-6">
+    <ListingGallery listing={listing} />
+  </Container>
+
+  {/* 3–6 — Headline facts, then the detail columns */}
+  <Container class="pb-24 pt-10 lg:pb-28">
+    <div class="grid gap-12 lg:grid-cols-[minmax(0,1fr)_22rem] lg:gap-14">
+      <div class="min-w-0">
+        <div class="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <div class="flex flex-wrap items-center gap-2">
+              <ListingStatusBadge status={listing.status} size="md" />
+              {
+                listing.demo && (
+                  <span class="rounded-xs border border-dashed border-gold-600/60 bg-gold-100 px-2.5 py-1 text-[0.625rem] uppercase tracking-eyebrow text-charcoal-600">
+                    Sample record
+                  </span>
+                )
+              }
+            </div>
+
+            {
+              price && (
+                <p class="mt-4 font-serif text-display-sm text-evergreen-800">
+                  {price}
+                  {isRental && <span class="text-2xl text-ink-muted"> / month</span>}
+                </p>
+              )
+            }
+
+            <h1 class="mt-3 font-serif text-3xl leading-tight text-evergreen-800">
+              {streetLine}
+            </h1>
+            <p class="mt-1 text-ink-muted">{cityLine}</p>
+          </div>
+
+          <FavoriteButton listingId={listing.id} label={streetLine} variant="inline" />
+        </div>
+
+        <ListingFacts listing={listing} class="mt-7 border-t border-line pt-6" />
+
+        {/* Open houses — only when the feed lists any. */}
+        {
+          listing.openHouses.length > 0 && (
+            <section class="mt-10" aria-labelledby="open-houses-heading">
+              <h2 id="open-houses-heading" class="font-serif text-2xl text-evergreen-800">
+                Open house
+              </h2>
+              <ul class="mt-4 flex flex-col gap-2">
+                {listing.openHouses.map((event) => (
+                  <li class="rounded-xs border border-line px-5 py-3.5 text-sm">
+                    <time datetime={event.start} class="text-evergreen-800">
+                      {formatDate(event.start)}
+                    </time>
+                    {event.appointmentOnly && (
+                      <span class="ml-2 text-xs text-ink-muted">By appointment</span>
+                    )}
+                    {event.notes && (
+                      <span class="mt-1 block text-xs text-ink-muted">{event.notes}</span>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )
+        }
+
+        {/* 8 — Description */}
+        {
+          listing.description && (
+            <section class="mt-10" aria-labelledby="description-heading">
+              <h2 id="description-heading" class="font-serif text-2xl text-evergreen-800">
+                About this property
+              </h2>
+              <p class="mt-4 max-w-prose leading-relaxed text-ink-muted">
+                {listing.description}
+              </p>
+            </section>
+          )
+        }
+
+        {/* 7 — Property facts */}
+        <section class="mt-10" aria-labelledby="facts-heading">
+          <h2 id="facts-heading" class="font-serif text-2xl text-evergreen-800">
+            Property details
+          </h2>
+          <ListingFacts listing={listing} variant="full" class="mt-4" />
+          {
+            listing.updatedAt && (
+              <p class="mt-3 text-xs text-ink-subtle">
+                Listing information last updated {formatDate(listing.updatedAt)}.
+              </p>
+            )
+          }
+        </section>
+
+        {/* 9 — Features */}
+        {
+          featureGroups.length > 0 && (
+            <section class="mt-10" aria-labelledby="features-heading">
+              <h2 id="features-heading" class="font-serif text-2xl text-evergreen-800">
+                Features
+              </h2>
+              <div class="mt-4 grid gap-8 sm:grid-cols-3">
+                {featureGroups.map((group) => (
+                  <div>
+                    <h3 class="text-xs uppercase tracking-wide-sm text-ink-subtle">
+                      {group.label}
+                    </h3>
+                    <ul class="mt-3 flex flex-col gap-2 text-sm text-ink-muted">
+                      {group.items.map((item) => (
+                        <li class="flex gap-2.5">
+                          <span class="mt-2 h-1 w-1 shrink-0 rounded-full bg-gold-500" aria-hidden="true" />
+                          {item}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )
+        }
+
+        {/* 10 — Location. No map provider is confirmed yet, so this shows
+             where the property is without drawing a map we cannot source. */}
+        <section class="mt-10" aria-labelledby="location-heading">
+          <h2 id="location-heading" class="font-serif text-2xl text-evergreen-800">
+            Location
+          </h2>
+          <div class="mt-4 overflow-hidden rounded-xs border border-line">
+            <MediaSlot src={null} width={1200} height={600} ratio="2/1" seed={2} marker={false} />
+            <div class="border-t border-line bg-white px-6 py-5">
+              <p class="text-sm text-evergreen-800">{fullAddress}</p>
+              {
+                listing.address.county && (
+                  <p class="mt-1 text-xs text-ink-muted">{listing.address.county}</p>
+                )
+              }
+              <p class="mt-3 text-xs text-ink-subtle">
+                An interactive map is added once a map provider is chosen.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        {/* 11 — Mortgage preview */}
+        <MortgageEstimate price={listing.price} class="mt-10" />
+      </div>
+
+      {/* 12–13 — Enquiry + agent, sticky alongside the content on desktop */}
+      <div class="lg:sticky lg:top-28 lg:self-start">
+        <ListingContactCard listing={listing} />
+      </div>
+    </div>
+  </Container>
+
+  {/* 14 — Similar properties */}
+  {
+    similar.length > 0 && (
+      <Section tone="warm" labelledby="similar-heading">
+        <h2 id="similar-heading" class="text-display-sm text-evergreen-800">
+          Similar properties
+        </h2>
+        <ListingGrid listings={similar} class="mt-10" />
+      </Section>
+    )
   }
-  noindex={isDemo}
-/>
+
+  {/* 15 — Recently viewed. Populated from this device only; hidden until the
+       script finds something to show. */}
+  <section
+    class="border-t border-line bg-white section-space-tight"
+    data-recently-viewed
+    data-current-slug={listing.slug}
+    data-current-label={streetLine}
+    data-current-meta={[cityLine, price].filter(Boolean).join(' · ')}
+    aria-labelledby="recently-viewed-heading"
+    hidden
+  >
+    <Container>
+      <h2 id="recently-viewed-heading" class="font-serif text-2xl text-evergreen-800">
+        Recently viewed
+      </h2>
+      <ul
+        class="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4"
+        data-recently-viewed-list
+      >
+      </ul>
+    </Container>
+  </section>
+
+  {/* 16 — Mobile sticky action bar. Replaces the site-wide one on this page. */}
+  <div
+    class="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-white/97 backdrop-blur-sm shadow-[0_-4px_24px_rgb(6_63_53_/_0.10)] lg:hidden"
+    style="padding-bottom: env(safe-area-inset-bottom, 0px)"
+  >
+    <div class="flex items-center gap-3 px-[var(--gutter)] py-3">
+      <div class="min-w-0 flex-1">
+        {price && <p class="truncate font-serif text-lg text-evergreen-800">{price}</p>}
+        <p class="truncate text-xs text-ink-muted">{streetLine}</p>
+      </div>
+      <Button
+        href={`/contact/?intent=showing&property=${encodeURIComponent(fullAddress)}`}
+        size="sm"
+        class="shrink-0"
+      >
+        Schedule Showing
+      </Button>
+    </div>
+  </div>
+  {/* Clears the fixed bar so the footer is never trapped behind it. */}
+  <div class="h-[4.5rem] lg:hidden" aria-hidden="true"></div>
+</BaseLayout>
+
+<script>
+  import { initFavorites } from '@lib/listings/favorites';
+  import { initRecentlyViewed } from '@lib/listings/recently-viewed';
+  initFavorites();
+  initRecentlyViewed();
+</script>

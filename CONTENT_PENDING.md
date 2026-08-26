@@ -65,20 +65,27 @@ Status key: 🔴 blocking · 🟠 needed soon · 🟡 needed before launch
 
 ## 5. IDX / MLS integration
 
+Nothing on this site is connected to an MLS. The provider architecture is
+built and waiting — see `IDX_INTEGRATION.md` for how it plugs in. Every item
+below must come from the client or the provider; none may be assumed.
+
 | # | Item | Status | Notes |
 | --- | --- | --- | --- |
-| 5.1 | **IDX provider name** | 🔴 | e.g. IDX Broker, Showcase IDX, iHomefinder, Realtyna, RESO Web API… |
-| 5.2 | **Integration type** | 🔴 | iframe, JavaScript widget, or API feed. Determines whether search is truly static. |
-| 5.3 | Account credentials / API keys | 🔴 | Supplied to whoever deploys — never committed to this repository. |
+| 5.1 | **Authorised IDX/MLS provider** | 🔴 | Which provider is the client contracted with and authorised to display data from? e.g. IDX Broker, Showcase IDX, iHomefinder, Realtyna, a RESO Web API feed, or the MLS directly. **Do not assume — displaying MLS data without authorisation is a contract breach, not a technical detail.** |
+| 5.2 | **API documentation** | 🔴 | Endpoint reference, authentication method, query parameters, response schema, rate limits, sandbox environment if there is one. Needed to write the adapter in `idxProvider.ts`. |
+| 5.3 | **Credentials** | 🔴 | API key/secret, account ID, and any allow-listed domains or IPs. Given to whoever deploys, stored as server-side environment variables. **Never committed, and never `PUBLIC_`-prefixed** — that would ship the key to every visitor. |
 | 5.4 | **Agent / office MLS IDs** | 🔴 | Required for `/properties/our-listings/` to filter to the team's own listings. |
-| 5.5 | Search URL structure | 🟠 | Whether the provider owns `/properties/search/` or is embedded within it. |
-| 5.6 | Saved-search / account behaviour | 🟠 | `/login/` and `/register/` are provider-hosted. This site must never collect credentials directly. |
-| 5.7 | Permitted photo usage and caching rules | 🟠 | |
+| 5.5 | **Listing attribution requirements** | 🔴 | The exact courtesy line ("Listing information provided courtesy of …"), whether the listing brokerage must be named on each card or only on the detail page, and any required MLS logo artwork. **Verbatim — this wording is dictated by the MLS and may not be written by us.** |
+| 5.6 | **Required MLS disclaimers** | 🔴 | The full disclaimer paragraph, where it must appear (index pages, detail pages, or both), and any required "information deemed reliable but not guaranteed" language. Renders automatically once `attribution.disclaimer` is set. |
+| 5.7 | **Refresh and cache requirements** | 🔴 | How often data must be refreshed, the maximum permitted staleness, whether records may be cached or must be fetched live, and how quickly a withdrawn listing must disappear. **This decides whether a build-time fetch is permitted at all**, or whether the site needs a runtime proxy. |
+| 5.8 | Photo usage and caching rules | 🟠 | May images be downloaded and re-served, or must they be hot-linked from the provider? Any watermark or attribution requirement? |
+| 5.9 | Search URL structure | 🟠 | Whether the provider owns `/properties/search/` or is embedded within it. |
+| 5.10 | Saved-search / account behaviour | 🟠 | `/login/` and `/register/` are provider-hosted. This site must never collect credentials directly. The current "save property" button is a per-device placeholder only. |
+| 5.11 | Expected feed size | 🟡 | Dozens, hundreds or thousands? Decides whether the browser can keep filtering client-side or the provider must paginate — see `IDX_INTEGRATION.md` §7. |
 
-> Until 5.1–5.4 are confirmed, `src/data/listings.ts` stays empty. **No sample
-> listings, no scraping.**
-
----
+> Until 5.1–5.7 are supplied, `idxProvider.ts` stays unimplemented, the site
+> serves the unconfigured provider, and every listing page shows
+> "Live property search is being configured." That is the correct behaviour.
 
 ## 6. Forms
 
@@ -176,7 +183,9 @@ Every placeholder shipped today, so none can be forgotten:
 | Six community pages carrying only a locational one-liner | `src/data/communities.ts` | 10.5 supplied |
 | Social icon slots rendering nothing | `src/components/layout/SocialLinks.astro` | §7 URLs supplied |
 | Abstract media placeholders in every image position | `src/components/ui/MediaSlot.astro` | §9 photography supplied |
-| Six demo property records, dev-only, badged "Sample" | `src/data/demo/listings.demo.ts` | §5 IDX feed connected (delete the file) |
+| Twelve demo listings, dev-only, badged "Sample" | `src/lib/listings/demoData.ts` | §5 IDX feed connected (delete the file) |
+| "Save property" stored per-device only | `src/lib/listings/favorites.ts` | 5.10 — replaced by the IDX account system |
+| Map placeholder on property detail pages | `src/pages/property/[slug].astro` | 11.4 map provider chosen |
 | Homepage empty states: listings, developments, testimonials, insights | the matching section components | Each data source is supplied |
 
 No placeholder above is phrased as a factual claim about the client, and none

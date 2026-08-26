@@ -23,6 +23,11 @@ interface Props {
   noindex?: boolean;
   /** Extra classes on <main>. */
   mainClass?: string;
+  /**
+   * Suppresses the global mobile action bar. Set by pages that pin their own
+   * bottom bar — two stacked bars would collide on a phone.
+   */
+  hideMobileActionBar?: boolean;
   bodyClass?: string;
 }
 
@@ -34,6 +39,7 @@ const {
   noindex = false,
   mainClass,
   bodyClass,
+  hideMobileActionBar = false,
 } = Astro.props;
 
 const pageTitle =
@@ -153,7 +159,7 @@ const structuredData = {
 
     <Footer />
 
-    <MobileActionBar />
+    {!hideMobileActionBar && <MobileActionBar />}
 
     <script>
       import { initReveal } from '@lib/reveal';

@@ -2,17 +2,23 @@
 /**
  * PropertySearch — the search module beneath the hero.
  *
- * A plain GET form that routes its criteria to /properties/search/ as query
- * parameters. That page reads them back and shows what was requested.
+ * A plain GET form that routes its criteria to /properties/search/, which
+ * applies them for real.
  *
- * There is NO live MLS connection yet (CONTENT_PENDING.md §5) and the module
- * says so rather than implying results exist. When the IDX provider is
- * confirmed, the field names below map onto its query schema.
+ * The field names come from `PARAM` in src/lib/listings/query.ts — the same
+ * vocabulary the search page parses. They must not be spelled by hand here,
+ * or the two drift apart and the homepage sends filters the search page
+ * silently ignores.
  *
  * The Buy/Rent tabs are a native radio group — keyboard-operable with arrow
  * keys, and styled entirely in CSS, so no JavaScript is involved.
  */
 import Container from '@components/ui/Container.astro';
+import {
+  PARAM,
+  PROPERTY_TYPE_LABELS,
+  SELECTABLE_PROPERTY_TYPES,
+} from '@lib/listings/query';
 
 const PRICES = [
   50000, 100000, 200000, 300000, 400000, 500000, 750000, 1000000, 1500000,
@@ -25,15 +31,6 @@ const usd = new Intl.NumberFormat('en-US', {
   notation: 'compact',
   maximumFractionDigits: 1,
 });
-
-const PROPERTY_TYPES = [
-  'Single Family',
-  'Condominium',
-  'Townhouse',
-  'Villa',
-  'Multi-Family',
-  'Land',
-];
 
 const fieldClass =
   'h-12 w-full rounded-xs border border-line-control bg-white px-3.5 text-sm text-ink placeholder:text-ink-subtle ' +
@@ -76,15 +73,15 @@ const tabClass =
             <label class="relative">
               <input
                 type="radio"
-                name="listing"
-                value="buy"
+                name={PARAM.status}
+                value="for-sale"
                 checked
                 class="peer sr-only"
               />
               <span class={tabClass}>Buy</span>
             </label>
             <label class="relative">
-              <input type="radio" name="listing" value="rent" class="peer sr-only" />
+              <input type="radio" name={PARAM.status} value="for-rent" class="peer sr-only" />
               <span class={tabClass}>Rent</span>
             </label>
           </div>
@@ -97,7 +94,7 @@ const tabClass =
             </label>
             <input
               id="search-location"
-              name="location"
+              name={PARAM.location}
               type="text"
               autocomplete="off"
               placeholder="Hollywood, Fort Lauderdale, 33019…"
@@ -107,7 +104,7 @@ const tabClass =
 
           <div class="lg:col-span-2">
             <label class={labelClass} for="search-min">Min price</label>
-            <select id="search-min" name="min" class={`mt-2 ${fieldClass}`}>
+            <select id="search-min" name={PARAM.minPrice} class={`mt-2 ${fieldClass}`}>
               <option value="">No minimum</option>
               {PRICES.map((p) => <option value={p}>{usd.format(p)}</option>)}
             </select>
@@ -115,7 +112,7 @@ const tabClass =
 
           <div class="lg:col-span-2">
             <label class={labelClass} for="search-max">Max price</label>
-            <select id="search-max" name="max" class={`mt-2 ${fieldClass}`}>
+            <select id="search-max" name={PARAM.maxPrice} class={`mt-2 ${fieldClass}`}>
               <option value="">No maximum</option>
               {PRICES.map((p) => <option value={p}>{usd.format(p)}</option>)}
             </select>
@@ -123,7 +120,7 @@ const tabClass =
 
           <div class="lg:col-span-1">
             <label class={labelClass} for="search-beds">Beds</label>
-            <select id="search-beds" name="beds" class={`mt-2 ${fieldClass}`}>
+            <select id="search-beds" name={PARAM.beds} class={`mt-2 ${fieldClass}`}>
               <option value="">Any</option>
               {[1, 2, 3, 4, 5, 6].map((n) => <option value={n}>{n}+</option>)}
             </select>
@@ -131,7 +128,7 @@ const tabClass =
 
           <div class="lg:col-span-1">
             <label class={labelClass} for="search-baths">Baths</label>
-            <select id="search-baths" name="baths" class={`mt-2 ${fieldClass}`}>
+            <select id="search-baths" name={PARAM.baths} class={`mt-2 ${fieldClass}`}>
               <option value="">Any</option>
               {[1, 2, 3, 4, 5].map((n) => <option value={n}>{n}+</option>)}
             </select>
@@ -139,17 +136,21 @@ const tabClass =
 
           <div class="sm:col-span-2 lg:col-span-2">
             <label class={labelClass} for="search-type">Property type</label>
-            <select id="search-type" name="type" class={`mt-2 ${fieldClass}`}>
+            <select id="search-type" name={PARAM.propertyType} class={`mt-2 ${fieldClass}`}>
               <option value="">All types</option>
-              {PROPERTY_TYPES.map((t) => <option value={t}>{t}</option>)}
+              {
+                SELECTABLE_PROPERTY_TYPES.filter((t) => t !== 'other').map((t) => (
+                  <option value={t}>{PROPERTY_TYPE_LABELS[t]}</option>
+                ))
+              }
             </select>
           </div>
         </div>
 
         <div class="mt-7 flex flex-col gap-4 border-t border-line pt-6 sm:flex-row sm:items-center sm:justify-between">
           <p class="max-w-md text-xs leading-relaxed text-ink-muted">
-            Search results go live with the MLS feed. Send your criteria now and
-            Martin or MaryEllen will come back to you directly.
+            Your filters carry through to the results page, and the address bar
+            keeps them — so a search can be bookmarked or sent to someone.
           </p>
 
           <div class="flex flex-col gap-3 sm:flex-row sm:shrink-0">

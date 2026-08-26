@@ -1,0 +1,116 @@
+---
+/**
+ * Pagination — page links that keep every active filter in the URL.
+ *
+ * Real links, so they work without JavaScript, are middle-clickable and are
+ * shareable. The client script intercepts them to avoid a reload when it can.
+ */
+import { serialiseListingQuery } from '@lib/listings/query';
+import type { ListingQuery } from '@lib/listings/types';
+import { cn } from '@lib/cn';
+
+interface Props {
+  query: ListingQuery;
+  page: number;
+  totalPages: number;
+  /** Route the links point at. */
+  basePath: string;
+  /** Starts hidden; the client reveals and rebuilds it as filters change. */
+  hidden?: boolean;
+  class?: string;
+}
+
+const {
+  query,
+  page,
+  totalPages,
+  basePath,
+  hidden = false,
+  class: className,
+} = Astro.props;
+
+const href = (target: number) => {
+  const qs = serialiseListingQuery({ ...query, page: target });
+  return qs ? `${basePath}?${qs}` : basePath;
+};
+
+/** First, last, current and its neighbours; gaps become an ellipsis. */
+function pageNumbers(current: number, total: number): (number | '…')[] {
+  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+  const out: (number | '…')[] = [1];
+  const from = Math.max(2, current - 1);
+  const to = Math.min(total - 1, current + 1);
+  if (from > 2) out.push('…');
+  for (let i = from; i <= to; i++) out.push(i);
+  if (to < total - 1) out.push('…');
+  out.push(total);
+  return out;
+}
+
+const items = pageNumbers(page, totalPages);
+const linkBase =
+  'inline-flex h-11 min-w-11 items-center justify-center rounded-xs px-3 text-sm transition-colors';
+---
+
+{
+  (
+    <nav
+      aria-label="Pagination"
+      class={cn('flex justify-center', className)}
+      data-pagination
+      hidden={hidden || totalPages <= 1}
+    >
+      <ul class="flex flex-wrap items-center gap-1">
+        <li>
+          {page > 1 ? (
+            <a href={href(page - 1)} rel="prev" class={cn(linkBase, 'border border-line-control text-evergreen-800 hover:bg-evergreen-50')}>
+              <span aria-hidden="true">&larr;</span>
+              <span class="sr-only">Previous page</span>
+            </a>
+          ) : (
+            <span class={cn(linkBase, 'border border-line text-ink-subtle')} aria-disabled="true">
+              <span aria-hidden="true">&larr;</span>
+              <span class="sr-only">Previous page, unavailable</span>
+            </span>
+          )}
+        </li>
+
+        {items.map((item) =>
+          item === '…' ? (
+            <li aria-hidden="true" class="px-2 text-ink-subtle">…</li>
+          ) : (
+            <li>
+              <a
+                href={href(item)}
+                aria-current={item === page ? 'page' : undefined}
+                class={cn(
+                  linkBase,
+                  item === page
+                    ? 'bg-evergreen-800 text-white'
+                    : 'border border-line text-ink-muted hover:border-evergreen-800 hover:text-evergreen-800',
+                )}
+              >
+                <span class="sr-only">Page </span>
+                {item}
+              </a>
+            </li>
+          ),
+        )}
+
+        <li>
+          {page < totalPages ? (
+            <a href={href(page + 1)} rel="next" class={cn(linkBase, 'border border-line-control text-evergreen-800 hover:bg-evergreen-50')}>
+              <span aria-hidden="true">&rarr;</span>
+              <span class="sr-only">Next page</span>
+            </a>
+          ) : (
+            <span class={cn(linkBase, 'border border-line text-ink-subtle')} aria-disabled="true">
+              <span aria-hidden="true">&rarr;</span>
+              <span class="sr-only">Next page, unavailable</span>
+            </span>
+          )}
+        </li>
+      </ul>
+    </nav>
+  )
+}

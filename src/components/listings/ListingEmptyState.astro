@@ -1,0 +1,82 @@
+---
+/**
+ * ListingEmptyState — what a listing page shows when it has nothing to show.
+ *
+ * Three genuinely different situations, and they need different words:
+ *
+ *  'not-configured'  no provider yet. The public message says live search is
+ *                    being set up. **No developer jargon reaches a visitor** —
+ *                    no "IDX", no "provider", no "API".
+ *  'no-results'      the provider works, this search matched nothing.
+ *  'error'           the provider failed. Also plain language.
+ */
+import Button from '@components/ui/Button.astro';
+import { professionals } from '@config/site';
+import { cn } from '@lib/cn';
+
+interface Props {
+  variant?: 'not-configured' | 'no-results' | 'error';
+  /** Overrides the heading when a page has better context. */
+  title?: string;
+  class?: string;
+}
+
+const { variant = 'no-results', title, class: className } = Astro.props;
+
+const COPY = {
+  'not-configured': {
+    title: 'Live property search is being configured.',
+    body: 'Full search across the South Florida market is being set up for this site. In the meantime, tell Martin or MaryEllen what you are looking for — they search the market directly and will come back to you.',
+    primary: { label: 'Tell us what you want', href: '/buy/dream-home-finder/' },
+    secondary: { label: 'Contact us', href: '/contact/' },
+  },
+  'no-results': {
+    title: 'No properties match those filters.',
+    body: 'Try widening the price range or removing a filter. If nothing here fits, describe what you are after and we will look for it on your behalf.',
+    primary: { label: 'Start a new search', href: '/properties/search/' },
+    secondary: { label: 'Tell us what you want', href: '/buy/dream-home-finder/' },
+  },
+  error: {
+    title: 'Property results are temporarily unavailable.',
+    body: 'We could not load listings just now. Please try again shortly, or reach out and we will search for you directly.',
+    primary: { label: 'Contact us', href: '/contact/' },
+    secondary: { label: 'Back to search', href: '/properties/search/' },
+  },
+} as const;
+
+const copy = COPY[variant];
+---
+
+<div
+  class={cn(
+    'rounded-xs border border-dashed border-line-strong bg-cream-50 px-8 py-14 text-center',
+    className,
+  )}
+  data-reveal
+>
+  <p class="mx-auto max-w-xl font-serif text-2xl text-evergreen-800">
+    {title ?? copy.title}
+  </p>
+  <p class="mx-auto mt-3 max-w-xl text-sm leading-relaxed text-ink-muted">
+    {copy.body}
+  </p>
+
+  <div class="mt-8 flex flex-wrap justify-center gap-3">
+    <Button href={copy.primary.href} withArrow>{copy.primary.label}</Button>
+    <Button href={copy.secondary.href} variant="secondary">{copy.secondary.label}</Button>
+  </div>
+
+  <p class="mt-8 border-t border-line pt-6 text-sm text-ink-muted">
+    Or call directly:
+    {
+      professionals.map((person, index) => (
+        <>
+          {index > 0 && <span aria-hidden="true"> · </span>}
+          <a href={person.phone.href} class="link-underline text-evergreen-800">
+            {person.firstName} {person.phone.value}
+          </a>
+        </>
+      ))
+    }
+  </p>
+</div>

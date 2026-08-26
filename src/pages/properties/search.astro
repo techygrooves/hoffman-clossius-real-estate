@@ -1,30 +1,14 @@
 ---
-import StubPage from '@layouts/StubPage.astro';
-import QueryEcho from '@components/ui/QueryEcho.astro';
-
-/** Mirrors the field names on the homepage search form. */
-const fields = [
-  { param: 'listing', label: 'Looking to', format: 'capitalize' as const },
-  { param: 'location', label: 'Location' },
-  { param: 'min', label: 'Min price', format: 'currency' as const },
-  { param: 'max', label: 'Max price', format: 'currency' as const },
-  { param: 'beds', label: 'Beds', suffix: '+' },
-  { param: 'baths', label: 'Baths', suffix: '+' },
-  { param: 'type', label: 'Property type' },
-];
+import ListingIndex from '@components/listings/ListingIndex.astro';
 ---
 
-<StubPage
+<ListingIndex
   title="Property Search"
   heading="Search the South Florida market"
   eyebrow="Properties"
-  description="Search South Florida homes and condominiums by location, price, bedrooms and property type."
+  description="Search South Florida homes and condominiums by location, price, bedrooms, bathrooms, property type and features."
+  lead="Every filter lives in the URL, so a search can be bookmarked or sent to someone exactly as you left it."
   breadcrumbs={[{ label: 'Properties' }, { label: 'Search' }]}
-  note="The search interface will be built against the confirmed IDX provider, so that filters map to real fields rather than a mock schema."
->
-  <QueryEcho
-    title="Your search criteria"
-    note="Live results arrive with the MLS feed. In the meantime send these criteria to Martin or MaryEllen and they will search the market for you directly — they see listings before they reach the portals."
-    fields={fields}
-  />
-</StubPage>
+  showStatus
+  path="/properties/search/"
+/>

@@ -1,0 +1,87 @@
+---
+/**
+ * ListingGrid — a responsive grid of ListingCards.
+ *
+ * Holds no data logic: a page hands it results and it renders them, or renders
+ * the empty state it was told to.
+ *
+ * On a filterable index the page renders EVERY listing in scope and passes a
+ * `renderState` describing which belong on the current page and in what order.
+ * That way the no-JavaScript view is already correct, and the client script
+ * only has to toggle `hidden` and `order` on nodes that already exist — no
+ * card markup is ever duplicated in JavaScript.
+ */
+import type { Listing } from '@lib/listings/types';
+import ListingCard from './ListingCard.astro';
+import ListingEmptyState from './ListingEmptyState.astro';
+import { cn } from '@lib/cn';
+
+interface Props {
+  listings: readonly Listing[];
+  emptyVariant?: 'not-configured' | 'no-results' | 'error';
+  columns?: 2 | 3;
+  /**
+   * Turns the grid into a client-filterable one: each item carries a compact
+   * JSON payload of its filterable fields, and page/order state is applied.
+   */
+  renderState?: {
+    readonly order: Record<string, number>;
+  };
+  class?: string;
+}
+
+const {
+  listings,
+  emptyVariant = 'no-results',
+  columns = 3,
+  renderState,
+  class: className,
+} = Astro.props;
+
+/** Only the fields `matchesQuery` and `sortListings` actually read. */
+const filterPayload = (listing: Listing) =>
+  JSON.stringify({
+    id: listing.id,
+    status: listing.status,
+    price: listing.price,
+    beds: listing.beds,
+    baths: listing.baths,
+    halfBaths: listing.halfBaths,
+    sqft: listing.sqft,
+    propertyType: listing.propertyType,
+    pool: listing.pool,
+    waterfront: listing.waterfront,
+    updatedAt: listing.updatedAt,
+    address: {
+      line1: listing.address.line1,
+      city: listing.address.city,
+      state: listing.address.state,
+      zip: listing.address.zip,
+      county: listing.address.county,
+      neighborhood: listing.address.neighborhood,
+    },
+    listingAgent: listing.listingAgent
+      ? { isOurAgent: listing.listingAgent.isOurAgent }
+      : null,
+  });
+---
+
+{
+  listings.length > 0 ? (
+    <ul
+      class={cn('grid gap-6 sm:grid-cols-2', columns === 3 && 'lg:grid-cols-3', className)}
+      data-listing-grid
+    >
+      {listings.map((listing, index) => (
+        <li
+          data-listing={renderState ? filterPayload(listing) : undefined}
+          style={renderState ? `order:${renderState.order[listing.id] ?? 0}` : undefined}
+        >
+          <ListingCard listing={listing} seed={index} priority={index < 3} />
+        </li>
+      ))}
+    </ul>
+  ) : (
+    <ListingEmptyState variant={emptyVariant} class={className} />
+  )
+}

@@ -3,25 +3,84 @@
 Living record of what exists, what is broken and what comes next.
 **Update this file at the end of every session.**
 
-Last updated: **2026-08-24** — Session 3 (homepage)
+Last updated: **2026-08-24** — Session 4 (property/listing system)
 
 ---
 
 ## Current state
 
-Foundation, global chrome and **the complete homepage** are built.
-
-Every other route still renders a hero plus an honest "in preparation" band.
+Foundation, global chrome, the homepage and **the whole property/listing
+system** are built. No MLS data is connected, and the architecture is what
+makes that a configuration step rather than a rewrite.
 
 | Metric | Value |
 | --- | --- |
 | Build | ✅ passing — `astro check`: 0 errors, 0 warnings, 0 hints |
-| Pages generated | 36 static HTML pages |
+| Pages | 36 in production · 48 with demo content on |
 | Internal links | ✅ all resolve (`npm run verify:links`, wired into `npm run build`) |
-| Tests | ✅ 14/14 homepage · 21/21 navigation · 5/5 with JavaScript disabled |
-| Homepage weight | ~123 KB HTML (15 KB gzipped), 54 KB CSS (10 KB gzipped) |
-| JavaScript | ~5 KB total, inlined, no dependencies |
+| Tests | ✅ 18/18 listing search · 29/29 property detail · 8/8 mobile + no-JS · 14/14 homepage · 21/21 navigation |
+| JavaScript | ~13 KB total across the site, inlined, no dependencies |
 | Third-party runtime requests | none |
+
+---
+
+## ✅ Completed — Session 4 (2026-08-24) · Property & listing system
+
+Built the entire listing system without pretending an MLS feed exists.
+
+### Provider architecture — `src/lib/listings/`
+- [x] `types.ts` — the contract every provider produces: `Listing`,
+      `ListingImage`, `ListingAddress`, `ListingAgent`, `ListingStatus`,
+      `PropertyType`, `ListingFeatures`, `OpenHouse`, plus `ListingQuery`,
+      `ListingResult` and `ListingProvider`.
+- [x] `provider.ts` — selects IDX → demo → unconfigured. **Real data always
+      wins.** The only file that changes when a feed goes live.
+- [x] `idxProvider.ts` — the documented seam. Deliberately unimplemented:
+      writing speculative requests against a guessed API would be thrown away
+      and might imply an integration exists.
+- [x] `demoProvider.ts` + `demoData.ts` — twelve placeholder records, every one
+      flagged `demo`, `DEMO-` numbered, "Sample" street names, no images.
+- [x] `unconfiguredProvider.ts` — serves nothing, drives the public
+      "Live property search is being configured" message.
+- [x] `filter.ts` — pure filter/sort/paginate, shared by the build and the
+      browser so the two can never disagree.
+- [x] `query.ts` — URL ⇄ `ListingQuery`. Every filter lives in the URL.
+
+### Components — `src/components/listings/`
+`ListingCard`, `ListingGrid`, `ListingFilters`, `ListingSort`,
+`ListingGallery`, `ListingFacts`, `ListingContactCard`, `ListingStatusBadge`,
+`ListingEmptyState`, `Pagination`, `FavoriteButton`, `ListingIndex`,
+`MortgageEstimate`.
+
+### Pages
+- [x] `/properties/for-sale/`, `/for-rent/`, `/our-listings/`, `/search/` —
+      all four share `ListingIndex`; they differ only in heading and base query.
+- [x] `/property/[slug]/` — breadcrumb, gallery, price, address, status,
+      facts row, full specification, description, features, location, mortgage
+      estimate, enquiry + agent card, similar properties, recently viewed, and
+      a mobile sticky CTA that replaces the site-wide action bar.
+
+### Behaviour
+- [x] **Shareable searches.** `?location=Hollywood&minPrice=500000&beds=3`
+      filters on load and hydrates the form.
+- [x] **Gallery** on a native `<dialog>` — focus trap and Escape come from the
+      platform; the script only moves between images, restores focus and reads
+      swipes. Under 1 KB, no library.
+- [x] **Mortgage estimate** shows nothing until the visitor enters a rate. The
+      site holds no market rate and will not imply one.
+- [x] **Favourites** and **recently viewed** are per-device localStorage, every
+      access guarded, and both say plainly that they are not an account.
+- [x] No public-facing text contains developer vocabulary — verified by
+      scanning the built output.
+
+### Documentation
+- [x] `IDX_INTEGRATION.md` — credentials, fetch logic, the adapter rules, the
+      normalised shape, attribution, fetch timing, what happens at scale, and a
+      go-live checklist.
+- [x] `CONTENT_PENDING.md` §5 rewritten: authorised provider, API docs,
+      credentials, agent IDs, attribution, disclaimers, refresh/cache rules.
+
+**Three bugs found by testing** — see the session log.
 
 ---
 
@@ -264,7 +323,7 @@ twelve homepage sections in `src/components/home/`.
 | `Breadcrumbs` | `src/components/ui/Breadcrumbs.astro` | ✅ stable |
 | `PageHero` | `src/components/ui/PageHero.astro` | ✅ image variant untested — no photography yet |
 | `MediaSlot` | `src/components/ui/MediaSlot.astro` | ✅ stable — every image position goes through it |
-| `ListingCard` | `src/components/ui/ListingCard.astro` | ✅ stable — reuse for search results and listing indexes |
+| Listing components | `src/components/listings/*.astro` | ✅ stable — thirteen components, provider-agnostic |
 | `AgentCard` | `src/components/ui/AgentCard.astro` | ✅ stable — reuse on /about/ |
 | `DemoNotice` | `src/components/ui/DemoNotice.astro` | ✅ stable — dev-only by construction |
 | `QueryEcho` | `src/components/ui/QueryEcho.astro` | ✅ stable |
@@ -289,6 +348,8 @@ primitive rather than adding a near-duplicate.
 | 7 | Team-name spelling | 🟠 med | Site uses "Closius"; the repository is `hoffman-clossius-real-estate`. Confirm before launch (`CONTENT_PENDING.md` 2.5). |
 | 8 | No automated a11y/perf testing yet | 🟠 med | Structural checks (single `h1`, landmarks, skip link, title, description, lang, viewport across all 30 pages) and a computed contrast pass are done. Screen-reader, keyboard-path and Lighthouse passes still to come once real pages exist. |
 | 9a | Four homepage sections are empty in production | 🟠 med | Featured properties, developments, testimonials and insights all show empty states until their data arrives. Each carries a distinct, useful call to action, and this is the honest state — but the page is visibly lighter than it will be. `npm run build:demo` shows the populated design. |
+| 9c | No listings anywhere in production | 🔴 high | Every property page shows "Live property search is being configured." Resolves entirely by implementing `idxProvider.ts` once the client confirms their provider — `CONTENT_PENDING.md` §5, `IDX_INTEGRATION.md`. |
+| 9d | Filtering needs JavaScript | 🟢 low | A static host cannot filter server-side, so a shared filter URL only applies its filters once the script runs. Without JavaScript the pages degrade to the full browsable list, and pagination is hidden rather than shown as links that would all return page one. |
 | 9b | Homepage has no photography | 🔴 high | Fourteen media placeholders. The design is built around real imagery and reads flat without it. `CONTENT_PENDING.md` §9. |
 | 9 | Gold on white is 2.4:1 | 🟢 low | By design — gold is ornament only. The wordmark ampersand is a logotype (SC 1.4.3 exempt). Do not extend gold to body text or links on light surfaces. |
 
@@ -427,3 +488,32 @@ Four bugs found by testing rather than by reading the code:
 Also corrected: a missing space in the demo notice, hero copy that claimed
 experience we cannot evidence, and the Buy/Sell panels floating in a white band
 instead of running full-bleed.
+
+### Session 4 — 2026-08-24 · Property & listing system
+Built the provider architecture, thirteen listing components, the four index
+pages and the property detail page, plus `IDX_INTEGRATION.md`. Migrated the
+homepage off the old ad-hoc listing types and deleted them
+(`src/data/listings.ts`, `src/data/demo/listings.demo.ts`,
+`src/components/ui/ListingCard.astro`).
+
+Three bugs found by testing rather than by reading the code:
+
+1. **Shared filter URLs did nothing.** The site is statically generated, so
+   Astro cannot read a query string at build time — the server-rendered filter
+   form was always empty, and the client then read that empty form and applied
+   no filters. `?location=Hollywood` returned everything. The client now
+   hydrates the form from the URL before applying, which is what makes a search
+   shareable at all.
+2. **The sort control was inert.** It sits outside the `<form>` and is
+   associated by its `form` attribute, so `FormData` picked up its value but
+   its change event never bubbled to the form's listener. Sorting by price
+   ascending left the most expensive property first. It has its own listener
+   now.
+3. **No-JavaScript pagination was a dead end.** The server rendered page one
+   and pagination links that all returned page one, because a static page
+   cannot serve page two of a filtered set. Every card now renders visible and
+   pagination stays hidden until the client takes over, so without JavaScript
+   the page is a complete browsable list instead of a broken one.
+
+Also corrected: an odd final row in the specification table left an empty grey
+cell.

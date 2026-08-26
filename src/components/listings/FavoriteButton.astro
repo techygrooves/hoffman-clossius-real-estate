@@ -1,0 +1,54 @@
+---
+/**
+ * FavoriteButton — saves a listing for later.
+ *
+ * PLACEHOLDER BEHAVIOUR: the state lives in this browser's localStorage only.
+ * It is not an account, it does not sync between devices, and nothing is sent
+ * anywhere. Saved searches and favourites belong to the IDX platform's own
+ * account system (CONTENT_PENDING.md 5.6), and this is replaced when that is
+ * connected — so it deliberately makes no promise it cannot keep.
+ */
+import { cn } from '@lib/cn';
+
+interface Props {
+  listingId: string;
+  /** Label context, e.g. the address, so the button has a unique name. */
+  label: string;
+  variant?: 'overlay' | 'inline';
+  class?: string;
+}
+
+const { listingId, label, variant = 'overlay', class: className } = Astro.props;
+---
+
+<button
+  type="button"
+  data-favorite
+  data-listing-id={listingId}
+  aria-pressed="false"
+  class={cn(
+    'group/fav inline-flex items-center justify-center rounded-xs transition-colors',
+    variant === 'overlay'
+      ? 'h-9 w-9 bg-white/85 text-evergreen-800 backdrop-blur-sm hover:bg-white'
+      : 'h-11 gap-2 border border-line-control px-4 text-sm text-evergreen-800 hover:bg-evergreen-50',
+    className,
+  )}
+>
+  <svg
+    class="h-4 w-4 shrink-0 transition-transform duration-300 motion-safe:group-hover/fav:scale-110"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="1.5"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    aria-hidden="true"
+  >
+    <path
+      data-favorite-icon
+      d="M12 20.5 4.6 13a4.8 4.8 0 0 1 6.8-6.8l.6.6.6-.6A4.8 4.8 0 0 1 19.4 13Z"
+    ></path>
+  </svg>
+  {variant === 'inline' && <span data-favorite-text>Save</span>}
+  <span class="sr-only" data-favorite-sr>Save {label} to this device</span>
+</button>
