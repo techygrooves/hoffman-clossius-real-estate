@@ -1,0 +1,77 @@
+---
+/**
+ * DevelopmentGrid — responsive grid of DevelopmentCards.
+ *
+ * On a filterable index each item carries a compact JSON payload of its
+ * filterable fields, so the browser can run the same `matchesDevelopment` used
+ * at build time. No card markup is ever duplicated in JavaScript.
+ */
+import type { Development } from '@lib/developments/types';
+import DevelopmentCard from './DevelopmentCard.astro';
+import DevelopmentEmptyState from './DevelopmentEmptyState.astro';
+import { cn } from '@lib/cn';
+
+interface Props {
+  developments: readonly Development[];
+  emptyVariant?: 'not-supplied' | 'no-results';
+  category?: 'new' | 'existing';
+  columns?: 2 | 3;
+  /** Turns the grid into a client-filterable one. */
+  filterable?: boolean;
+  class?: string;
+}
+
+const {
+  developments,
+  emptyVariant = 'no-results',
+  category = 'new',
+  columns = 3,
+  filterable = false,
+  class: className,
+} = Astro.props;
+
+/** Only the fields `matchesDevelopment` and `sortDevelopments` read. */
+const payload = (development: Development) =>
+  JSON.stringify({
+    id: development.id,
+    name: development.name,
+    category: development.category,
+    status: development.status,
+    developmentType: development.developmentType,
+    city: development.city,
+    startingPrice: development.startingPrice,
+    bedroomRange: development.bedroomRange,
+    completionYear: development.completionYear,
+    summary: development.summary,
+    developer: development.developer,
+    architect: development.architect,
+    address: {
+      line1: development.address.line1,
+      city: development.address.city,
+      state: development.address.state,
+      zip: development.address.zip,
+      county: development.address.county,
+    },
+  });
+---
+
+{
+  developments.length > 0 ? (
+    <ul
+      class={cn('grid gap-6 sm:grid-cols-2', columns === 3 && 'lg:grid-cols-3', className)}
+      data-development-grid
+    >
+      {developments.map((development, index) => (
+        <li data-development={filterable ? payload(development) : undefined}>
+          <DevelopmentCard
+            development={development}
+            seed={index}
+            priority={index < 3}
+          />
+        </li>
+      ))}
+    </ul>
+  ) : (
+    <DevelopmentEmptyState variant={emptyVariant} category={category} class={className} />
+  )
+}

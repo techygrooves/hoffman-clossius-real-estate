@@ -3,24 +3,86 @@
 Living record of what exists, what is broken and what comes next.
 **Update this file at the end of every session.**
 
-Last updated: **2026-08-24** — Session 4 (property/listing system)
+Last updated: **2026-08-24** — Session 5 (developments subsystem)
 
 ---
 
 ## Current state
 
-Foundation, global chrome, the homepage and **the whole property/listing
-system** are built. No MLS data is connected, and the architecture is what
-makes that a configuration step rather than a rewrite.
+Foundation, global chrome, homepage, the property/listing system and **the
+developments subsystem** are built. Neither listings nor developments have real
+data yet, and in both cases the architecture makes that a supply step rather
+than a rewrite.
 
 | Metric | Value |
 | --- | --- |
 | Build | ✅ passing — `astro check`: 0 errors, 0 warnings, 0 hints |
-| Pages | 36 in production · 48 with demo content on |
-| Internal links | ✅ all resolve (`npm run verify:links`, wired into `npm run build`) |
-| Tests | ✅ 18/18 listing search · 29/29 property detail · 8/8 mobile + no-JS · 14/14 homepage · 21/21 navigation |
-| JavaScript | ~13 KB total across the site, inlined, no dependencies |
+| Pages | 36 in production · 54 with demo content on |
+| Internal links | ✅ all resolve, both modes |
+| Tests | ✅ 34/34 developments · 6/6 developments mobile + no-JS · 18/18 listing search · 29/29 property detail · 15/15 homepage · 21/21 navigation |
+| JavaScript | ~16 KB total across the site, inlined, no dependencies |
 | Third-party runtime requests | none |
+
+---
+
+## ✅ Completed — Session 5 (2026-08-24) · Developments subsystem
+
+Built on the same provider pattern as listings, with one difference that
+matters: **there is no feed.** New construction has no MLS equivalent, so the
+real source is client-supplied material gated by a `verified` flag.
+
+### Provider architecture — `src/lib/developments/`
+- [x] `types.ts` — `Development` with every field the brief named, plus
+      `DevelopmentImage`, `DevelopmentAddress`, `NumericRange`, `ResidenceType`,
+      `DevelopmentAmenityGroups`, `DevelopmentQuery` and `DevelopmentProvider`.
+- [x] `provider.ts` — curated → demo → unconfigured. Adding a verified entry to
+      `curatedData.ts` flips the selection on its own.
+- [x] `curatedData.ts` + `curatedProvider.ts` — where real developments go.
+      **Only `verified: true` entries are ever served**, so an entry can be
+      added and worked on without unchecked claims reaching the public site.
+- [x] `demoData.ts` + `demoProvider.ts` — six placeholder projects, every one
+      flagged `demo`, named "Sample …", `verified: false`, no images.
+- [x] `unconfiguredProvider.ts` — serves nothing, drives the honest empty state.
+- [x] `filter.ts` / `query.ts` / `filter-client.ts` — filtering shared between
+      the build and the browser, with every filter in the URL.
+
+### Components — `src/components/developments/`
+`DevelopmentCard`, `DevelopmentGrid`, `DevelopmentFilters`,
+`DevelopmentGallery`, `DevelopmentFacts`, `DevelopmentAmenities`,
+`DevelopmentContactCTA`, `DevelopmentMap`, plus `DevelopmentStatusBadge`,
+`DevelopmentEmptyState`, `DevelopmentResidences` and `DevelopmentIndex`.
+
+### Pages
+- [x] `/developments/new/` — hero, introductory copy, filters, cards,
+      new-construction CTA band and contact.
+- [x] `/developments/existing/` — same architecture, community framing.
+- [x] `/developments/[slug]/` — gallery, name and location, key facts,
+      description, residences with floor-plan slots, amenities, availability,
+      map, request-information panel, agent CTAs and related developments.
+
+### The rules this subsystem enforces
+- [x] **No developer material downloaded.** No rendering, photograph, site plan
+      or brochure has been taken from any developer's site.
+- [x] **No floor plan manufactured.** `floorPlan` is a slot for an authorised
+      asset; empty, each residence says plans are available on request.
+- [x] **Renderings are labelled** via `isRendering`, so an artist's impression
+      is never shown as a finished building.
+- [x] Prices, delivery years and residence counts are published figures or
+      `null`. Components render nothing for a null.
+
+### Documentation
+- [x] `DEVELOPMENTS_DATA.md` — the `verified` gate, what may and may not be
+      filled in, image and floor-plan rules, a worked template, and what to do
+      if a feed ever exists.
+- [x] `CONTENT_PENDING.md` 10.6 expanded into five specific items.
+
+### Shared refactor
+- [x] `gallery.ts` moved from `src/lib/listings/` to `src/lib/` — listings and
+      developments now share one lightbox rather than having two.
+- [x] Homepage `DevelopmentsPreview` migrated to the provider; the old
+      `src/data/developments.ts` deleted.
+
+**One bug found by testing** — see the session log.
 
 ---
 
@@ -324,6 +386,7 @@ twelve homepage sections in `src/components/home/`.
 | `PageHero` | `src/components/ui/PageHero.astro` | ✅ image variant untested — no photography yet |
 | `MediaSlot` | `src/components/ui/MediaSlot.astro` | ✅ stable — every image position goes through it |
 | Listing components | `src/components/listings/*.astro` | ✅ stable — thirteen components, provider-agnostic |
+| Development components | `src/components/developments/*.astro` | ✅ stable — twelve components, provider-agnostic |
 | `AgentCard` | `src/components/ui/AgentCard.astro` | ✅ stable — reuse on /about/ |
 | `DemoNotice` | `src/components/ui/DemoNotice.astro` | ✅ stable — dev-only by construction |
 | `QueryEcho` | `src/components/ui/QueryEcho.astro` | ✅ stable |
@@ -348,6 +411,7 @@ primitive rather than adding a near-duplicate.
 | 7 | Team-name spelling | 🟠 med | Site uses "Closius"; the repository is `hoffman-clossius-real-estate`. Confirm before launch (`CONTENT_PENDING.md` 2.5). |
 | 8 | No automated a11y/perf testing yet | 🟠 med | Structural checks (single `h1`, landmarks, skip link, title, description, lang, viewport across all 30 pages) and a computed contrast pass are done. Screen-reader, keyboard-path and Lighthouse passes still to come once real pages exist. |
 | 9a | Four homepage sections are empty in production | 🟠 med | Featured properties, developments, testimonials and insights all show empty states until their data arrives. Each carries a distinct, useful call to action, and this is the honest state — but the page is visibly lighter than it will be. `npm run build:demo` shows the populated design. |
+| 9e | No developments in production | 🟠 med | Both development indexes show an honest invitation. Resolves by adding verified entries to `curatedData.ts` — `DEVELOPMENTS_DATA.md`, `CONTENT_PENDING.md` 10.6. |
 | 9c | No listings anywhere in production | 🔴 high | Every property page shows "Live property search is being configured." Resolves entirely by implementing `idxProvider.ts` once the client confirms their provider — `CONTENT_PENDING.md` §5, `IDX_INTEGRATION.md`. |
 | 9d | Filtering needs JavaScript | 🟢 low | A static host cannot filter server-side, so a shared filter URL only applies its filters once the script runs. Without JavaScript the pages degrade to the full browsable list, and pagination is hidden rather than shown as links that would all return page one. |
 | 9b | Homepage has no photography | 🔴 high | Fourteen media placeholders. The design is built around real imagery and reads flat without it. `CONTENT_PENDING.md` §9. |
@@ -517,3 +581,23 @@ Three bugs found by testing rather than by reading the code:
 
 Also corrected: an odd final row in the specification table left an empty grey
 cell.
+
+### Session 5 — 2026-08-24 · Developments subsystem
+Built the provider architecture, twelve components, both index pages and the
+detail page, plus `DEVELOPMENTS_DATA.md`. Moved the gallery lightbox to
+`src/lib/gallery.ts` so listings and developments share one implementation, and
+migrated the homepage preview off the old data file.
+
+One bug found by testing:
+
+**The category never reached the client script.** The index passed it through a
+`window.__hcDevelopmentCategory` global set by an inline script — which
+`astro check` rejected as untyped, and which would have silently defaulted to
+`new` on the Established page had it shipped. The category now travels as a
+`data-category` attribute on the filter form, which the script reads directly:
+no global, no type hole, and the value is visible in the DOM where it belongs.
+
+Worth recording for future sessions: the same three things caught in session 4
+were all designed out from the start here — the client hydrates the form from
+the URL, the sort control lives inside the form, and no-JavaScript gets the
+full list rather than broken pagination.

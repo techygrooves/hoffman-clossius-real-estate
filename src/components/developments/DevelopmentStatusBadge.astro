@@ -1,0 +1,37 @@
+---
+/**
+ * DevelopmentStatusBadge — where the project is in its life.
+ * Colour separates "you can act on this" from "this is finished", but the
+ * label always carries the meaning: colour is never the only signal.
+ */
+import { DEVELOPMENT_STATUS_LABELS } from '@lib/developments/query';
+import type { DevelopmentStatus } from '@lib/developments/types';
+import { cn } from '@lib/cn';
+
+interface Props {
+  status: DevelopmentStatus;
+  size?: 'sm' | 'md';
+  class?: string;
+}
+
+const { status, size = 'sm', class: className } = Astro.props;
+
+const TONES: Record<DevelopmentStatus, string> = {
+  'pre-construction': 'bg-gold-500 text-evergreen-900',
+  'under-construction': 'bg-evergreen-600 text-white',
+  'now-selling': 'bg-evergreen-800 text-white',
+  completed: 'bg-charcoal-600 text-white',
+  'sold-out': 'bg-charcoal-500 text-white',
+};
+---
+
+<span
+  class={cn(
+    'inline-flex items-center rounded-xs uppercase tracking-eyebrow',
+    size === 'md' ? 'px-3 py-1.5 text-[0.6875rem]' : 'px-2.5 py-1 text-[0.625rem]',
+    TONES[status],
+    className,
+  )}
+>
+  {DEVELOPMENT_STATUS_LABELS[status]}
+</span>

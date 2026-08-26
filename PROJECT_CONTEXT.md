@@ -324,6 +324,28 @@ goes through the provider architecture in `src/lib/listings/`:
 - No public-facing text may contain developer vocabulary. A visitor never sees
   "IDX", "provider", "API" or "adapter".
 
+**The developments system.** Developments follow the same provider pattern in
+`src/lib/developments/`, with one difference that matters: there is no feed.
+New construction has no MLS equivalent, so the real source is
+`curatedData.ts` — material the client supplies, gated by a `verified` flag.
+Only verified entries ever render, so an entry can be added and worked on
+without unchecked claims about someone else's project reaching the public site.
+
+- **Developer material is copyrighted.** Never download renderings,
+  photographs, site plans or brochures from a developer's website. Only
+  publish assets the client holds written permission for.
+- **Never draw, approximate or reconstruct a floor plan** — not from a
+  description, not from a site plan, not from a similar unit. A made-up floor
+  plan is a misrepresentation of someone's home. The slot stays empty and the
+  page says plans are available on request.
+- **Mark renderings** with `isRendering: true`. For a pre-construction project
+  nearly every image is one, and a buyer must never be shown an artist's
+  impression as though it were built.
+- Prices, delivery years and residence counts are **published figures only**.
+  A slipped delivery date you invented is a claim you cannot stand behind.
+
+Supply guide: `DEVELOPMENTS_DATA.md`.
+
 **The demo-content mechanism.** `src/config/flags.ts` exposes one flag,
 `demoContent`: ON in `astro dev`, OFF in a production build, overridable with
 `PUBLIC_DEMO_CONTENT=true|false`. `npm run build:demo` produces a populated

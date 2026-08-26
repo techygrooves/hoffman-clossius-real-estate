@@ -1,0 +1,98 @@
+---
+/**
+ * DevelopmentFacts — the summary row on a card, and the full specification
+ * table on a detail page.
+ *
+ * Renders only what was supplied. A project with no announced delivery date
+ * shows no delivery row — never "TBC", never a guess. Ranges print as a range
+ * only when both ends are known; "From 2 bedrooms" is a fact, "2–4" when
+ * nobody said 4 is not.
+ */
+import { formatNumber, formatPrice } from '@lib/format';
+import { DEVELOPMENT_TYPE_LABELS } from '@lib/developments/query';
+import type { Development, NumericRange } from '@lib/developments/types';
+import { cn } from '@lib/cn';
+
+interface Props {
+  development: Development;
+  variant?: 'summary' | 'full';
+  class?: string;
+}
+
+const { development, variant = 'summary', class: className } = Astro.props;
+
+/** "2–4", "From 2", "Up to 4", or nothing at all. */
+function rangeText(range: NumericRange, format: (n: number) => string = String): string | null {
+  const { min, max } = range;
+  if (min === null && max === null) return null;
+  if (min !== null && max !== null) {
+    return min === max ? format(min) : `${format(min)}–${format(max)}`;
+  }
+  return min !== null ? `From ${format(min)}` : `Up to ${format(max as number)}`;
+}
+
+const beds = rangeText(development.bedroomRange);
+const baths = rangeText(development.bathroomRange);
+const sqft = rangeText(development.squareFootageRange, formatNumber);
+
+const summary = [
+  beds && { label: 'Beds', value: beds },
+  baths && { label: 'Baths', value: baths },
+  sqft && { label: 'Sq Ft', value: sqft },
+].filter((f): f is { label: string; value: string } => Boolean(f));
+
+const full = [
+  {
+    label: 'Type',
+    value: development.developmentTypeLabel ?? DEVELOPMENT_TYPE_LABELS[development.developmentType],
+  },
+  development.startingPrice !== null && {
+    label: 'Starting price',
+    value: `From ${formatPrice(development.startingPrice)}`,
+  },
+  beds && { label: 'Bedrooms', value: beds },
+  baths && { label: 'Bathrooms', value: baths },
+  sqft && { label: 'Residence size', value: `${sqft} sq ft` },
+  development.totalResidences !== null && {
+    label: 'Residences',
+    value: formatNumber(development.totalResidences),
+  },
+  development.completionYear !== null && {
+    label: 'Completion',
+    value: String(development.completionYear),
+  },
+  development.developer && { label: 'Developer', value: development.developer },
+  development.architect && { label: 'Architect', value: development.architect },
+  development.address.line1 && { label: 'Address', value: development.address.line1 },
+].filter((f): f is { label: string; value: string } => Boolean(f));
+---
+
+{
+  variant === 'summary' ? (
+    summary.length > 0 && (
+      <dl class={cn('flex flex-wrap items-center gap-x-5 gap-y-2 text-sm', className)}>
+        {summary.map((fact) => (
+          <div class="flex items-baseline gap-1.5">
+            <dd class="font-medium text-evergreen-800">{fact.value}</dd>
+            <dt class="text-xs uppercase tracking-wide-sm text-ink-subtle">{fact.label}</dt>
+          </div>
+        ))}
+      </dl>
+    )
+  ) : (
+    <dl
+      class={cn(
+        'grid gap-px overflow-hidden rounded-xs border border-line bg-line sm:grid-cols-2',
+        '[&>*:last-child:nth-child(odd)]:sm:col-span-2',
+        className,
+      )}
+    >
+      {full.map((fact) => (
+        <div class="flex items-baseline justify-between gap-4 bg-white px-5 py-3.5">
+          <dt class="text-xs uppercase tracking-wide-sm text-ink-subtle">{fact.label}</dt>
+          <dd class="text-right text-sm text-evergreen-800">{fact.value}</dd>
+        </div>
+      ))}
+    </dl>
+  )
+}

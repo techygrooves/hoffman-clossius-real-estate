@@ -1,0 +1,121 @@
+---
+/**
+ * DevelopmentIndex — the shared body of both development index pages.
+ *
+ * /developments/new/ and /developments/existing/ differ only in their copy and
+ * their category, so they both render this.
+ *
+ * Every development in the category is rendered once; the client shows, hides
+ * and reorders. A static page cannot read a query string at build time, so
+ * with JavaScript unavailable the honest fallback is the full list.
+ */
+import BaseLayout from '@layouts/BaseLayout.astro';
+import PageHero from '@components/ui/PageHero.astro';
+import Container from '@components/ui/Container.astro';
+import Section from '@components/ui/Section.astro';
+import DemoNotice from '@components/ui/DemoNotice.astro';
+import DevelopmentFilters from './DevelopmentFilters.astro';
+import DevelopmentGrid from './DevelopmentGrid.astro';
+import DevelopmentEmptyState from './DevelopmentEmptyState.astro';
+import DevelopmentContactCTA from './DevelopmentContactCTA.astro';
+import type { Crumb } from '@components/ui/Breadcrumbs.astro';
+import { developmentProvider, hasDevelopmentData } from '@lib/developments/provider';
+import { parseDevelopmentQuery } from '@lib/developments/query';
+import type { DevelopmentCategory, DevelopmentStatus } from '@lib/developments/types';
+
+interface Props {
+  title: string;
+  heading: string;
+  eyebrow: string;
+  description: string;
+  lead: string;
+  /** Introductory copy shown above the filters. */
+  intro: string;
+  breadcrumbs: Crumb[];
+  category: DevelopmentCategory;
+  /** Statuses worth offering as filters on this index. */
+  statuses: readonly DevelopmentStatus[];
+  path: string;
+}
+
+const {
+  title,
+  heading,
+  eyebrow,
+  description,
+  lead,
+  intro,
+  breadcrumbs,
+  category,
+  statuses,
+  path,
+} = Astro.props;
+
+const query = { ...parseDevelopmentQuery(Astro.url.searchParams), category };
+const developments = await developmentProvider.search({ category });
+const cities = await developmentProvider.getCities(category);
+const showResults = hasDevelopmentData && developments.length > 0;
+---
+
+<BaseLayout title={title} description={description}>
+  <PageHero eyebrow={eyebrow} title={heading} lead={lead} breadcrumbs={breadcrumbs} />
+
+  <Section tone="white" space="tight">
+    <p class="max-w-3xl text-lg leading-relaxed text-ink-muted" data-reveal>
+      {intro}
+    </p>
+  </Section>
+
+  <section class="bg-cream-100 pb-20 pt-4 sm:pb-24" aria-label="Developments">
+    <Container>
+      {developmentProvider.isDemo && <DemoNotice class="mb-6" what="developments" />}
+
+      {
+        showResults && (
+          <DevelopmentFilters
+            query={query}
+            action={path}
+            category={category}
+            cities={cities}
+            statuses={statuses}
+          />
+        )
+      }
+
+      <div class="mt-10">
+        {
+          showResults ? (
+            <>
+              <p class="mb-8 text-sm text-ink-muted" aria-live="polite">
+                <span data-development-total>{developments.length}</span>
+                <span>
+                  {developments.length === 1 ? ' development' : ' developments'}
+                </span>
+              </p>
+
+              <DevelopmentGrid
+                developments={developments}
+                category={category}
+                filterable
+              />
+
+              {/* Revealed by the client when a filter matches nothing. */}
+              <div data-development-empty hidden>
+                <DevelopmentEmptyState variant="no-results" category={category} />
+              </div>
+            </>
+          ) : (
+            <DevelopmentEmptyState variant="not-supplied" category={category} />
+          )
+        }
+      </div>
+    </Container>
+  </section>
+
+  <DevelopmentContactCTA variant="band" />
+</BaseLayout>
+
+{showResults && <script>
+  import { initDevelopmentFilters } from '@lib/developments/filter-client';
+  initDevelopmentFilters();
+</script>}

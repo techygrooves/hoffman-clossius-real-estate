@@ -1,0 +1,133 @@
+---
+/**
+ * DevelopmentContactCTA — the enquiry panel on a development page.
+ *
+ * Carries the development reference to /contact/ as query parameters rather
+ * than posting anywhere: the form destination is still unconfirmed
+ * (CONTENT_PENDING.md §6), and an enquiry about a specific project that went
+ * nowhere would be worse than one handed over with its context intact.
+ *
+ * Nothing about availability, allocation or priority is claimed.
+ */
+import { professionals } from '@config/site';
+import type { Development } from '@lib/developments/types';
+import Button from '@components/ui/Button.astro';
+import { cn } from '@lib/cn';
+
+interface Props {
+  /** Omit on index pages, where the CTA is about new construction generally. */
+  development?: Development;
+  variant?: 'panel' | 'band';
+  class?: string;
+}
+
+const { development, variant = 'panel', class: className } = Astro.props;
+
+const enquiryHref = (intent: 'information' | 'showing') => {
+  const params = new URLSearchParams({ intent });
+  if (development) {
+    params.set('property', `${development.name}, ${development.city}`);
+    params.set('reference', development.slug);
+  }
+  return `/contact/?${params.toString()}`;
+};
+---
+
+{
+  variant === 'panel' ? (
+    <aside class={cn('rounded-xs border border-line bg-white p-6 sm:p-7', className)}>
+      <span class="rule-gold" aria-hidden="true" />
+
+      <h2 class="mt-4 font-serif text-2xl text-evergreen-800">
+        Request information
+      </h2>
+      <p class="mt-3 text-sm leading-relaxed text-ink-muted">
+        {development
+          ? `Ask Martin or MaryEllen about ${development.name} — pricing, availability and what is actually released.`
+          : 'Ask Martin or MaryEllen about new construction across South Florida.'}
+      </p>
+
+      <div class="mt-5 flex flex-col gap-3">
+        <Button href={enquiryHref('information')} block withArrow>
+          Request Information
+        </Button>
+        <Button href={enquiryHref('showing')} variant="secondary" block>
+          Arrange a Visit
+        </Button>
+      </div>
+
+      <div class="mt-6 border-t border-line pt-5">
+        <p class="text-xs uppercase tracking-wide-sm text-ink-subtle">Or call direct</p>
+        <ul class="mt-3 flex flex-col gap-3">
+          {professionals.map((person) => (
+            <li>
+              <a
+                href={person.phone.href}
+                class="group flex items-center justify-between gap-3 rounded-xs border border-line px-4 py-3 transition-colors hover:border-evergreen-800 hover:bg-evergreen-50"
+              >
+                <span>
+                  <span class="block text-sm text-evergreen-800">
+                    Call {person.firstName}
+                  </span>
+                  <span class="mt-0.5 block text-xs text-ink-muted">
+                    {person.specialty ? `${person.title} · ${person.specialty}` : person.title}
+                  </span>
+                </span>
+                <span class="shrink-0 text-sm tracking-wide-sm text-evergreen-700">
+                  {person.phone.value}
+                </span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      {development?.demo && (
+        <p class="mt-6 rounded-xs border border-dashed border-gold-600/50 bg-gold-100/50 px-4 py-3 text-xs leading-relaxed text-charcoal-600">
+          <strong class="font-medium">This is a sample development.</strong>{' '}
+          The enquiry buttons work, but this record is placeholder content used
+          to build the page — it is not a real project.
+        </p>
+      )}
+    </aside>
+  ) : (
+    <section
+      class={cn('bg-evergreen-800 text-white', className)}
+      data-surface="dark"
+      aria-labelledby="development-cta-heading"
+    >
+      <div class="container-page section-space">
+        <div class="mx-auto flex max-w-3xl flex-col items-center text-center" data-reveal>
+          <span class="rule-gold" aria-hidden="true" />
+          <h2 id="development-cta-heading" class="mt-6 text-display-sm text-white">
+            Looking at new construction?
+          </h2>
+          <p class="mt-5 max-w-xl leading-relaxed text-white/75">
+            Pre-construction is bought on relationships and timing, not
+            listings. Tell us what you are watching for and we will tell you
+            when it opens.
+          </p>
+          <div class="mt-9 flex flex-col gap-3 sm:flex-row">
+            <Button href={enquiryHref('information')} variant="gold" withArrow>
+              Register your interest
+            </Button>
+            <Button href="/buy/dream-home-finder/" variant="inverse">
+              Tell us what you want
+            </Button>
+          </div>
+          <p class="mt-8 text-sm text-white/70">
+            Or call
+            {professionals.map((person, index) => (
+              <>
+                {index > 0 && <span aria-hidden="true"> · </span>}{' '}
+                <a href={person.phone.href} class="link-underline text-white">
+                  {person.firstName} {person.phone.value}
+                </a>
+              </>
+            ))}
+          </p>
+        </div>
+      </div>
+    </section>
+  )
+}

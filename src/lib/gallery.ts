@@ -1,9 +1,13 @@
 /**
- * Gallery lightbox behaviour.
+ * Gallery lightbox behaviour — shared by listings and developments.
  *
  * Deliberately small. The native <dialog> supplies the modal focus trap, the
  * backdrop and Escape-to-close, so this file only has to move between images,
  * put focus back where it came from, and read touch swipes.
+ *
+ * Any component can use it by rendering the same hooks: [data-gallery] on the
+ * root, [data-gallery-dialog], [data-gallery-open] triggers carrying a
+ * data-index, and [data-gallery-slide] images.
  */
 export function initGallery(): void {
   const root = document.querySelector<HTMLElement>('[data-gallery]');

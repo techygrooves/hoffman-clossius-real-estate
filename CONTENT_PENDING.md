@@ -151,7 +151,11 @@ below must come from the client or the provider; none may be assumed.
 | 10.4 | Selling guide content | 🟠 | |
 | 10.5 | **Community guide copy — six pages already live** | 🟠 | The navigation names Hollywood, Fort Lauderdale, Dania Beach, Hallandale Beach, Pembroke Pines and Aventura, so those six routes now exist. Each currently carries **only a one-line verifiable locational fact** (which county it sits in and where, relative to its neighbours) and an "in preparation" band. Real guide copy, photography and any figures — with sources — are needed. No statistics, school ratings, median values or superlatives may be added without them. |
 | 10.5a | Any further communities to add | 🟡 | Beyond the six above. |
-| 10.6 | Developments to feature | 🟠 | Plus permitted renderings and developer material. |
+| 10.6 | **Developments to feature** | 🟠 | Which projects should appear under New and Established. For each: the published starting price, delivery year, residence count, developer and architect, amenities and residence types — **published figures only, never estimates**. Supply guide: `DEVELOPMENTS_DATA.md`. |
+| 10.6a | **Written permission for developer imagery** | 🔴 | Renderings, photographs and site plans are copyrighted developer material. Nothing may be published without the client holding written permission. **Nothing has been downloaded from any developer's site.** |
+| 10.6b | **Authorised floor plans** | 🟠 | Floor plans are never drawn, approximated or reconstructed. Until an authorised asset exists, each residence type says "Floor plans are available on request". |
+| 10.6c | Which images are renderings | 🟠 | Each image needs `isRendering` set truthfully, so a buyer is never shown an artist's impression as though it were a finished building. |
+| 10.6d | Availability wording per development | 🟡 | Free text, exactly as the developer states it. Availability changes constantly and the site publishes only what it was told. |
 | 10.7 | Median home value data source | 🟠 | Every figure needs a source and a date. |
 | 10.8 | Relocation content | 🟠 | What MaryEllen's relocation service actually includes. |
 | 10.9 | Journal / blog articles | 🟡 | Authoring format: `docs/authoring-blog-posts.md`. |
@@ -186,6 +190,9 @@ Every placeholder shipped today, so none can be forgotten:
 | Twelve demo listings, dev-only, badged "Sample" | `src/lib/listings/demoData.ts` | §5 IDX feed connected (delete the file) |
 | "Save property" stored per-device only | `src/lib/listings/favorites.ts` | 5.10 — replaced by the IDX account system |
 | Map placeholder on property detail pages | `src/pages/property/[slug].astro` | 11.4 map provider chosen |
+| Six demo developments, dev-only, badged "Sample" | `src/lib/developments/demoData.ts` | 10.6 supplied (delete the file) |
+| Empty floor-plan slots on every residence type | `src/components/developments/DevelopmentResidences.astro` | 10.6b authorised plans supplied |
+| Map placeholder on development detail pages | `src/components/developments/DevelopmentMap.astro` | 11.4 map provider chosen |
 | Homepage empty states: listings, developments, testimonials, insights | the matching section components | Each data source is supplied |
 
 No placeholder above is phrased as a factual claim about the client, and none
