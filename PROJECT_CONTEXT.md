@@ -277,6 +277,14 @@ Target: **WCAG 2.2 Level AA**.
     white and 4.9:1 on cream · evergreen-800 11.9:1 · white/70 on
     evergreen-800 6.6:1. `white/50` on evergreen is 4.2:1 — too low for body
     text; `white/55` is the floor.
+  - `gold-600` is 3.4:1 on white: fine for text at 24px and above, and for an
+    icon glyph, but **anything smaller uses `gold-700`** (5.5:1 on white,
+    5.1:1 on cream).
+  - **Measure contrast by painting the colour, not by parsing the string.**
+    Tailwind 4 compiles an opacity modifier to `color-mix()`, which computes to
+    `oklab(…)`; pulling numbers out of that with a regex silently reads
+    `oklab(0.999994 …)` as near-black and produces confident nonsense. Paint to
+    a 1×1 canvas and read the pixel back.
 - Touch targets ≥ 44×44 px.
 - Images carry meaningful `alt`; decorative images use `alt=""`.
 - Forms: real `<label>` elements, `aria-describedby` for hints and errors,
@@ -366,10 +374,70 @@ build for design review.
   placeholder.
 - To remove the demo layer for good: delete `src/data/demo/` and its import in
   `src/lib/content.ts`. Nothing else references it.
-- Forms are not wired up until the destination endpoint is confirmed. A form
-  that silently discards an enquiry is worse than no form.
 - Community and market figures are published **only with a cited source and a
   date**.
+
+### The lead-form service — `src/lib/forms/`
+
+Every enquiry form on the site goes through one transport, chosen in
+`transport.ts` from `PUBLIC_LEAD_FORM_ENDPOINT`.
+
+**A form must never appear to succeed when nothing received the data.** A
+"thank you, we'll be in touch" over a submission that went nowhere is worse
+than no form at all — someone waits for a call that was never coming. So
+`LeadResult` has three outcomes, not two: `sent`, `unconfigured` and `error`.
+With no endpoint configured a submit renders the visitor's own answers back to
+them, attached to a prefilled email link for each professional and both direct
+phone numbers. Nothing is lost and nothing is claimed.
+
+- The variable is `PUBLIC_` because the browser posts to it directly, which
+  means **the endpoint must never be a URL that carries a secret**. A provider
+  needing an API key needs a server-side relay instead.
+- Configuring it is an environment change and a rebuild. No code changes.
+- The unconfigured transport logs to the console **in development only**, and
+  never claims a submission was sent.
+
+**No dark patterns, anywhere.** Every field is marked required or "(optional)".
+Nothing is pre-ticked. There is no marketing opt-in enabled by default — if one
+is ever wanted it is an unticked checkbox. There is no fake urgency, no
+countdown, no "3 people are viewing this", and no content gated behind a form
+that would otherwise be free.
+
+**Accessibility lives in the shell, not in each page.** `LeadForm`,
+`FormField` and `FormChoiceGroup` own the label wiring, the `role="alert"`
+error regions, the focus-taking error summary, the busy state and the
+`<fieldset>`/`<legend>` grouping — so a new form is accessible by construction.
+Two things that are easy to get wrong and are handled centrally: a required
+radio group reports *every* option as missing, so the summary collapses it to
+one entry; and focus goes to the summary, never to the first bad field, so the
+other problems stay visible.
+
+**Without JavaScript there is nothing to submit to.** The site is static and
+the transport runs in the browser, so a `<style>` inside `<noscript>` hides the
+submit block and shows a contact panel instead. A button that POSTs into a 405
+is not an acceptable fallback.
+
+### Valuation — `src/lib/valuation/`
+
+The seam an AVM or market-data feed plugs into. **Nothing is connected, and the
+site publishes no figures.** Two permanent rules:
+
+1. **Every figure carries its source and its date.** `source` and `asOf` are
+   required fields on both `ValuationEstimate` and `MarketSnapshot`, not
+   optional ones. A median with no provenance is a rumour.
+2. **Never describe a valuation model as artificial intelligence.** An AVM is
+   a statistical model over comparable sales. Calling it AI oversells what it
+   does and invites people to trust it further than it deserves. The same rule
+   applies to the mortgage calculator and to anything else arithmetic.
+
+The site does not calculate a home value anywhere, and says so on the pages
+where a visitor would expect one. An opinion of value is prepared by Martin or
+MaryEllen, and is not a formal appraisal — a distinction the pages make
+explicitly, because a seller acting on the wrong one has a problem.
+
+Before connecting a provider: a licence permitting public display, the
+provider's attribution and disclaimer wording **verbatim**, and the refresh
+cadence the licence requires. `CONTENT_PENDING.md` 10.7.
 
 ---
 

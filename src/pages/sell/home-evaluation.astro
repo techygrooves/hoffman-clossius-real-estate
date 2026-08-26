@@ -1,21 +1,309 @@
 ---
-import StubPage from '@layouts/StubPage.astro';
-import QueryEcho from '@components/ui/QueryEcho.astro';
+/**
+ * Home evaluation request.
+ *
+ * The site does not produce a valuation. There is no automated model behind
+ * this page and no figure is calculated, estimated or displayed — what the
+ * form does is send the details of a property to Martin and MaryEllen, who
+ * prepare an opinion of value themselves.
+ *
+ * That distinction is stated plainly on the page rather than buried, because
+ * a seller arriving from an "instant valuation" advert deserves to know within
+ * a sentence that this is not one.
+ *
+ * The address field is prefilled from `?address=`, which is what the homepage
+ * valuation strip sends. A static page cannot read a query string at build
+ * time, so that happens in the browser.
+ */
+import BaseLayout from '@layouts/BaseLayout.astro';
+import PageHero from '@components/ui/PageHero.astro';
+import Section from '@components/ui/Section.astro';
+import LeadForm from '@components/forms/LeadForm.astro';
+import FormSection from '@components/forms/FormSection.astro';
+import FormField from '@components/forms/FormField.astro';
+import FormChoiceGroup from '@components/forms/FormChoiceGroup.astro';
+import { professionals } from '@config/site';
+import { PROPERTY_TYPE_LABELS, SELECTABLE_PROPERTY_TYPES } from '@lib/listings/query';
 
-const fields = [{ param: 'address', label: 'Property address' }];
+const propertyTypeOptions = [
+  { value: '', label: 'Select a property type' },
+  ...SELECTABLE_PROPERTY_TYPES.filter((type) => type !== 'land').map((type) => ({
+    value: type,
+    label: PROPERTY_TYPE_LABELS[type],
+  })),
+];
+
+const countOptions = (prompt: string) => [
+  { value: '', label: prompt },
+  ...['1', '2', '3', '4', '5', '6+'].map((n) => ({ value: n, label: n })),
+];
+
+const conditionOptions = [
+  'Recently renovated',
+  'Well maintained',
+  'Average — some updating needed',
+  'Needs significant work',
+  'Not sure',
+].map((label) => ({ value: label, label }));
+
+const timeframeOptions = [
+  'As soon as possible',
+  'Within 3 months',
+  '3 to 6 months',
+  '6 to 12 months',
+  'Just researching for now',
+].map((label) => ({ value: label, label }));
+
+const WHAT_YOU_GET = [
+  'What comparable homes near you have actually sold for recently, and which ones we used.',
+  'How your property compares to what is currently on the market around it.',
+  'A suggested asking range, with the reasoning behind it rather than a single number.',
+  'Anything we would change before it goes live, and whether it is worth the money.',
+];
 ---
 
-<StubPage
-  title="Home Evaluation"
-  heading="Request a home evaluation"
-  eyebrow="Sell"
-  description="Request a considered opinion of value for your South Florida property from Hoffman & Closius."
-  breadcrumbs={[{ label: 'Sell', href: '/sell/' }, { label: 'Home Evaluation' }]}
-  note="The evaluation request form is built once the form destination is confirmed. Valuations are prepared by Martin and MaryEllen; the site never generates an automated estimate."
+<BaseLayout
+  title="Request a Home Evaluation"
+  description="Request a complimentary opinion of value for your South Florida property, prepared by Martin Hoffman or MaryEllen Closius. No automated estimate — a considered valuation from a person."
 >
-  <QueryEcho
-    title="The address you sent"
-    note="Nothing has been submitted yet — the form destination is still being confirmed. Call Martin on 954-605-4823 or MaryEllen on 954-471-4626 and they will prepare an opinion of value for this address."
-    fields={fields}
+  <PageHero
+    eyebrow="Sell"
+    title="Request a home evaluation"
+    lead="Tell us about the property and Martin or MaryEllen will prepare an opinion of value for it. There is no cost, and no obligation to list."
+    breadcrumbs={[{ label: 'Sell', href: '/sell/' }, { label: 'Home Evaluation' }]}
   />
-</StubPage>
+
+  <Section tone="white" labelledby="evaluation-heading">
+    <div class="grid gap-12 lg:grid-cols-12 lg:gap-16">
+      <div class="lg:col-span-7 xl:col-span-8">
+        <h2 id="evaluation-heading" class="sr-only">Home evaluation request</h2>
+
+        <LeadForm
+          kind="home-evaluation"
+          submitLabel="Request My Complimentary Home Evaluation"
+          emailSubject="Home evaluation request"
+        >
+          <FormSection
+            step={1}
+            title="The property"
+            description="Enough to identify it and pull the right comparable sales."
+          >
+            <FormField
+              name="address"
+              label="Property address"
+              required
+              autocomplete="street-address"
+              placeholder="Street address"
+              prefillParam="address"
+              span={12}
+            />
+            <FormField
+              name="city"
+              label="City"
+              required
+              autocomplete="address-level2"
+              span={6}
+            />
+            <FormField
+              name="zip"
+              label="ZIP code"
+              required
+              autocomplete="postal-code"
+              inputmode="numeric"
+              span={6}
+            />
+            <FormField
+              name="unit"
+              label="Unit or apartment number"
+              autocomplete="address-line2"
+              span={6}
+            />
+            <FormField
+              name="propertyType"
+              label="Property type"
+              type="select"
+              options={propertyTypeOptions}
+              required
+              span={6}
+            />
+          </FormSection>
+
+          <FormSection
+            step={2}
+            title="Size and condition"
+            description="Approximate is fine — we verify against public records and correct anything that is off."
+          >
+            <FormField
+              name="beds"
+              label="Bedrooms"
+              type="select"
+              options={countOptions('Select')}
+              span={4}
+            />
+            <FormField
+              name="baths"
+              label="Bathrooms"
+              type="select"
+              options={countOptions('Select')}
+              span={4}
+            />
+            <FormField
+              name="sqft"
+              label="Approximate square footage"
+              inputmode="numeric"
+              placeholder="e.g. 1,850"
+              span={4}
+            />
+            <FormChoiceGroup
+              name="condition"
+              legend="Condition"
+              options={conditionOptions}
+              hint="Your own assessment. Nobody is holding you to it."
+              span={12}
+            />
+          </FormSection>
+
+          <FormSection
+            step={3}
+            title="Your plans"
+            description="This tells us how quickly to come back to you, and how detailed to be."
+          >
+            <FormChoiceGroup
+              name="timeframe"
+              legend="Selling timeframe"
+              options={timeframeOptions}
+              span={12}
+            />
+          </FormSection>
+
+          <FormSection
+            step={4}
+            title="How to reach you"
+            description="Sent only to Martin and MaryEllen."
+          >
+            <FormField
+              name="name"
+              label="Full name"
+              required
+              autocomplete="name"
+              span={6}
+            />
+            <FormField
+              name="email"
+              label="Email"
+              type="email"
+              required
+              autocomplete="email"
+              inputmode="email"
+              span={6}
+            />
+            <FormField
+              name="phone"
+              label="Phone"
+              type="tel"
+              autocomplete="tel"
+              inputmode="tel"
+              span={6}
+            />
+            <FormField
+              name="notes"
+              label="Additional details"
+              type="textarea"
+              rows={5}
+              placeholder="Renovations and when they were done, a new roof or A/C, HOA fees, a tenant in place, anything that makes the property unusual."
+              hint="The things public records will not tell us are the things that move a valuation."
+              span={12}
+            />
+          </FormSection>
+        </LeadForm>
+      </div>
+
+      <aside class="lg:col-span-5 xl:col-span-4">
+        <div class="lg:sticky lg:top-32 flex flex-col gap-8">
+          <div class="rounded-xs border border-line bg-cream-50 p-6 sm:p-8">
+            <span class="rule-gold" aria-hidden="true"></span>
+            <h2 class="mt-4 font-serif text-2xl text-evergreen-800">
+              What you get back
+            </h2>
+            <ul class="mt-5 flex flex-col gap-3 text-sm leading-relaxed text-ink-muted">
+              {
+                WHAT_YOU_GET.map((item) => (
+                  <li class="flex gap-3">
+                    <span class="mt-2 h-1 w-1 shrink-0 rounded-full bg-gold-600" aria-hidden="true" />
+                    <span>{item}</span>
+                  </li>
+                ))
+              }
+            </ul>
+          </div>
+
+          <div class="rounded-xs border border-evergreen-800/25 bg-evergreen-100 p-6 sm:p-8">
+            <h2 class="font-serif text-xl text-evergreen-900">
+              This is not an instant estimate
+            </h2>
+            <p class="mt-3 text-sm leading-relaxed text-evergreen-900/80">
+              This website does not calculate a value for your home and will
+              never show you one. An opinion of value is prepared by Martin or
+              MaryEllen after looking at the property and at what genuinely
+              comparable homes sold for — which is why it takes a little longer
+              than a number appearing on a screen, and why it is worth more.
+            </p>
+            <p class="mt-4 text-sm leading-relaxed text-evergreen-900/80">
+              An opinion of value is not a formal appraisal. A lender's
+              appraisal is carried out by a licensed appraiser.
+            </p>
+          </div>
+
+          <div class="rounded-xs border border-line p-6 sm:p-8">
+            <h2 class="font-serif text-xl text-evergreen-800">
+              Would rather just talk?
+            </h2>
+            <p class="mt-3 text-sm leading-relaxed text-ink-muted">
+              Call either of us with the address and we can start from there.
+            </p>
+            <ul class="mt-5 flex flex-col gap-4">
+              {
+                professionals.map((person) => (
+                  <li>
+                    <p class="text-sm font-medium text-evergreen-800">{person.name}</p>
+                    <p class="text-xs text-ink-subtle">{person.title}</p>
+                    <div class="mt-2 flex flex-wrap gap-x-5 gap-y-1 text-sm">
+                      <a href={person.phone.href} class="link-underline text-evergreen-800">
+                        {person.phone.value}
+                      </a>
+                      <a href={person.email.href} class="link-underline text-evergreen-800">
+                        {person.email.value}
+                      </a>
+                    </div>
+                  </li>
+                ))
+              }
+            </ul>
+          </div>
+
+          <div class="rounded-xs border border-line p-6 sm:p-8">
+            <h2 class="font-serif text-xl text-evergreen-800">
+              Not ready to ask yet?
+            </h2>
+            <p class="mt-3 text-sm leading-relaxed text-ink-muted">
+              Read what selling actually involves first, or look at how home
+              values are measured in your area.
+            </p>
+            <ul class="mt-4 flex flex-col gap-2 text-sm">
+              <li>
+                <a href="/sell/" class="link-underline text-evergreen-800">
+                  How we sell a property
+                </a>
+              </li>
+              <li>
+                <a href="/sell/median-home-values/" class="link-underline text-evergreen-800">
+                  Median home values
+                </a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </Section>
+</BaseLayout>

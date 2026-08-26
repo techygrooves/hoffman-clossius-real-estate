@@ -1,12 +1,455 @@
 ---
-import StubPage from '@layouts/StubPage.astro';
+/**
+ * Seller services.
+ *
+ * Explains what listing with Hoffman & Closius involves, stage by stage.
+ *
+ * What it deliberately does not do: promise a price, a timescale, a number of
+ * showings or an outcome; quote a commission; publish a days-on-market or
+ * sale-to-list figure; or state a marketing reach. None of that has been
+ * supplied, none of it may be guessed, and a seller choosing an agent is the
+ * last place for an invented number.
+ *
+ * The testimonials band renders only if the client has supplied and verified
+ * quotes. Today none exist, so nothing renders — see src/data/testimonials.ts.
+ */
+import BaseLayout from '@layouts/BaseLayout.astro';
+import PageHero from '@components/ui/PageHero.astro';
+import Section from '@components/ui/Section.astro';
+import SectionHeader from '@components/ui/SectionHeader.astro';
+import Button from '@components/ui/Button.astro';
+import MediaSlot from '@components/ui/MediaSlot.astro';
+import AgentCard from '@components/ui/AgentCard.astro';
+import TestimonialsSection from '@components/home/TestimonialsSection.astro';
+import { getProfessional, professionals } from '@config/site';
+import { resolveTestimonials } from '@lib/content';
+import { faqs } from '@data/faqs';
+
+const martin = getProfessional('martin-hoffman');
+const maryellen = getProfessional('maryellen-closius');
+
+/** Only client-verified quotes ever render. */
+const hasTestimonials = resolveTestimonials(3).items.length > 0;
+
+const sellingFaqs = faqs.filter((faq) => faq.category === 'selling');
+
+/**
+ * Questions worth asking any agent before you sign. Shown when no reviewed
+ * answers exist yet — the questions are ours, the answers come from a
+ * conversation, not from copy written on a website.
+ */
+const OPEN_QUESTIONS = [
+  'What are you basing your suggested asking price on, and which sales specifically?',
+  'What is the total cost of selling with you, and what is included?',
+  'How long is the listing agreement, and how do I end it if it is not working?',
+  'Who actually handles my listing day to day — you, or someone else?',
+  'How and when will you report back to me?',
+  'What would you change about the property before it goes live?',
+];
+
+const PREPARATION = [
+  {
+    title: 'Walk the property with fresh eyes',
+    body: 'We go through the house the way a buyer will, and say what we notice — including the things you stopped seeing years ago. You decide what is worth acting on.',
+  },
+  {
+    title: 'Repairs worth doing, and repairs that are not',
+    body: 'Some work returns more than it costs; plenty does not. The aim is to spend as little as possible while removing the objections that would cost you more at the negotiating table.',
+  },
+  {
+    title: 'Decluttering and presentation',
+    body: 'Rooms photograph and show better with less in them. Where staging makes sense we will say so, and what it would involve.',
+  },
+  {
+    title: 'Paperwork before it is asked for',
+    body: 'Permits, warranties, HOA or condo documents, insurance history, any survey. Having these ready keeps a contract moving instead of stalling it mid-inspection.',
+  },
+];
+
+const MARKETING = [
+  {
+    title: 'Photography and video',
+    body: 'Professional photography, and video or aerial work where the property justifies it. Most buyers decide whether to view from the pictures alone.',
+  },
+  {
+    title: 'The listing itself',
+    body: 'Written to describe the property accurately — the wrong buyers viewing is a waste of your weekends. Distributed through the MLS to the portals and agent networks that syndicate from it.',
+  },
+  {
+    title: 'Floor plan and measurements',
+    body: 'A plan answers the questions photographs cannot, and cuts down on viewings from people whose furniture was never going to fit.',
+  },
+  {
+    title: 'Direct outreach',
+    body: 'Agents with buyers in your price band, and people who have already asked us about something like yours. This is the part that does not appear on a portal.',
+  },
+  {
+    title: 'Signage and print',
+    body: 'Where the location and the property warrant it. Some homes sell to a neighbour, or to a neighbour’s friend.',
+  },
+  {
+    title: 'Enquiries answered by us',
+    body: 'Every enquiry about your property is answered by Martin or MaryEllen. A buyer who cannot get a reply within the day books a viewing at the house that replied.',
+  },
+];
+
+const SHOWINGS = [
+  {
+    title: 'Booked around you',
+    body: 'Showings are scheduled through us with notice, so you are not answering the door to strangers or losing an evening at short notice.',
+  },
+  {
+    title: 'Accompanied where it helps',
+    body: 'Some properties need someone there to explain them — a renovation, a view at a particular hour, a quirk of the layout. Others show better empty.',
+  },
+  {
+    title: 'Feedback you actually hear',
+    body: 'What agents and buyers said afterwards, passed on plainly. Repeated feedback about the same thing usually means something, and it is better acted on early than argued with.',
+  },
+  {
+    title: 'Security and access',
+    body: 'Who came, when, and with which agent. Valuables and medication put away, and access controlled.',
+  },
+];
+
+const CLOSING = [
+  {
+    title: 'Reviewing offers',
+    body: 'Price is one term. Financing, deposit, inspection and appraisal windows, the closing date and what the buyer is asking you to leave behind all change what an offer is really worth.',
+  },
+  {
+    title: 'Negotiating',
+    body: 'Counter, accept or wait — we set out what each looks like from where you are standing, and you decide. Multiple offers are handled openly, with every buyer told the same thing.',
+  },
+  {
+    title: 'Inspection and appraisal',
+    body: 'Both can reopen the negotiation. What comes back is worked through item by item rather than met with a single number.',
+  },
+  {
+    title: 'Through to closing',
+    body: 'Title, the buyer’s financing, insurance, the walkthrough and the closing date itself. Most of this is chasing other people, and most of it happens without you needing to be involved.',
+  },
+];
 ---
 
-<StubPage
-  title={'Selling a Home'}
-  heading={'Selling in South Florida'}
-  eyebrow={'Sell'}
-  description={'How your property is positioned, marketed and negotiated when you list with Hoffman & Closius.'}
-  breadcrumbs={[{ label: 'Sell' }]}
-  note={'This page will explain preparation, pricing, marketing and negotiation, and lead into the home evaluation request.'}
-/>
+<BaseLayout
+  title="Selling a Home"
+  description="How Hoffman & Closius prepare, position, market and negotiate a South Florida home sale — and how to request a home evaluation from Martin and MaryEllen."
+>
+  <PageHero
+    eyebrow="Sell"
+    title="Selling in South Florida"
+    lead="What actually happens between deciding to sell and handing over the keys — what we do at each stage, and what it asks of you."
+    breadcrumbs={[{ label: 'Sell' }]}
+  >
+    <div class="mt-2 flex flex-wrap gap-3">
+      <Button href="/sell/home-evaluation/" size="lg" withArrow>
+        Request a Home Evaluation
+      </Button>
+      <Button href="/sell/median-home-values/" size="lg" variant="secondary">
+        Explore Home Values
+      </Button>
+    </div>
+  </PageHero>
+
+  {/* Valuation CTA */}
+  <Section tone="deep" labelledby="sell-valuation-heading">
+    <div class="grid gap-12 lg:grid-cols-2 lg:items-center lg:gap-20">
+      <div data-reveal>
+        <p class="eyebrow text-gold-300">
+          <span class="rule-gold" aria-hidden="true"></span>
+          Start here
+        </p>
+        <h2 id="sell-valuation-heading" class="mt-5 text-display-sm text-white">
+          What is your property worth?
+        </h2>
+        <p class="mt-5 max-w-lg leading-relaxed text-white/75">
+          An opinion of value from Martin or MaryEllen, prepared by looking at
+          your property and at what comparable homes nearby have actually sold
+          for. It is written by a person, not generated by this website, and
+          there is no cost and no obligation attached to it.
+        </p>
+        <div class="mt-9">
+          <Button href="/sell/home-evaluation/" variant="gold" withArrow>
+            Request My Complimentary Home Evaluation
+          </Button>
+        </div>
+      </div>
+
+      <div data-reveal style="--reveal-delay:100ms">
+        <MediaSlot
+          src={null}
+          width={1000}
+          height={800}
+          ratio="5/4"
+          tone="deep"
+          seed={4}
+          sizes="(min-width: 1024px) 45vw, 100vw"
+          class="max-h-[26rem] rounded-xs"
+        />
+      </div>
+    </div>
+  </Section>
+
+  {/* Preparing */}
+  <Section tone="white" labelledby="sell-prep-heading">
+    <SectionHeader
+      id="sell-prep-heading"
+      eyebrow="Before it goes live"
+      title="Preparing a property for market"
+      lead="A property gets one first week. Most of the attention it will ever receive arrives in it, so the work happens before the listing goes live rather than after."
+    />
+
+    <ol class="mt-14 grid gap-px overflow-hidden rounded-xs border border-line bg-line md:grid-cols-2">
+      {
+        PREPARATION.map((item, index) => (
+          <li class="flex gap-5 bg-white p-7" data-reveal>
+            <span class="shrink-0 font-serif text-2xl text-gold-600" aria-hidden="true">
+              {String(index + 1).padStart(2, '0')}
+            </span>
+            <div>
+              <h3 class="font-serif text-xl text-evergreen-800">{item.title}</h3>
+              <p class="mt-2 text-sm leading-relaxed text-ink-muted">{item.body}</p>
+            </div>
+          </li>
+        ))
+      }
+    </ol>
+  </Section>
+
+  {/* Positioning */}
+  <Section tone="warm" labelledby="sell-position-heading">
+    <div class="grid gap-12 lg:grid-cols-2 lg:gap-20">
+      <div data-reveal>
+        <SectionHeader
+          id="sell-position-heading"
+          eyebrow="Pricing"
+          title="Positioning and presentation"
+        />
+        <div class="mt-8 flex flex-col gap-5 leading-relaxed text-ink-muted">
+          <p>
+            The asking price is the single decision that most affects how your
+            sale goes. Set it correctly and the property draws attention while
+            it is new. Set it too high and you spend that first week proving to
+            buyers that something cheaper is better value — then reduce anyway,
+            to an audience that has already moved on.
+          </p>
+          <p>
+            We work it out from what comparable homes nearby have actually sold
+            for, not from what they are asking. What is currently competing with
+            you matters too: a buyer choosing between three similar homes is
+            choosing on price and condition.
+          </p>
+          <p>
+            Presentation is the other half. Two properties on the same street at
+            the same price will not perform the same if one is better prepared
+            and better photographed. Where we think something should change
+            before launch, we will say so, and we will explain why.
+          </p>
+          <p class="text-sm text-ink-subtle">
+            We do not publish a target price, a timescale or a percentage on
+            this page. Any of those would be a number invented about a property
+            we have not seen.
+          </p>
+        </div>
+      </div>
+
+      <div data-reveal style="--reveal-delay:100ms">
+        <MediaSlot
+          src={null}
+          width={900}
+          height={1100}
+          ratio="9/11"
+          seed={7}
+          sizes="(min-width: 1024px) 45vw, 100vw"
+          class="max-h-[30rem] rounded-xs"
+        />
+      </div>
+    </div>
+  </Section>
+
+  {/* Marketing */}
+  <Section tone="white" labelledby="sell-marketing-heading">
+    <SectionHeader
+      id="sell-marketing-heading"
+      eyebrow="Marketing"
+      title="How your property is presented to buyers"
+      lead="What a listing gets as standard. What each property actually needs varies — a waterfront home and a two-bedroom condominium are not sold the same way."
+    />
+
+    <ul class="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      {
+        MARKETING.map((item, index) => (
+          <li
+            class="flex h-full flex-col rounded-xs border border-line p-7"
+            data-reveal
+            style={`--reveal-delay:${index * 60}ms`}
+          >
+            <h3 class="font-serif text-xl text-evergreen-800">{item.title}</h3>
+            <p class="mt-3 text-sm leading-relaxed text-ink-muted">{item.body}</p>
+          </li>
+        ))
+      }
+    </ul>
+  </Section>
+
+  {/* Showings */}
+  <Section tone="warm" labelledby="sell-showings-heading">
+    <SectionHeader
+      id="sell-showings-heading"
+      eyebrow="Viewings"
+      title="The showing process"
+      lead="Living in a property while it is for sale is the least comfortable part of selling. This is how we keep it manageable."
+    />
+
+    <ul class="mt-14 grid gap-6 sm:grid-cols-2">
+      {
+        SHOWINGS.map((item, index) => (
+          <li
+            class="flex h-full flex-col rounded-xs border border-line bg-white p-7"
+            data-reveal
+            style={`--reveal-delay:${index * 60}ms`}
+          >
+            <h3 class="font-serif text-xl text-evergreen-800">{item.title}</h3>
+            <p class="mt-3 text-sm leading-relaxed text-ink-muted">{item.body}</p>
+          </li>
+        ))
+      }
+    </ul>
+  </Section>
+
+  {/* Offer and closing */}
+  <Section tone="white" labelledby="sell-closing-heading">
+    <SectionHeader
+      id="sell-closing-heading"
+      eyebrow="Offer to closing"
+      title="From an offer to the keys"
+      lead="Accepting an offer is the middle of the process, not the end of it. Florida contracts run on defined windows, and most of what follows is keeping those dates."
+    />
+
+    <ol class="mt-14 grid gap-px overflow-hidden rounded-xs border border-line bg-line md:grid-cols-2">
+      {
+        CLOSING.map((item, index) => (
+          <li class="flex gap-5 bg-white p-7" data-reveal>
+            <span class="shrink-0 font-serif text-2xl text-gold-600" aria-hidden="true">
+              {String(index + 1).padStart(2, '0')}
+            </span>
+            <div>
+              <h3 class="font-serif text-xl text-evergreen-800">{item.title}</h3>
+              <p class="mt-2 text-sm leading-relaxed text-ink-muted">{item.body}</p>
+            </div>
+          </li>
+        ))
+      }
+    </ol>
+
+    <p class="mt-10 max-w-prose text-sm leading-relaxed text-ink-subtle">
+      Nothing on this page is legal or tax advice. Contract terms, disclosure
+      obligations and the tax consequences of a sale are matters for your
+      attorney and your accountant.
+    </p>
+  </Section>
+
+  {/* Client words — only if the client has supplied and verified quotes. */}
+  {hasTestimonials && <TestimonialsSection />}
+
+  {/* Seller questions */}
+  <Section tone="warm" labelledby="sell-faq-heading">
+    <SectionHeader
+      id="sell-faq-heading"
+      eyebrow="Questions"
+      title={sellingFaqs.length > 0 ? 'Seller questions' : 'Questions worth asking'}
+      lead={
+        sellingFaqs.length > 0
+          ? undefined
+          : 'Ask these of any agent you are considering, us included. The answers are worth having in a conversation, where you can push back — which is why they are not written out for you here.'
+      }
+    />
+
+    {
+      sellingFaqs.length > 0 ? (
+        <div class="mt-12 flex max-w-4xl flex-col gap-3">
+          {sellingFaqs.map((faq) => (
+            <details
+              name="seller-faq"
+              class="group rounded-xs border border-line bg-white px-6 py-5"
+            >
+              <summary class="flex cursor-pointer items-center justify-between gap-4 font-serif text-lg text-evergreen-800 marker:content-none">
+                {faq.question}
+                <span
+                  class="shrink-0 text-gold-700 transition-transform duration-300 group-open:rotate-45"
+                  aria-hidden="true"
+                >
+                  +
+                </span>
+              </summary>
+              <p class="mt-4 max-w-prose text-sm leading-relaxed text-ink-muted">
+                {faq.answer}
+              </p>
+            </details>
+          ))}
+        </div>
+      ) : (
+        <ul class="mt-12 grid gap-px overflow-hidden rounded-xs border border-line bg-line sm:grid-cols-2">
+          {OPEN_QUESTIONS.map((question) => (
+            <li class="flex gap-4 bg-white p-6" data-reveal>
+              <span class="shrink-0 font-serif text-xl text-gold-700" aria-hidden="true">
+                ?
+              </span>
+              <p class="text-sm leading-relaxed text-ink-muted">{question}</p>
+            </li>
+          ))}
+        </ul>
+      )
+    }
+
+    <p class="mt-8 text-sm text-ink-muted">
+      Put any of them to us directly —{' '}
+      <a href="/contact/" class="link-underline text-evergreen-800">get in touch</a>{' '}
+      or call the number below.
+    </p>
+  </Section>
+
+  {/* Contact */}
+  <Section tone="white" labelledby="sell-contact-heading">
+    <SectionHeader
+      id="sell-contact-heading"
+      eyebrow="Talk to us"
+      title="Thinking about selling?"
+      lead="No pressure and no obligation. A conversation about what your property would do on the market costs you nothing."
+    />
+
+    <div class="mt-14 grid gap-12 md:grid-cols-2 md:gap-10 lg:gap-16">
+      {
+        [martin, maryellen].map(
+          (person, index) =>
+            person && (
+              <AgentCard
+                person={person}
+                intro={
+                  person.slug === 'martin-hoffman'
+                    ? 'Martin holds a Broker-Associate licence and represents buyers and sellers across South Florida.'
+                    : 'MaryEllen is a Realtor Associate and Relocation Specialist, working with buyers, sellers and families moving to South Florida.'
+                }
+                ctaLabel={`Meet ${person.firstName}`}
+                seed={index + 3}
+              />
+            ),
+        )
+      }
+    </div>
+
+    <div class="mt-10 flex flex-wrap gap-3">
+      <Button href="/sell/home-evaluation/" withArrow>
+        Request a Home Evaluation
+      </Button>
+      {
+        professionals.map((person) => (
+          <Button href={person.phone.href} variant="secondary">
+            Call {person.firstName} — {person.phone.value}
+          </Button>
+        ))
+      }
+    </div>
+  </Section>
+</BaseLayout>

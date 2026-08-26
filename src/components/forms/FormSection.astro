@@ -1,0 +1,49 @@
+---
+/**
+ * FormSection — one step of a longer form: a heading, an optional line of
+ * explanation, and a 12-column grid the fields drop into.
+ *
+ * Breaking a long form into named sections is what keeps a fourteen-field
+ * enquiry from feeling like a tax return.
+ */
+import { cn } from '@lib/cn';
+
+interface Props {
+  /** Shown as a small numeral beside the heading. */
+  step?: number;
+  title: string;
+  description?: string;
+  class?: string;
+}
+
+const { step, title, description, class: className } = Astro.props;
+const id = `form-section-${title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
+---
+
+<section aria-labelledby={id} class={cn('flex flex-col', className)}>
+  <div class="flex items-baseline gap-3">
+    {
+      step !== undefined && (
+        <span
+          class="font-serif text-lg text-gold-700"
+          aria-hidden="true"
+        >
+          {String(step).padStart(2, '0')}
+        </span>
+      )
+    }
+    <h2 id={id} class="font-serif text-2xl text-evergreen-800">{title}</h2>
+  </div>
+
+  {
+    description && (
+      <p class="mt-2 max-w-prose text-sm leading-relaxed text-ink-muted">
+        {description}
+      </p>
+    )
+  }
+
+  <div class="mt-6 grid grid-cols-1 gap-x-5 gap-y-6 sm:grid-cols-12">
+    <slot />
+  </div>
+</section>

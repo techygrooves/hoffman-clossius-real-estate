@@ -3,25 +3,157 @@
 Living record of what exists, what is broken and what comes next.
 **Update this file at the end of every session.**
 
-Last updated: **2026-08-24** — Session 5 (developments subsystem)
+Last updated: **2026-08-26** — Session 6 (buyer & seller conversion pages)
 
 ---
 
 ## Current state
 
-Foundation, global chrome, homepage, the property/listing system and **the
-developments subsystem** are built. Neither listings nor developments have real
-data yet, and in both cases the architecture makes that a supply step rather
-than a rewrite.
+Foundation, global chrome, homepage, the property/listing system, the
+developments subsystem and **the buyer and seller conversion pages** are built.
+Listings, developments and valuation data are all still unsupplied, and in each
+case the architecture makes that a supply step rather than a rewrite.
 
 | Metric | Value |
 | --- | --- |
 | Build | ✅ passing — `astro check`: 0 errors, 0 warnings, 0 hints |
 | Pages | 36 in production · 54 with demo content on |
 | Internal links | ✅ all resolve, both modes |
-| Tests | ✅ 34/34 developments · 6/6 developments mobile + no-JS · 18/18 listing search · 29/29 property detail · 15/15 homepage · 21/21 navigation |
-| JavaScript | ~16 KB total across the site, inlined, no dependencies |
+| Tests | ✅ **296 checks passing** — see below |
+| Contrast | ✅ every rendered text node on all 53 pages × 2 widths clears WCAG 2.2 AA |
+| JavaScript | ~19 KB total across the site, inlined, no dependencies |
 | Third-party runtime requests | none |
+
+| Suite | Checks |
+| --- | --- |
+| Lead forms — fields, validation, states, prefill | 114 |
+| Forms — mobile + no-JavaScript | 36 |
+| Forms — contrast, keyboard, focus | 15 |
+| Developments | 34 |
+| Developments — mobile + no-JavaScript | 6 |
+| Listing search | 18 |
+| Property detail | 29 |
+| Listings — mobile + no-JavaScript | 8 |
+| Homepage | 15 |
+| Navigation | 21 |
+
+---
+
+## ✅ Completed — Session 6 (2026-08-26) · Buyer & seller conversion pages
+
+Five pages, and the two pieces of infrastructure underneath them: a form
+service every enquiry goes through, and a valuation seam nothing is plugged
+into yet.
+
+### The rule that shaped this session
+
+**No form pretends to succeed.** `PUBLIC_LEAD_FORM_ENDPOINT` is unset, so
+nothing receives a submission — and rather than show "thank you, we'll be in
+touch" over a message that went nowhere, a submit renders the visitor's own
+answers back with a prefilled email link to Martin and MaryEllen and both
+direct numbers. Their effort is not lost, and nobody waits for a reply that was
+never coming. Setting the environment variable switches this off with no code
+change.
+
+### Form service — `src/lib/forms/`
+- [x] `types.ts` — `LeadSubmission` (machine `fields`, human `display`, and
+      `labels`), `LeadKind`, and a three-outcome `LeadResult`: `sent`,
+      `unconfigured`, `error`. Three rather than a boolean because "nowhere to
+      send it" is neither a success nor a failure.
+- [x] `transport.ts` — selects the transport from
+      `PUBLIC_LEAD_FORM_ENDPOINT`. Documents why the variable is `PUBLIC_`
+      (the browser posts directly) and the constraint that follows: **the
+      endpoint must never be a URL that carries a secret.**
+- [x] `form-client.ts` — validation, busy state, the four end states, the
+      error summary, and the contact fallback.
+- [x] `prefill-client.ts` — a control opts in with `prefillParam`; the browser
+      fills it from the query string. A static page cannot read one at build
+      time, and two journeys depend on it (homepage address → evaluation form;
+      saved search → Dream Home Finder).
+
+### Form components — `src/components/forms/`
+- [x] `LeadForm.astro` — the shell: error summary, submit, privacy line,
+      result states, fallback panel, and the no-JavaScript panel.
+- [x] `FormField.astro` — one labelled control with its hint and error slot.
+      Real `<label for>`, `aria-describedby`, `role="alert"` error region.
+- [x] `FormChoiceGroup.astro` — radios/checkboxes as chips in a real
+      `<fieldset>` with a `<legend>`.
+- [x] `FormSection.astro` — a numbered step with a 12-column grid.
+
+### Accessibility built into the shell, so it is right everywhere at once
+- Native constraint validation with the bubbles suppressed, messages rendered
+  into `role="alert"` regions the field points at.
+- An error summary that lists every problem as a link and **takes focus** on a
+  failed submit — verified to scroll into view and clear the sticky header.
+- Fields validate on blur only **after** a first submit attempt.
+- Radio groups are one entry in the summary, not one per option.
+- Every field says required or "(optional)". **Nothing is pre-ticked**, there
+  is no default marketing opt-in, and there is no fake urgency anywhere.
+- Chips are 40px tall; focus rings render on the chip, not the `sr-only` input.
+
+### Valuation seam — `src/lib/valuation/`
+- [x] `types.ts` — `ValuationRequest`, `ValuationEstimate`, `MarketSnapshot`,
+      `ValuationProvider`. Two rules stated in the file: **every figure carries
+      its source and its date** (both required, not optional), and **an AVM is
+      never described as artificial intelligence** — it is a statistical model
+      over comparable sales.
+- [x] `unconfiguredProvider.ts` — returns null throughout.
+- [x] `provider.ts` — selection, and what must be in place before an AVM is
+      connected (licence, verbatim attribution and disclaimer, refresh cadence).
+
+### Pages
+- [x] `/buy/` — the seven stages of a purchase, four routes in, the Dream Home
+      Finder, relocation, contact. No statistic, no guarantee, no claim about
+      access or timescales.
+- [x] `/buy/dream-home-finder/` — all fourteen specified fields across four
+      steps. Prefills price, beds, baths, type and area from a saved search.
+      Only name, email and contact method are required.
+- [x] `/sell/` — preparation, positioning, marketing, showings, offer to
+      closing, seller questions, contact. Testimonials render **only** if the
+      client has supplied verified quotes; none exist, so the band is absent.
+      Carries an explicit "this is not legal or tax advice" line.
+- [x] `/sell/home-evaluation/` — all thirteen specified fields, CTA reads
+      "Request My Complimentary Home Evaluation", address prefills from the
+      homepage strip. States plainly that no estimate is generated and that an
+      opinion of value is not an appraisal.
+- [x] `/sell/median-home-values/` — address entry, what a median is and is not,
+      per-city accordion, an honest section about automated estimates, and the
+      valuation CTA. **Publishes no figure**, because none carries a source.
+
+### What these pages will never do
+- Generate, calculate or display a home value. Nothing on the site does.
+- Describe a calculator or a model as artificial intelligence.
+- Publish a median without a source and a date — the types make both required.
+- Quote a commission, a timescale, a days-on-market figure or a success rate.
+- Show a testimonial that has not been supplied and verified.
+
+### Fixed while testing
+- **Error summary listed one entry per radio option.** A required radio group
+  makes *every* radio report `valueMissing` — that is what the spec says — so a
+  three-option group reported the same problem three times. Collapsed to one
+  entry per group.
+- **A submit stole focus back from the error summary.** The summary was focused
+  and then the first invalid field was focused immediately after, which hides
+  every other problem until you fix the first. The summary keeps focus now.
+- **The fallback summary read "Email: Email".** A radio carried its option
+  label where the group's legend belonged. Radios now label by legend, and a
+  select reports the text a person actually saw ("$1,000,000") rather than its
+  value — while the machine value still goes to the destination.
+- **No JavaScript meant a button that POSTed into a 405.** A `<style>` inside
+  `<noscript>` now hides the submit block and shows a contact panel instead.
+- **Placeholder markers failed contrast.** "Logo pending" (2.5:1) and "Image
+  pending" (2.2:1) were too faint to read. Both now clear 4.5:1 — they are
+  meant to be noticed.
+- **Small gold text failed contrast.** `gold-600` clears 3:1 but not 4.5:1, so
+  everything under 24px moved to `gold-700`. The 24px numerals are large text
+  and stay.
+
+### Documentation
+- [x] `CONTENT_PENDING.md` §6 rewritten around `PUBLIC_LEAD_FORM_ENDPOINT`,
+      plus 6.1a (the endpoint must carry no secret), 6.7 (retention, needed for
+      the privacy policy), 10.7 (how to supply median figures) and 10.7a
+      (the rule about ever adding an automated estimate). Four new active
+      placeholders registered.
 
 ---
 
@@ -390,6 +522,10 @@ twelve homepage sections in `src/components/home/`.
 | `AgentCard` | `src/components/ui/AgentCard.astro` | ✅ stable — reuse on /about/ |
 | `DemoNotice` | `src/components/ui/DemoNotice.astro` | ✅ stable — dev-only by construction |
 | `QueryEcho` | `src/components/ui/QueryEcho.astro` | ✅ stable |
+| `LeadForm` | `src/components/forms/LeadForm.astro` | ✅ stable — the shell every enquiry form uses |
+| `FormField` | `src/components/forms/FormField.astro` | ✅ stable — one labelled control + hint + error |
+| `FormChoiceGroup` | `src/components/forms/FormChoiceGroup.astro` | ✅ stable — fieldset + legend chips |
+| `FormSection` | `src/components/forms/FormSection.astro` | ✅ stable — a numbered step of a longer form |
 | Homepage sections | `src/components/home/*.astro` | ✅ stable — twelve sections |
 | `InPreparation` | `src/components/sections/InPreparation.astro` | ⚠️ temporary |
 
@@ -409,43 +545,63 @@ primitive rather than adding a near-duplicate.
 | 5 | `PageHero` image variant unverified | 🟢 low | Built but never rendered with a real photograph. Re-check contrast over the scrim when imagery arrives. |
 | 6 | Tailwind display-utility pitfall | 🟢 low | `.inline-flex` is emitted after `.hidden`, so `class="hidden xl:block"` passed into `Button`/`KeyesLogo` is silently ignored. Responsive visibility goes on a **wrapper element** — apply that pattern everywhere. (Alignment utilities like `self-start` are safe to pass through.) |
 | 7 | Team-name spelling | 🟠 med | Site uses "Closius"; the repository is `hoffman-clossius-real-estate`. Confirm before launch (`CONTENT_PENDING.md` 2.5). |
-| 8 | No automated a11y/perf testing yet | 🟠 med | Structural checks (single `h1`, landmarks, skip link, title, description, lang, viewport across all 30 pages) and a computed contrast pass are done. Screen-reader, keyboard-path and Lighthouse passes still to come once real pages exist. |
+| 8 | No screen-reader or Lighthouse pass yet | 🟠 med | Structural checks, keyboard paths through the forms, and a **pixel-accurate** contrast sweep of every rendered text node on all 53 pages at two widths now run in the browser. (The earlier sweep parsed colour strings, which Tailwind 4's `color-mix()` → `oklab()` output silently defeated; measurements now paint the colour to a canvas and read the pixel back.) A real screen-reader pass and Lighthouse are still to come. |
 | 9a | Four homepage sections are empty in production | 🟠 med | Featured properties, developments, testimonials and insights all show empty states until their data arrives. Each carries a distinct, useful call to action, and this is the honest state — but the page is visibly lighter than it will be. `npm run build:demo` shows the populated design. |
 | 9e | No developments in production | 🟠 med | Both development indexes show an honest invitation. Resolves by adding verified entries to `curatedData.ts` — `DEVELOPMENTS_DATA.md`, `CONTENT_PENDING.md` 10.6. |
 | 9c | No listings anywhere in production | 🔴 high | Every property page shows "Live property search is being configured." Resolves entirely by implementing `idxProvider.ts` once the client confirms their provider — `CONTENT_PENDING.md` §5, `IDX_INTEGRATION.md`. |
 | 9d | Filtering needs JavaScript | 🟢 low | A static host cannot filter server-side, so a shared filter URL only applies its filters once the script runs. Without JavaScript the pages degrade to the full browsable list, and pagination is hidden rather than shown as links that would all return page one. |
 | 9b | Homepage has no photography | 🔴 high | Fourteen media placeholders. The design is built around real imagery and reads flat without it. `CONTENT_PENDING.md` §9. |
-| 9 | Gold on white is 2.4:1 | 🟢 low | By design — gold is ornament only. The wordmark ampersand is a logotype (SC 1.4.3 exempt). Do not extend gold to body text or links on light surfaces. |
+| 9 | Gold on white is 2.4:1 | 🟢 low | By design — gold is ornament only. The wordmark ampersand is a logotype (SC 1.4.3 exempt, and marked `data-wordmark` so the contrast sweep can say so). `gold-600` (3.4:1) is fine for text at 24px and above; **anything smaller uses `gold-700`** (5.5:1). Do not extend gold to body text or links on light surfaces. |
+| 10 | No form goes anywhere | 🔴 high | `PUBLIC_LEAD_FORM_ENDPOINT` is unset, so every enquiry form shows the contact fallback rather than sending. This is the correct behaviour, not a bug — but it is the single highest-value item on `CONTENT_PENDING.md` (6.1), and it resolves with an environment variable and a rebuild. |
+| 11 | Forms need JavaScript | 🟠 med | Submission runs in the browser, so with JavaScript off the submit block is replaced by a contact panel. Honest, but a real limitation — a server-side form handler would remove it, and is worth revisiting alongside 6.1. |
+| 12 | No median home values published | 🟠 med | `/sell/median-home-values/` shows no figure for any of the six cities, because none carries a source and a date. Resolves via a `medianHomeValue` on a community record, or a live `ValuationProvider`. `CONTENT_PENDING.md` 10.7. |
 
 ---
 
 ## Next tasks
 
 ### Immediate — next session
-1. **`/about/` and the two profile pages.** `AgentCard` and `MediaSlot` are
+1. **`/contact/`.** `LeadForm` and its field components are now built, so this
+   is mostly assembly: a `kind="contact"` form plus the two direct lines. The
+   office address (`CONTENT_PENDING.md` 2.1) is the only blocker, and the page
+   can ship without it.
+2. **`/about/` and the two profile pages.** `AgentCard` and `MediaSlot` are
    already built and reusable. Blocked on biographies and portraits
    (`CONTENT_PENDING.md` 8.1–8.3) for the copy; the layout can be built now.
 
 ### Then, roughly in order
-2. `/contact/` — blocked on the form destination and office address.
-4. `/buy/` and `/sell/` overviews — buildable now, process copy only.
-5. `/relocation/` — buildable once MaryEllen's service description arrives.
-6. `/mortgage-calculator/` — buildable now; vanilla JS, estimates clearly
-   labelled, no lending claims.
-7. `/resources/buying-guide/` and `/selling-guide/` — blocked on copy.
-8. `/faq/` — blocked on client-reviewed answers.
-9. `/accessibility/`, `/privacy-policy/`, `/terms/` — blocked on legal wording.
-10. `/communities/` and community guides — blocked on the priority list.
-11. `/developments/new/` and `/existing/` — blocked on client material.
-12. `/testimonials/` — blocked on real, attributable quotes.
-13. `/blog/` index and article template — buildable ahead of the first post.
-14. **IDX integration** — `/properties/*`, `/property/[slug]/`, `/login/`,
+3. `/relocation/` — buildable once MaryEllen's service description arrives.
+4. `/mortgage-calculator/` — buildable now; vanilla JS, estimates clearly
+   labelled, no lending claims. **Not artificial intelligence** — same rule as
+   the valuation pages.
+5. `/resources/buying-guide/` and `/selling-guide/` — blocked on copy. Note
+   that `/buy/` and `/sell/` now carry the process narrative, so the guides
+   should go deeper rather than repeat them.
+6. `/faq/` — blocked on client-reviewed answers. `/sell/` currently shows
+   "questions worth asking" in place of seller answers; that section switches
+   to real answers automatically once `src/data/faqs.ts` has entries with
+   `category: 'selling'`.
+7. `/accessibility/`, `/privacy-policy/`, `/terms/` — blocked on legal wording.
+   The privacy policy also needs 6.7 (where submissions are stored, and for how
+   long).
+8. `/communities/` and community guides — blocked on the priority list. A
+   sourced `medianHomeValue` on any of them also lights up that city on
+   `/sell/median-home-values/`.
+9. `/developments/new/` and `/existing/` — blocked on client material.
+10. `/testimonials/` — blocked on real, attributable quotes. Supplying them
+    also brings back the testimonials band on `/sell/`.
+11. `/blog/` index and article template — buildable ahead of the first post.
+12. **IDX integration** — `/properties/*`, `/property/[slug]/`, `/login/`,
     `/register/`. Fully blocked on `CONTENT_PENDING.md` §5.
 
 ### Cross-cutting, before launch
 - [ ] Real photography throughout; verify LCP and contrast over image scrims.
-- [ ] Accessibility audit — axe, keyboard-only pass, screen reader pass,
-      contrast check on every surface pairing.
+- [ ] Accessibility audit — axe, screen reader pass. (Keyboard paths through
+      the forms and a pixel-accurate contrast sweep of every page now run in
+      the browser suite.)
+- [ ] **Set `PUBLIC_LEAD_FORM_ENDPOINT`** in the host's build environment and
+      submit each form once end to end. Nothing else on this list changes as
+      much for as little work.
 - [ ] Lighthouse on the built output; confirm Core Web Vitals.
 - [ ] Confirm domain, set `urlConfirmed: true`, regenerate `robots.txt`,
       verify the sitemap.
@@ -601,3 +757,28 @@ Worth recording for future sessions: the same three things caught in session 4
 were all designed out from the start here — the client hydrates the form from
 the URL, the sort control lives inside the form, and no-JavaScript gets the
 full list rather than broken pagination.
+
+### Session 6 — 2026-08-26 · Buyer & seller conversion pages
+Built the lead-form service, four form components, the valuation seam and five
+pages. Six bugs found and fixed by testing (all listed under Session 6 above);
+the two worth remembering:
+
+**A required radio group reports every one of its options as missing.** That is
+what the HTML spec says — if any radio in a group is `required` and none is
+checked, *all* of them suffer from being missing. Reported straight through,
+the error summary listed the same problem once per option. Anything that walks
+a form's fields and reports failures needs to collapse radio groups by name.
+
+**Tailwind 4's `color-mix()` defeats string-based contrast checking.**
+`text-white/55` computes to `oklab(0.999994 … / 0.55)`, and a regex pulling
+numbers out of that reads `0.999994` as a red channel of 1 — near-black. The
+earlier contrast passes were measuring nonsense for every opacity-modified
+colour. The sweep now paints each colour onto a 1×1 canvas and reads the pixel
+back, which is syntax-agnostic. It immediately found two placeholder markers
+sitting at 2.2:1 that had been shipping since session 1.
+
+Also worth recording: **the honest state is a design problem, not just a
+correctness one.** A form with nowhere to send its data could have been a
+disabled button and an apology. Instead it hands back what you typed, attached
+to an email link and two phone numbers — which is arguably better than a
+success message, and cost about thirty lines.

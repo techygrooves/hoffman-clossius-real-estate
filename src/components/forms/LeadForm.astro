@@ -1,0 +1,252 @@
+---
+/**
+ * LeadForm — the shell every enquiry form uses.
+ *
+ * Owns the parts that must behave identically everywhere: the error summary,
+ * the busy state, the three result states, the privacy line and the contact
+ * fallback.
+ *
+ * ── The fallback ──────────────────────────────────────────────────────────
+ * With no destination configured (`PUBLIC_LEAD_FORM_ENDPOINT` unset — the
+ * state today), a submit does NOT show a success message. It shows what the
+ * person entered, an email link that carries those details so nothing has to
+ * be retyped, and both direct phone numbers. Their effort is not lost, and
+ * nobody is left waiting for a reply that was never going to come.
+ *
+ * ── No dark patterns ──────────────────────────────────────────────────────
+ * Optional fields say "optional" rather than leaving people to guess. Nothing
+ * is pre-ticked to nudge a choice. There is no consent checkbox that opts
+ * someone into marketing by default, and no fake urgency anywhere.
+ */
+import { professionals } from '@config/site';
+import { hasLeadDestination } from '@lib/forms/transport';
+import type { LeadKind } from '@lib/forms/types';
+import { cn } from '@lib/cn';
+
+interface Props {
+  kind: LeadKind;
+  /** Submit button text. */
+  submitLabel: string;
+  /** Subject line for the fallback email links. */
+  emailSubject: string;
+  class?: string;
+}
+
+const { kind, submitLabel, emailSubject, class: className } = Astro.props;
+---
+
+<form
+  data-lead-form
+  data-lead-kind={kind}
+  method="post"
+  class={cn('flex flex-col gap-8', className)}
+>
+  {/*
+    Error summary. Focused on a failed submit, which is what works for someone
+    who cannot see fields turn red.
+  */}
+  <div
+    data-lead-error-summary
+    role="alert"
+    tabindex="-1"
+    hidden
+    class="rounded-xs border border-red-800/40 bg-red-50 p-5"
+  >
+    <p class="font-medium text-red-900">
+      There is a problem with the form
+    </p>
+    <ul
+      data-lead-error-list
+      class="mt-3 flex list-disc flex-col gap-1.5 pl-5 text-sm text-red-900"
+    >
+    </ul>
+  </div>
+
+  <div data-lead-fields class="flex flex-col gap-10">
+    <slot />
+  </div>
+
+  {/*
+    Without JavaScript there is nothing to submit to — the site is static, and
+    the transport runs in the browser. So rather than leave a button that would
+    POST into a 405, the submit block is hidden and a way to reach a person
+    takes its place. A <style> inside <noscript> is only parsed when scripting
+    is off, which is exactly the condition we want to style for.
+  */}
+  <noscript>
+    <style>
+      [data-lead-form] [data-lead-actions],
+      [data-lead-form] [data-lead-status],
+      [data-lead-form] [data-lead-fallback] {
+        display: none !important;
+      }
+      [data-lead-noscript] {
+        display: block !important;
+      }
+    </style>
+  </noscript>
+
+  {/*
+    Hidden with a class rather than the `hidden` attribute: the noscript rule
+    overrides the class cleanly, whereas the attribute would linger and some
+    assistive tech honours it even when CSS puts the element back.
+  */}
+  <div
+    data-lead-noscript
+    class="hidden rounded-xs border border-evergreen-800/25 bg-cream-50 p-6 sm:p-8"
+  >
+    <span class="rule-gold" aria-hidden="true"></span>
+    <h3 class="mt-4 font-serif text-2xl text-evergreen-800">
+      This form needs JavaScript
+    </h3>
+    <p class="mt-3 max-w-prose text-sm leading-relaxed text-ink-muted">
+      Sending it is handled in your browser, so with JavaScript switched off
+      there is nothing for the button to do — and we would rather say that than
+      leave you pressing it. Email or call either of us instead and we will pick
+      it up from there.
+    </p>
+    <ul class="mt-6 flex flex-col gap-4 border-t border-line pt-5 text-sm">
+      {
+        professionals.map((person) => (
+          <li>
+            <p class="font-medium text-evergreen-800">{person.name}</p>
+            <div class="mt-1 flex flex-wrap gap-x-5 gap-y-1">
+              <a href={person.phone.href} class="link-underline text-evergreen-800">
+                {person.phone.value}
+              </a>
+              <a href={person.email.href} class="link-underline text-evergreen-800">
+                {person.email.value}
+              </a>
+            </div>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+
+  <div data-lead-actions class="flex flex-col gap-5 border-t border-line pt-7">
+    <div class="flex flex-wrap items-center gap-5">
+      <button
+        type="submit"
+        data-lead-submit
+        data-idle-label={submitLabel}
+        data-busy-label="Sending…"
+        class="group inline-flex h-13 min-h-13 items-center justify-center gap-2.5 rounded-xs border border-evergreen-800 bg-evergreen-800 px-8 py-4 text-sm font-medium tracking-wide-sm text-white transition-all duration-300 ease-[var(--ease-editorial)] hover:bg-evergreen-900 hover:shadow-card disabled:cursor-not-allowed disabled:opacity-70 motion-safe:active:translate-y-px"
+      >
+        <span
+          data-lead-spinner
+          hidden
+          aria-hidden="true"
+          class="h-4 w-4 shrink-0 animate-spin rounded-full border-2 border-white/30 border-t-white"
+        ></span>
+        <span data-lead-submit-label>{submitLabel}</span>
+        <svg
+          class="h-3.5 w-3.5 shrink-0 transition-transform duration-300 ease-[var(--ease-editorial)] motion-safe:group-hover:translate-x-1"
+          viewBox="0 0 16 16"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.5"
+          stroke-linecap="square"
+          aria-hidden="true"
+        >
+          <path d="M1 8h13M9 3l5 5-5 5"></path>
+        </svg>
+      </button>
+
+      <p class="text-xs leading-relaxed text-ink-muted">
+        Fields marked <span class="text-gold-700" aria-hidden="true">*</span>
+        <span class="sr-only">with an asterisk</span> are required. We use what
+        you send only to reply to you — see our{' '}
+        <a href="/privacy-policy/" class="link-underline text-evergreen-800">
+          privacy policy
+        </a>.
+      </p>
+    </div>
+
+    {
+      !hasLeadDestination && (
+        <p class="rounded-xs border border-dashed border-gold-600/50 bg-gold-100/50 px-4 py-3 text-xs leading-relaxed text-charcoal-600">
+          <strong class="font-medium">Note:</strong> online submission is still
+          being set up. Send this form and we will show you your details with a
+          one-tap way to email or call them across — nothing is lost.
+        </p>
+      )
+    }
+  </div>
+
+  {/* Sent, or genuinely failed. */}
+  <div
+    data-lead-status
+    role="status"
+    tabindex="-1"
+    hidden
+    class={cn(
+      'rounded-xs border p-6 text-sm leading-relaxed',
+      'data-[tone=sent]:border-evergreen-800/30 data-[tone=sent]:bg-evergreen-50 data-[tone=sent]:text-evergreen-900',
+      'data-[tone=error]:border-red-800/40 data-[tone=error]:bg-red-50 data-[tone=error]:text-red-900',
+    )}
+  >
+  </div>
+
+  {/* No destination configured — hand the person a real way through. */}
+  <div
+    data-lead-fallback
+    role="status"
+    tabindex="-1"
+    hidden
+    class="rounded-xs border border-evergreen-800/25 bg-cream-50 p-6 sm:p-8"
+  >
+    <span class="rule-gold" aria-hidden="true"></span>
+    <h3 class="mt-4 font-serif text-2xl text-evergreen-800">
+      Your details are ready to send
+    </h3>
+    <p class="mt-3 max-w-prose text-sm leading-relaxed text-ink-muted">
+      Online submission is not connected yet, so nothing has been sent. Send it
+      across in one tap below — your answers are already attached — or call
+      either of us directly.
+    </p>
+
+    <dl
+      data-lead-fallback-summary
+      class="mt-6 grid gap-4 border-t border-line pt-6 sm:grid-cols-2"
+    >
+    </dl>
+
+    <div class="mt-7 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+      {
+        professionals.map((person) => (
+          <a
+            data-lead-fallback-mail
+            data-email={person.email.value}
+            data-subject={emailSubject}
+            href={person.email.href}
+            class="inline-flex h-12 items-center justify-center gap-2 rounded-xs border border-evergreen-800 bg-evergreen-800 px-6 text-sm font-medium tracking-wide-sm text-white transition-colors hover:bg-evergreen-900"
+          >
+            Email {person.firstName}
+          </a>
+        ))
+      }
+    </div>
+
+    <ul class="mt-6 flex flex-col gap-2 border-t border-line pt-5 text-sm sm:flex-row sm:gap-6">
+      {
+        professionals.map((person) => (
+          <li>
+            <a href={person.phone.href} class="link-underline text-evergreen-800">
+              Call {person.firstName} — {person.phone.value}
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</form>
+
+<script>
+  import { initPrefill } from '@lib/forms/prefill-client';
+  import { initLeadForm } from '@lib/forms/form-client';
+
+  // Prefill first: the validation wiring reads the controls as it finds them.
+  initPrefill();
+  initLeadForm();
+</script>

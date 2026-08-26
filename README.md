@@ -36,6 +36,28 @@ npm run dev          # http://localhost:4321
 
 `npm run build` must finish with **0 errors and 0 warnings**.
 
+## Environment variables
+
+Copy `.env.example` to `.env` for local work, and set the same values in the
+host's build environment for production. Astro reads them at build time, so a
+change needs a rebuild.
+
+| Variable | Effect |
+| --- | --- |
+| `PUBLIC_LEAD_FORM_ENDPOINT` | Where enquiry forms send submissions. **Unset today.** |
+| `PUBLIC_DEMO_CONTENT` | Forces the sample listings/developments on or off. |
+
+**Until `PUBLIC_LEAD_FORM_ENDPOINT` is set, no form claims to have sent
+anything.** Submitting shows the visitor their own answers with a prefilled
+email link to Martin and MaryEllen and both direct numbers — so their effort is
+not lost and nobody waits for a reply that was never coming. Setting the
+variable and rebuilding switches every form over; there is no code to change.
+
+Both variables are `PUBLIC_`, meaning they are compiled into the pages and
+visible to anyone. That is correct for a browser-submitted form endpoint, but
+it means the endpoint URL must never itself be a credential. A provider that
+needs an API key needs a server-side relay instead.
+
 ## Deploying
 
 `dist/` is plain static HTML, CSS and JavaScript. No Node, no database and no
@@ -110,3 +132,11 @@ scripts/         make-portable.mjs
    it out and add it to `CONTENT_PENDING.md`.
 2. **Never modify the Keyes logo**, and never write wording that explains the
    business relationship. The logo appears on its own.
+3. **No form pretends to succeed.** If nothing received a submission, the page
+   says so and hands the visitor a person to contact. A "thank you, we'll be in
+   touch" over a message that went nowhere is worse than no form at all.
+4. **No figure without a source and a date.** That applies to median home
+   values, market statistics and anything else numeric about the market. The
+   site calculates no home values, and an automated estimate — if one is ever
+   connected — is a statistical model over comparable sales, never described as
+   artificial intelligence.

@@ -1,0 +1,105 @@
+---
+/**
+ * FormChoiceGroup — a set of radios or checkboxes as chips.
+ *
+ * A real <fieldset> with a <legend>, so the group has an accessible name and
+ * assistive tech announces it once rather than repeating it per option.
+ */
+import { cn } from '@lib/cn';
+
+interface Props {
+  name: string;
+  legend: string;
+  type?: 'radio' | 'checkbox';
+  options: readonly { value: string; label: string }[];
+  required?: boolean;
+  hint?: string;
+  /** Pre-selects a value. Never use this to push a person toward an option. */
+  value?: string;
+  span?: 4 | 6 | 8 | 12;
+  /** Query-string key this group accepts as a starting value. */
+  prefillParam?: string;
+  class?: string;
+}
+
+const {
+  name,
+  legend,
+  type = 'radio',
+  options,
+  required = false,
+  hint,
+  value,
+  span = 12,
+  prefillParam,
+  class: className,
+} = Astro.props;
+
+const hintId = hint ? `${name}-hint` : undefined;
+const errorId = `${name}-error`;
+const describedBy = [hintId, errorId].filter(Boolean).join(' ');
+
+const SPANS: Record<number, string> = {
+  4: 'sm:col-span-4',
+  6: 'sm:col-span-6',
+  8: 'sm:col-span-8',
+  12: 'sm:col-span-12',
+};
+
+const chip =
+  'block cursor-pointer rounded-xs border border-line-control px-4 py-2.5 text-sm text-ink-muted transition-colors ' +
+  'hover:border-evergreen-700 peer-checked:border-evergreen-800 peer-checked:bg-evergreen-800 peer-checked:text-white ' +
+  'peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-[var(--focus-ring)]';
+---
+
+<fieldset
+  class={cn('col-span-full border-0 p-0', SPANS[span], className)}
+  data-field
+  data-prefill={prefillParam}
+  aria-describedby={describedBy}
+>
+  <legend class="text-xs uppercase tracking-wide-sm text-ink-muted">
+    {legend}
+    {
+      required ? (
+        <span class="text-gold-700" aria-hidden="true"> *</span>
+      ) : (
+        <span class="ml-1 normal-case tracking-normal text-ink-subtle">(optional)</span>
+      )
+    }
+  </legend>
+
+  {hint && <p id={hintId} class="mt-1.5 text-xs text-ink-subtle">{hint}</p>}
+
+  <ul class="mt-3 flex flex-wrap gap-2">
+    {
+      options.map((option, index) => (
+        <li>
+          <label class="relative inline-flex">
+            <input
+              type={type}
+              id={`${name}-${index}`}
+              name={name}
+              value={option.value}
+              required={required && type === 'radio' && index === 0}
+              checked={value === option.value}
+              data-label={option.label}
+              data-group-label={legend}
+              class="peer sr-only"
+            />
+            <span class={chip}>{option.label}</span>
+          </label>
+        </li>
+      ))
+    }
+  </ul>
+
+  <p
+    id={errorId}
+    data-field-error
+    role="alert"
+    hidden
+    class="mt-2 text-xs leading-relaxed text-red-800"
+  >
+  </p>
+</fieldset>

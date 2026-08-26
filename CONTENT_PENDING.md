@@ -91,12 +91,14 @@ below must come from the client or the provider; none may be assumed.
 
 | # | Item | Status | Notes |
 | --- | --- | --- | --- |
-| 6.1 | **Form destination** | 🔴 | Email inbox, CRM, Formspree/Netlify Forms, or the IDX provider's lead capture. Blocks `/contact/`, `/buy/dream-home-finder/`, `/sell/home-evaluation/`. |
-| 6.2 | Which fields are required | 🟠 | Especially for the Dream Home Finder and the home evaluation request. |
+| 6.1 | **Form destination — `PUBLIC_LEAD_FORM_ENDPOINT`** | 🔴 | **This is the one item that switches every form on.** A URL that accepts a `POST` of JSON: Formspree, Netlify Forms, a CRM webhook, a Zapier/Make hook, or the IDX provider's lead capture. Set it in `.env` (and in the host's build environment) as `PUBLIC_LEAD_FORM_ENDPOINT=https://…` and rebuild — no code change. Wired to `src/lib/forms/transport.ts`. **Until it is set, no form claims to have sent anything**: submitting shows the visitor their own answers with a prefilled email link to Martin and MaryEllen and both direct numbers. Affects `/contact/`, `/buy/dream-home-finder/`, `/sell/home-evaluation/`. |
+| 6.1a | Confirm the endpoint carries no secret | 🟠 | `PUBLIC_` means the value is compiled into the page and visible to anyone — that is correct for a browser-submitted form, but the URL itself must not be a credential. A provider that needs an API key needs a server-side relay instead. |
+| 6.2 | Which fields are required | 🟠 | Currently required — Dream Home Finder: name, email, preferred contact method. Home evaluation: address, city, ZIP, property type, name, email. Everything else is explicitly marked "(optional)". Confirm or change. |
 | 6.3 | **Lead routing** | 🟠 | Do enquiries go to Martin, MaryEllen, or both? Also governs the mobile action bar's **Call** button: with no confirmed shared number and no routing rule, it opens a chooser listing both direct lines rather than silently picking an agent. Confirm a single number and it can dial directly. |
-| 6.4 | Spam protection | 🟠 | Honeypot, hCaptcha, provider-side — affects whether third-party script is added. |
-| 6.5 | Consent / opt-in wording | 🟠 | Required text under the submit button. |
-| 6.6 | Confirmation behaviour | 🟡 | Inline message or a thank-you page. |
+| 6.4 | Spam protection | 🟠 | Honeypot, hCaptcha, provider-side — affects whether third-party script is added. Choose alongside 6.1: most form services include it. |
+| 6.5 | Consent / opt-in wording | 🟠 | Required text under the submit button. Today it says only that details are used to reply and links the privacy policy. **Nothing is pre-ticked and there is no marketing opt-in** — if one is wanted it must be an unticked checkbox, never a default. |
+| 6.6 | Confirmation behaviour | 🟡 | Inline message (current) or a thank-you page. Also: should a copy of each enquiry be emailed to the sender? |
+| 6.7 | Where submissions are stored, and for how long | 🟠 | Needed for the privacy policy (4.7). A CRM retains data; an email inbox retains it indefinitely. |
 
 ---
 
@@ -156,7 +158,8 @@ below must come from the client or the provider; none may be assumed.
 | 10.6b | **Authorised floor plans** | 🟠 | Floor plans are never drawn, approximated or reconstructed. Until an authorised asset exists, each residence type says "Floor plans are available on request". |
 | 10.6c | Which images are renderings | 🟠 | Each image needs `isRendering` set truthfully, so a buyer is never shown an artist's impression as though it were a finished building. |
 | 10.6d | Availability wording per development | 🟡 | Free text, exactly as the developer states it. Availability changes constantly and the site publishes only what it was told. |
-| 10.7 | Median home value data source | 🟠 | Every figure needs a source and a date. |
+| 10.7 | **Median home value data source** | 🟠 | Every figure needs a source and a date — both are required fields, not optional ones. Two ways to supply them: a per-city figure on `src/data/communities.ts` (`medianHomeValue: { value, source, asOf }`), or a live feed implementing `ValuationProvider` in `src/lib/valuation/`. `/sell/median-home-values/` renders figures automatically from either; with neither it publishes none. Before connecting a feed: a licence permitting public display, the provider's attribution and disclaimer wording **verbatim**, and the refresh cadence the licence requires. |
+| 10.7a | Whether an automated estimate should ever appear | 🟠 | Nothing on the site calculates a home value today, and the pages say so. If an AVM is added later it must be presented as a statistical model over comparable sales, always as a range, always sourced and dated — **never described as artificial intelligence**, and never as a substitute for an appraisal. |
 | 10.8 | Relocation content | 🟠 | What MaryEllen's relocation service actually includes. |
 | 10.9 | Journal / blog articles | 🟡 | Authoring format: `docs/authoring-blog-posts.md`. |
 
@@ -194,6 +197,10 @@ Every placeholder shipped today, so none can be forgotten:
 | Empty floor-plan slots on every residence type | `src/components/developments/DevelopmentResidences.astro` | 10.6b authorised plans supplied |
 | Map placeholder on development detail pages | `src/components/developments/DevelopmentMap.astro` | 11.4 map provider chosen |
 | Homepage empty states: listings, developments, testimonials, insights | the matching section components | Each data source is supplied |
+| Contact-fallback panel shown instead of a success message on every form | `src/components/forms/LeadForm.astro` | 6.1 `PUBLIC_LEAD_FORM_ENDPOINT` set |
+| "Online submission is still being set up" note above every submit button | `src/components/forms/LeadForm.astro` | 6.1 `PUBLIC_LEAD_FORM_ENDPOINT` set |
+| No median figure published for any of the six cities | `src/pages/sell/median-home-values.astro` | 10.7 sourced figures supplied, or a valuation provider connected |
+| "Questions worth asking" list instead of seller FAQ answers | `src/pages/sell/index.astro` | 10.2 client-reviewed answers added to `src/data/faqs.ts` |
 
 No placeholder above is phrased as a factual claim about the client, and none
 uses lorem ipsum.

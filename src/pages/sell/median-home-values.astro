@@ -1,12 +1,393 @@
 ---
-import StubPage from '@layouts/StubPage.astro';
+/**
+ * Median home values.
+ *
+ * ── Why this page shows no numbers today ──────────────────────────────────
+ * No market-data source is connected (src/lib/valuation/provider.ts), and no
+ * community record carries a cited median yet. So the page publishes none.
+ *
+ * It is not empty as a result: what a seller most needs from a page like this
+ * is to understand what a median is, what it cannot tell them about their own
+ * property, and how to get a figure that can. That is what it does instead.
+ *
+ * The moment a provider goes live, or a community record gains a sourced
+ * `medianHomeValue`, the figures appear here with their source and date
+ * attached. No change to this page is needed.
+ *
+ * ── Language ──────────────────────────────────────────────────────────────
+ * An automated estimate is a statistical model over recorded sales. It is not
+ * artificial intelligence and is never described as such here — overselling
+ * what it does would invite a seller to trust it further than it deserves.
+ */
+import BaseLayout from '@layouts/BaseLayout.astro';
+import PageHero from '@components/ui/PageHero.astro';
+import Section from '@components/ui/Section.astro';
+import SectionHeader from '@components/ui/SectionHeader.astro';
+import Button from '@components/ui/Button.astro';
+import { communities } from '@data/communities';
+import { valuationProvider, hasValuationData } from '@lib/valuation/provider';
+import { formatPrice, formatNumber, formatDate, toISODate } from '@lib/format';
+import { professionals } from '@config/site';
+
+/**
+ * A figure for a city comes from the live provider first, then from a cited
+ * `medianHomeValue` on the community record. Both carry a source and a date;
+ * neither is ever synthesised. When both are absent the city renders its
+ * honest "no published figure" state.
+ */
+const areas = await Promise.all(
+  communities.map(async (community) => {
+    const snapshot = await valuationProvider.getMarketSnapshot(community.name);
+    return {
+      community,
+      snapshot,
+      curated: community.medianHomeValue,
+      hasFigure: Boolean(snapshot || community.medianHomeValue),
+    };
+  }),
+);
+
+const anyFigures = areas.some((area) => area.hasFigure);
+
+const EXPLAINERS = [
+  {
+    title: 'A median is the middle sale, not the average',
+    body: 'Line every sale in an area up by price and the median is the one in the middle. It is used instead of an average because a handful of waterfront sales would drag an average somewhere no ordinary house lives.',
+  },
+  {
+    title: 'It describes an area, not your home',
+    body: 'Two properties on the same street can be worth very different amounts — one renovated, one not; one facing the water, one facing the road; one with a working roof and one without. A median cannot see any of that.',
+  },
+  {
+    title: 'It moves with what happened to sell',
+    body: 'A quarter with several large sales lifts the median without any individual home being worth more. Read the direction over several periods rather than the change between two.',
+  },
+  {
+    title: 'Condominiums and houses behave differently',
+    body: 'In South Florida a condominium median is shaped by building age, association finances and insurance in a way a single-family median is not. Mixing the two together tells you very little.',
+  },
+];
+
+const AUTOMATED = [
+  'It works from recorded sales, public records and whatever the model can infer about size and condition — which is often out of date, and sometimes wrong.',
+  'It cannot see a renovation you have not permitted, a new roof, a tenant in place, or the fact that the house next door runs a business from the garage.',
+  'It is a statistical model over comparable sales — not artificial intelligence, and not a valuation.',
+  'Lenders do not accept one. A mortgage rests on an appraisal by a licensed appraiser.',
+];
 ---
 
-<StubPage
-  title={'Median Home Values'}
-  heading={'Median home values'}
-  eyebrow={'Sell'}
-  description={'Median home values across South Florida neighbourhoods, so you can see where your area stands.'}
-  breadcrumbs={[{ label: 'Sell', href: '/sell/' }, { label: 'Median Home Values' }]}
-  note={'Every figure on this page will carry its source and its date. No values are published without one.'}
-/>
+<BaseLayout
+  title="Median Home Values"
+  description="What median home values do and do not tell you about your South Florida property — and how to get an opinion of value for the home you actually own."
+>
+  <PageHero
+    eyebrow="Sell"
+    title="Median home values"
+    lead="Useful for reading an area. Not much use for pricing a house. Here is the difference, and how to get a figure that means something for yours."
+    breadcrumbs={[{ label: 'Sell', href: '/sell/' }, { label: 'Median Home Values' }]}
+  />
+
+  {/* Address entry */}
+  <Section tone="deep" labelledby="value-lookup-heading">
+    <div class="grid gap-12 lg:grid-cols-2 lg:items-center lg:gap-20">
+      <div data-reveal>
+        <p class="eyebrow text-gold-300">
+          <span class="rule-gold" aria-hidden="true"></span>
+          Your property
+        </p>
+        <h2 id="value-lookup-heading" class="mt-5 text-display-sm text-white">
+          Start with the address
+        </h2>
+        <p class="mt-5 max-w-lg leading-relaxed text-white/75">
+          Enter it here and you will carry it through to the evaluation request,
+          where you can add the details that actually move a valuation. Martin
+          or MaryEllen come back to you with a figure and the reasoning behind
+          it. Nothing is calculated on this page.
+        </p>
+      </div>
+
+      <form
+        action="/sell/home-evaluation/"
+        method="get"
+        class="flex flex-col gap-4"
+        data-reveal
+        style="--reveal-delay:100ms"
+      >
+        <div>
+          <label
+            for="value-address"
+            class="block text-xs uppercase tracking-wide-sm text-white/70"
+          >
+            Property address
+          </label>
+          <input
+            id="value-address"
+            name="address"
+            type="text"
+            autocomplete="street-address"
+            placeholder="Street address, city"
+            aria-describedby="value-address-hint"
+            class="mt-2 h-14 w-full rounded-xs border border-line-control-inverse bg-white/5 px-4 text-white placeholder:text-white/60 transition-colors hover:border-white/70 focus:border-white"
+          />
+          <p id="value-address-hint" class="mt-2 text-xs leading-relaxed text-white/70">
+            This takes you to the evaluation request with the address filled in.
+            No estimate is generated, and nothing is sent until you submit that
+            form.
+          </p>
+        </div>
+        <div>
+          <Button type="submit" variant="gold" withArrow>Continue</Button>
+        </div>
+      </form>
+    </div>
+  </Section>
+
+  {/* What a median is */}
+  <Section tone="white" labelledby="median-explainer-heading">
+    <SectionHeader
+      id="median-explainer-heading"
+      eyebrow="Reading the market"
+      title="What a median home value tells you"
+      lead="It is the most quoted number in residential property and the most frequently misread. Four things worth knowing before you use one."
+    />
+
+    <ul class="mt-14 grid gap-6 sm:grid-cols-2">
+      {
+        EXPLAINERS.map((item, index) => (
+          <li
+            class="flex h-full flex-col rounded-xs border border-line p-7"
+            data-reveal
+            style={`--reveal-delay:${index * 60}ms`}
+          >
+            <h3 class="font-serif text-xl text-evergreen-800">{item.title}</h3>
+            <p class="mt-3 text-sm leading-relaxed text-ink-muted">{item.body}</p>
+          </li>
+        ))
+      }
+    </ul>
+  </Section>
+
+  {/* By area */}
+  <Section tone="warm" labelledby="median-areas-heading">
+    <SectionHeader
+      id="median-areas-heading"
+      eyebrow="By area"
+      title="Choose a city"
+      lead={
+        anyFigures
+          ? 'Every figure below carries the source it came from and the period it covers.'
+          : 'We publish a figure for an area only once we can say where it came from and when it was measured. None of these carry one yet, so none is shown.'
+      }
+    />
+
+    {/* Held to a readable measure — a full-width row puts the city name and
+        its control at opposite ends of a 1400px screen. */}
+    <div class="mt-12 flex max-w-4xl flex-col gap-3">
+      {
+        areas.map(({ community, snapshot, curated, hasFigure }) => (
+          <details
+            name="median-area"
+            class="group rounded-xs border border-line bg-white px-6 py-5"
+          >
+            <summary class="flex cursor-pointer items-center justify-between gap-4 marker:content-none">
+              <span>
+                <span class="font-serif text-xl text-evergreen-800">{community.name}</span>
+                <span class="ml-3 text-xs uppercase tracking-wide-sm text-ink-subtle">
+                  {community.county}
+                </span>
+              </span>
+              <span
+                class="shrink-0 text-gold-700 transition-transform duration-300 group-open:rotate-45"
+                aria-hidden="true"
+              >
+                +
+              </span>
+            </summary>
+
+            <div class="mt-5 border-t border-line pt-5">
+              <p class="max-w-prose text-sm leading-relaxed text-ink-muted">
+                {community.summary}
+              </p>
+
+              {hasFigure ? (
+                <div class="mt-6">
+                  <dl class="grid gap-5 sm:grid-cols-3">
+                    {snapshot?.medianSalePrice !== null && snapshot?.medianSalePrice !== undefined && (
+                      <div>
+                        <dt class="text-xs uppercase tracking-wide-sm text-ink-subtle">
+                          Median sale price
+                        </dt>
+                        <dd class="mt-1 font-serif text-2xl text-evergreen-800">
+                          {formatPrice(snapshot.medianSalePrice)}
+                        </dd>
+                      </div>
+                    )}
+                    {snapshot?.medianPricePerSqft !== null && snapshot?.medianPricePerSqft !== undefined && (
+                      <div>
+                        <dt class="text-xs uppercase tracking-wide-sm text-ink-subtle">
+                          Median price per sq ft
+                        </dt>
+                        <dd class="mt-1 font-serif text-2xl text-evergreen-800">
+                          {formatPrice(snapshot.medianPricePerSqft)}
+                        </dd>
+                      </div>
+                    )}
+                    {snapshot?.medianDaysOnMarket !== null && snapshot?.medianDaysOnMarket !== undefined && (
+                      <div>
+                        <dt class="text-xs uppercase tracking-wide-sm text-ink-subtle">
+                          Median days on market
+                        </dt>
+                        <dd class="mt-1 font-serif text-2xl text-evergreen-800">
+                          {formatNumber(snapshot.medianDaysOnMarket)}
+                        </dd>
+                      </div>
+                    )}
+                    {!snapshot && curated && (
+                      <div>
+                        <dt class="text-xs uppercase tracking-wide-sm text-ink-subtle">
+                          Median home value
+                        </dt>
+                        <dd class="mt-1 font-serif text-2xl text-evergreen-800">
+                          {formatPrice(curated.value)}
+                        </dd>
+                      </div>
+                    )}
+                  </dl>
+
+                  <p class="mt-5 text-xs leading-relaxed text-ink-subtle">
+                    Source: {snapshot ? snapshot.source : curated?.source}. Covering{' '}
+                    <time datetime={toISODate(snapshot ? snapshot.asOf : curated?.asOf)}>
+                      {formatDate(snapshot ? snapshot.asOf : curated?.asOf)}
+                    </time>
+                    . Area figures describe the market, not your property.
+                  </p>
+                </div>
+              ) : (
+                <p class="mt-5 max-w-prose rounded-xs border border-dashed border-line-control bg-cream-50 px-4 py-3 text-sm leading-relaxed text-ink-muted">
+                  No sourced median is published for {community.name} yet. Rather
+                  than show a figure we cannot attribute, we will prepare one for
+                  your specific property — which is the number you actually need.
+                </p>
+              )}
+
+              <div class="mt-6 flex flex-wrap gap-x-6 gap-y-2 text-sm">
+                <a href={`/communities/${community.slug}/`} class="link-underline text-evergreen-800">
+                  About {community.name}
+                </a>
+                <a
+                  href={`/properties/search/?location=${encodeURIComponent(community.name)}`}
+                  class="link-underline text-evergreen-800"
+                >
+                  Properties in {community.name}
+                </a>
+                <a href="/sell/home-evaluation/" class="link-underline text-evergreen-800">
+                  Value my home here
+                </a>
+              </div>
+            </div>
+          </details>
+        ))
+      }
+    </div>
+
+    <p class="mt-8 max-w-prose text-sm leading-relaxed text-ink-subtle">
+      Looking for somewhere not listed? We work across{' '}
+      Broward, Palm Beach and Miami-Dade counties —{' '}
+      <a href="/contact/" class="link-underline text-evergreen-800">ask us about your area</a>.
+    </p>
+  </Section>
+
+  {/* Automated estimates */}
+  <Section tone="white" labelledby="avm-heading">
+    <div class="grid gap-12 lg:grid-cols-2 lg:gap-20">
+      <div data-reveal>
+        <SectionHeader
+          id="avm-heading"
+          eyebrow="Automated estimates"
+          title="About the numbers other sites show you"
+        />
+        <div class="mt-8 flex flex-col gap-5 leading-relaxed text-ink-muted">
+          <p>
+            Most property portals put an estimated value on your home, and you
+            have probably already looked at yours. They are worth understanding
+            rather than dismissing — and worth knowing the limits of.
+          </p>
+          <p>
+            An automated estimate is produced by a statistical model that looks
+            at recorded sales of properties it considers comparable and adjusts
+            for the differences it knows about. It is arithmetic over public
+            data, and it is only as good as that data.
+          </p>
+        </div>
+
+        <ul class="mt-8 flex flex-col gap-4">
+          {
+            AUTOMATED.map((item) => (
+              <li class="flex gap-3 text-sm leading-relaxed text-ink-muted">
+                <span class="mt-2 h-1 w-1 shrink-0 rounded-full bg-gold-600" aria-hidden="true" />
+                <span>{item}</span>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+
+      <div class="lg:pt-16" data-reveal style="--reveal-delay:100ms">
+        <div class="rounded-xs border border-evergreen-800/25 bg-evergreen-100 p-8">
+          <span class="rule-gold" aria-hidden="true"></span>
+          <h3 class="mt-4 font-serif text-2xl text-evergreen-900">
+            This website does not generate one
+          </h3>
+          <p class="mt-4 text-sm leading-relaxed text-evergreen-900/80">
+            There is no estimate tool on this site, and no figure is calculated
+            anywhere on it. When we give you a number it is because a person
+            looked at your property and at the sales it should be compared
+            against, and can tell you which ones and why.
+          </p>
+          {
+            !hasValuationData && (
+              <p class="mt-4 text-sm leading-relaxed text-evergreen-900/80">
+                If market figures are published here in future, each one will
+                carry the source it came from and the period it covers.
+              </p>
+            )
+          }
+        </div>
+      </div>
+    </div>
+  </Section>
+
+  {/* Valuation CTA */}
+  <Section tone="warm" labelledby="median-cta-heading">
+    <div class="rounded-xs border border-line bg-white p-8 sm:p-12" data-reveal>
+      <div class="grid gap-8 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
+        <div>
+          <p class="eyebrow text-evergreen-600">
+            <span class="rule-gold" aria-hidden="true"></span>
+            Your property
+          </p>
+          <h2 id="median-cta-heading" class="mt-4 text-display-sm text-evergreen-800">
+            Get a figure for the home you actually own
+          </h2>
+          <p class="mt-4 max-w-2xl leading-relaxed text-ink-muted">
+            No cost, no obligation to list, and no automated number. Martin or
+            MaryEllen prepare an opinion of value from comparable sales and from
+            the property itself — and they will show you their working.
+          </p>
+        </div>
+        <div class="flex flex-col gap-3 lg:shrink-0">
+          <Button href="/sell/home-evaluation/" variant="gold" withArrow>
+            Request My Complimentary Home Evaluation
+          </Button>
+          {
+            professionals.map((person) => (
+              <Button href={person.phone.href} variant="secondary">
+                Call {person.firstName} — {person.phone.value}
+              </Button>
+            ))
+          }
+        </div>
+      </div>
+    </div>
+  </Section>
+</BaseLayout>
