@@ -1,18 +1,18 @@
 ---
 /**
- * FeaturedListings — reusable property grid.
+ * FeaturedListings — the homepage property grid.
  *
- * Data comes from `resolveFeaturedListings()`, never from markup: real
- * listings when they exist, clearly-labelled demo records when the demo flag
- * is on, and an honest empty state otherwise. A production build with no MLS
- * feed shows the empty state — it never invents inventory.
+ * Data comes from the listing provider, never from markup: real listings when
+ * an authorised feed is connected, clearly-labelled demo records when the demo
+ * flag is on, and an honest empty state otherwise. A production build with no
+ * MLS feed shows the empty state — it never invents inventory.
  */
 import Section from '@components/ui/Section.astro';
 import SectionHeader from '@components/ui/SectionHeader.astro';
 import Button from '@components/ui/Button.astro';
-import ListingCard from '@components/ui/ListingCard.astro';
 import DemoNotice from '@components/ui/DemoNotice.astro';
-import { resolveFeaturedListings } from '@lib/content';
+import ListingGrid from '@components/listings/ListingGrid.astro';
+import { listingProvider, hasListingData } from '@lib/listings/provider';
 
 interface Props {
   eyebrow?: string;
@@ -30,7 +30,21 @@ const {
   tone = 'white',
 } = Astro.props;
 
-const { items, isDemo } = resolveFeaturedListings(limit);
+// A wider slice than we show, so our own listings can be preferred without a
+// second request.
+const result = await listingProvider.search({
+  status: ['for-sale', 'coming-soon'],
+  sort: 'newest',
+  pageSize: 24,
+  page: 1,
+});
+
+const items = [...result.listings]
+  .sort((a, b) => {
+    const rank = (l: typeof a) => (l.listingAgent?.isOurAgent ? 0 : 1);
+    return rank(a) - rank(b);
+  })
+  .slice(0, limit);
 ---
 
 <Section tone={tone} labelledby="featured-listings-heading">
@@ -48,43 +62,13 @@ const { items, isDemo } = resolveFeaturedListings(limit);
     </div>
   </div>
 
-  {isDemo && <DemoNotice class="mt-8" what="properties" />}
+  {listingProvider.isDemo && <DemoNotice class="mt-8" what="properties" />}
 
-  {
-    items.length > 0 ? (
-      <div class="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {items.map((listing, index) => (
-          <ListingCard
-            listing={listing}
-            isDemo={isDemo}
-            seed={index}
-            class={index >= 2 ? 'sm:col-span-2 lg:col-span-1' : undefined}
-          />
-        ))}
-      </div>
-    ) : (
-      <div
-        class="mt-12 rounded-xs border border-dashed border-line-strong bg-cream-50 px-8 py-14 text-center"
-        data-reveal
-      >
-        <p class="mx-auto max-w-lg font-serif text-2xl text-evergreen-800">
-          Listings appear here once the MLS feed is connected.
-        </p>
-        <p class="mx-auto mt-3 max-w-lg text-sm leading-relaxed text-ink-muted">
-          In the meantime, tell Martin or MaryEllen what you are looking for and
-          they will search the market for you directly.
-        </p>
-        <div class="mt-8 flex flex-wrap justify-center gap-3">
-          <Button href="/buy/dream-home-finder/" withArrow>
-            Tell us what you want
-          </Button>
-          <Button href="/contact/" variant="secondary">
-            Contact us
-          </Button>
-        </div>
-      </div>
-    )
-  }
+  <ListingGrid
+    listings={items}
+    emptyVariant={hasListingData ? 'no-results' : 'not-configured'}
+    class="mt-12"
+  />
 
   <div class="mt-10 flex flex-wrap gap-3 md:justify-center" data-reveal>
     <div class="md:hidden">
@@ -97,3 +81,8 @@ const { items, isDemo } = resolveFeaturedListings(limit);
     </Button>
   </div>
 </Section>
+
+<script>
+  import { initFavorites } from '@lib/listings/favorites';
+  initFavorites();
+</script>

@@ -1,0 +1,118 @@
+---
+/**
+ * ListingContactCard — the "talk to someone about this property" panel.
+ *
+ * Shows the listing agent when the provider names one, and always offers both
+ * direct lines: whoever holds the listing, either of them can arrange a
+ * viewing. Nothing about availability or response time is claimed.
+ *
+ * The two forms carry the property reference to /contact/ as query parameters
+ * rather than posting anywhere — the form destination is still unconfirmed
+ * (CONTENT_PENDING.md §6), and a form that silently discards an enquiry about
+ * a specific property would be worse than one that hands it over.
+ */
+import { professionals } from '@config/site';
+import type { Listing } from '@lib/listings/types';
+import { cn } from '@lib/cn';
+import Button from '@components/ui/Button.astro';
+
+interface Props {
+  listing: Listing;
+  class?: string;
+}
+
+const { listing, class: className } = Astro.props;
+
+const reference = listing.mlsNumber ?? listing.slug;
+const addressLabel = [
+  listing.address.line1,
+  listing.address.line2,
+  listing.address.city,
+]
+  .filter(Boolean)
+  .join(', ');
+
+const enquiryHref = (intent: 'showing' | 'information') =>
+  `/contact/?${new URLSearchParams({
+    intent,
+    property: addressLabel,
+    reference,
+  }).toString()}`;
+
+const agent = listing.listingAgent;
+---
+
+<aside class={cn('rounded-xs border border-line bg-white p-6 sm:p-7', className)}>
+  <span class="rule-gold" aria-hidden="true"></span>
+
+  <h2 class="mt-4 font-serif text-2xl text-evergreen-800">
+    Arrange a viewing
+  </h2>
+
+  {
+    agent && (
+      <div class="mt-5 border-b border-line pb-5">
+        <p class="text-xs uppercase tracking-wide-sm text-ink-subtle">
+          Listing agent
+        </p>
+        <p class="mt-1.5 font-serif text-xl text-evergreen-800">
+          {agent.profilePath ? (
+            <a href={agent.profilePath} class="link-underline">{agent.name}</a>
+          ) : (
+            agent.name
+          )}
+        </p>
+        {agent.title && (
+          <p class="mt-0.5 text-xs uppercase tracking-wide-sm text-ink-subtle">
+            {agent.title}
+          </p>
+        )}
+      </div>
+    )
+  }
+
+  <div class="mt-5 flex flex-col gap-3">
+    <Button href={enquiryHref('showing')} block withArrow>Schedule a Showing</Button>
+    <Button href={enquiryHref('information')} variant="secondary" block>
+      Request Information
+    </Button>
+  </div>
+
+  <div class="mt-6 border-t border-line pt-5">
+    <p class="text-xs uppercase tracking-wide-sm text-ink-subtle">Or call direct</p>
+    <ul class="mt-3 flex flex-col gap-3">
+      {
+        professionals.map((person) => (
+          <li>
+            <a
+              href={person.phone.href}
+              class="group flex items-center justify-between gap-3 rounded-xs border border-line px-4 py-3 transition-colors hover:border-evergreen-800 hover:bg-evergreen-50"
+            >
+              <span>
+                <span class="block text-sm text-evergreen-800">
+                  Call {person.firstName}
+                </span>
+                <span class="mt-0.5 block text-xs text-ink-muted">
+                  {person.specialty ? `${person.title} · ${person.specialty}` : person.title}
+                </span>
+              </span>
+              <span class="shrink-0 text-sm tracking-wide-sm text-evergreen-700">
+                {person.phone.value}
+              </span>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+
+  {
+    listing.demo && (
+      <p class="mt-6 rounded-xs border border-dashed border-gold-600/50 bg-gold-100/50 px-4 py-3 text-xs leading-relaxed text-charcoal-600">
+        <strong class="font-medium">This is a sample property.</strong>{' '}
+        The enquiry buttons work, but this record is placeholder content used to
+        build the page — it is not a real listing.
+      </p>
+    )
+  }
+</aside>

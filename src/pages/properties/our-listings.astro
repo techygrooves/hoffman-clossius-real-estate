@@ -1,12 +1,15 @@
 ---
-import StubPage from '@layouts/StubPage.astro';
+import ListingIndex from '@components/listings/ListingIndex.astro';
 ---
 
-<StubPage
-  title={'Our Listings'}
-  heading={'Our listings'}
-  eyebrow={'Properties'}
-  description={'Properties currently represented by Martin Hoffman P.A. and MaryEllen Closius P.A.'}
+<ListingIndex
+  title="Our Listings"
+  heading="Our listings"
+  eyebrow="Properties"
+  description="Properties currently represented by Martin Hoffman P.A. and MaryEllen Closius P.A."
+  lead="Properties the two of them represent directly."
   breadcrumbs={[{ label: 'Properties' }, { label: 'Our Listings' }]}
-  note={'This page will show only properties the team represents directly, drawn from their agent IDs in the MLS feed.'}
+  baseQuery={{ ourListingsOnly: true }}
+  showStatus
+  path="/properties/our-listings/"
 />

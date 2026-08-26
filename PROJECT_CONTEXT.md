@@ -145,7 +145,8 @@ any dead link; it runs as part of `npm run build`.
 /properties/for-rent/             Rental results (IDX)
 /properties/our-listings/         Team's own listings (IDX, filtered)
 /properties/search/               Search interface (IDX)
-/property/[slug]/                 Property detail          — dynamic
+/property/[slug]/                 Property detail          — dynamic,
+                                  generated from the active listing provider
 /developments/new/                New construction index
 /developments/existing/           Established communities index
 /developments/[slug]/             Development detail       — dynamic
@@ -302,6 +303,26 @@ correct state until the client confirms the corresponding source.
   placeholder markup — this is a live real estate site and fabricated listing
   data is a legal problem, not a design one.
 - Pages consuming empty data must render an honest empty state.
+
+**The listing system.** Listings never come from markup or a page. Everything
+goes through the provider architecture in `src/lib/listings/`:
+
+- `types.ts` is the contract — `Listing`, `ListingQuery`, `ListingProvider`.
+  Components depend on this and never on a provider's wire format.
+- `provider.ts` selects: a configured IDX feed, else demo data when the flag is
+  on, else the unconfigured provider, which serves nothing and drives the
+  public "Live property search is being configured" message.
+- **Connecting a real feed means implementing `idxProvider.ts` and nothing
+  else.** No component, page, filter or route changes. See
+  `IDX_INTEGRATION.md`.
+- Every listing field except identity is nullable. `null` means the provider
+  did not supply it, and components render **nothing** — never a dash, never a
+  zero. "0 baths" on a live real estate site is a factual error.
+- Credentials are server-side environment variables. **Never `PUBLIC_`-prefixed
+  and never passed to a client component** — Astro inlines `PUBLIC_*` into the
+  browser bundle.
+- No public-facing text may contain developer vocabulary. A visitor never sees
+  "IDX", "provider", "API" or "adapter".
 
 **The demo-content mechanism.** `src/config/flags.ts` exposes one flag,
 `demoContent`: ON in `astro dev`, OFF in a production build, overridable with

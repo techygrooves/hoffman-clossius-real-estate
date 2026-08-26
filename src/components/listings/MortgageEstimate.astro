@@ -1,0 +1,109 @@
+---
+/**
+ * MortgageEstimate — a monthly payment estimate for this property.
+ *
+ * The interest rate field starts EMPTY on purpose. Pre-filling a rate would be
+ * stating a market figure we have no source for, and rates move daily. Nothing
+ * is calculated until the visitor supplies one, and the result is labelled an
+ * estimate of principal and interest only.
+ *
+ * This is not a lending offer, not a quote, and not an affordability
+ * assessment. The full calculator lives at /mortgage-calculator/.
+ */
+import { formatPrice } from '@lib/format';
+import { cn } from '@lib/cn';
+
+interface Props {
+  price: number | null;
+  class?: string;
+}
+
+const { price, class: className } = Astro.props;
+
+const field =
+  'h-12 w-full rounded-xs border border-line-control bg-white px-3.5 text-sm text-ink placeholder:text-ink-subtle transition-colors hover:border-evergreen-700 focus:border-evergreen-800';
+const label = 'block text-xs uppercase tracking-wide-sm text-ink-muted';
+---
+
+{
+  price !== null && (
+    <section
+      class={cn('rounded-xs border border-line bg-white p-6 sm:p-7', className)}
+      aria-labelledby="mortgage-estimate-heading"
+      data-mortgage
+      data-price={price}
+    >
+      <h2 id="mortgage-estimate-heading" class="font-serif text-2xl text-evergreen-800">
+        Estimate a monthly payment
+      </h2>
+
+      <div class="mt-6 grid gap-4 sm:grid-cols-3">
+        <div>
+          <label class={label} for="mortgage-price">Purchase price</label>
+          <input
+            id="mortgage-price"
+            type="text"
+            inputmode="numeric"
+            value={formatPrice(price)}
+            data-mortgage-price
+            class={`mt-2 ${field}`}
+          />
+        </div>
+        <div>
+          <label class={label} for="mortgage-down">Deposit</label>
+          <select id="mortgage-down" data-mortgage-down class={`mt-2 ${field}`}>
+            {[5, 10, 15, 20, 25, 30, 40, 50].map((pct) => (
+              <option value={pct} selected={pct === 20}>{pct}%</option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label class={label} for="mortgage-rate">Interest rate</label>
+          <input
+            id="mortgage-rate"
+            type="text"
+            inputmode="decimal"
+            placeholder="e.g. 6.5"
+            aria-describedby="mortgage-rate-hint"
+            data-mortgage-rate
+            class={`mt-2 ${field}`}
+          />
+          <p id="mortgage-rate-hint" class="mt-2 text-xs text-ink-subtle">
+            Enter the rate you have been quoted.
+          </p>
+        </div>
+      </div>
+
+      <div class="mt-6 border-t border-line pt-5">
+        <p class="text-xs uppercase tracking-wide-sm text-ink-subtle">
+          Estimated monthly principal &amp; interest
+        </p>
+        <p
+          class="mt-2 font-serif text-3xl text-evergreen-800"
+          data-mortgage-result
+          aria-live="polite"
+        >
+          Enter a rate to estimate
+        </p>
+        <p class="mt-4 text-xs leading-relaxed text-ink-muted">
+          An estimate of principal and interest only. It excludes property
+          taxes, insurance, association fees and closing costs, and it is not a
+          loan offer or a quoted rate. Speak to a lender for figures you can
+          rely on.
+        </p>
+      </div>
+
+      <a
+        href="/mortgage-calculator/"
+        class="link-underline mt-5 inline-block text-xs uppercase tracking-eyebrow text-evergreen-700"
+      >
+        Full mortgage calculator
+      </a>
+    </section>
+  )
+}
+
+<script>
+  import { initMortgageEstimate } from '@lib/listings/mortgage';
+  initMortgageEstimate();
+</script>

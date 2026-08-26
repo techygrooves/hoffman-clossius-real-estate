@@ -1,0 +1,157 @@
+---
+/**
+ * ListingIndex — the shared body of every listing index page.
+ *
+ * /properties/for-sale/, /for-rent/, /our-listings/ and /search/ differ only
+ * in their heading and their base query, so they all render this.
+ *
+ * ── Why every listing is rendered, not just one page ──────────────────────
+ * The site is statically generated, so filtering happens in the browser. The
+ * page renders every listing in scope once and marks which belong on the
+ * current page; the client script then shows, hides and reorders those nodes.
+ * The no-JavaScript view is already correct because the server applied the
+ * same query with the same functions.
+ *
+ * That is right for a set of this size. A live MLS feed of thousands should
+ * paginate at the provider instead — see IDX_INTEGRATION.md, "When the feed
+ * gets large". Nothing here changes shape when it does: the URL contract and
+ * the components are the same.
+ */
+import BaseLayout from '@layouts/BaseLayout.astro';
+import PageHero from '@components/ui/PageHero.astro';
+import Container from '@components/ui/Container.astro';
+import DemoNotice from '@components/ui/DemoNotice.astro';
+import ListingFilters from './ListingFilters.astro';
+import ListingSort from './ListingSort.astro';
+import ListingGrid from './ListingGrid.astro';
+import ListingEmptyState from './ListingEmptyState.astro';
+import Pagination from './Pagination.astro';
+import type { Crumb } from '@components/ui/Breadcrumbs.astro';
+import { listingProvider, hasListingData } from '@lib/listings/provider';
+import { queryListings } from '@lib/listings/filter';
+import { parseListingQuery } from '@lib/listings/query';
+import type { ListingQuery } from '@lib/listings/types';
+
+interface Props {
+  title: string;
+  heading: string;
+  eyebrow: string;
+  description: string;
+  lead?: string;
+  breadcrumbs: Crumb[];
+  /** Fixed filters this page always applies, e.g. status: ['for-sale']. */
+  baseQuery?: ListingQuery;
+  /** Lets the visitor choose status. Only the general search page does. */
+  showStatus?: boolean;
+  /** Route the filter form submits to. */
+  path: string;
+}
+
+const {
+  title,
+  heading,
+  eyebrow,
+  description,
+  lead,
+  breadcrumbs,
+  baseQuery = {},
+  showStatus = false,
+  path,
+} = Astro.props;
+
+/** Guard rail: a page should never try to render an unbounded feed. */
+const RENDER_CAP = 120;
+
+const userQuery = parseListingQuery(Astro.url.searchParams);
+const query: ListingQuery = { ...userQuery, ...baseQuery };
+
+// Everything this page could show, before the visitor's own filters.
+const scope = await listingProvider.search({
+  ...baseQuery,
+  pageSize: RENDER_CAP,
+  page: 1,
+});
+
+// The current view. Same function the browser runs, so the two never diverge.
+const result = queryListings(scope.listings, query);
+
+const order: Record<string, number> = {};
+queryListings(scope.listings, { ...query, page: 1, pageSize: RENDER_CAP }).listings.forEach(
+  (listing, index) => {
+    order[listing.id] = index;
+  },
+);
+
+const showResults = hasListingData && scope.listings.length > 0;
+---
+
+<BaseLayout title={title} description={description}>
+  <PageHero
+    eyebrow={eyebrow}
+    title={heading}
+    lead={lead ?? description}
+    breadcrumbs={breadcrumbs}
+  />
+
+  <section class="bg-cream-100 section-space" aria-label="Property results">
+    <Container>
+      {listingProvider.isDemo && <DemoNotice class="mb-6" what="properties" />}
+
+      <ListingFilters query={query} action={path} showStatus={showStatus} />
+
+      <div class="mt-10 scroll-mt-32" data-results-region>
+        {
+          showResults ? (
+            <>
+              <ListingSort total={scope.listings.length} sort={query.sort} class="mb-8" />
+
+              <ListingGrid
+                listings={scope.listings}
+                renderState={{ order }}
+              />
+
+              {/* Revealed by the client when a filter matches nothing. */}
+              <div data-listing-empty="no-results" hidden={result.total > 0}>
+                <ListingEmptyState variant="no-results" />
+              </div>
+
+              {/*
+                Rendered hidden and filled in by the client. A statically
+                generated page cannot serve page 2 of a filtered set, so
+                without JavaScript the honest result is the full list above
+                rather than pagination links that all return page 1.
+                The component still server-renders for any future page where
+                the provider paginates server-side.
+              */}
+              <Pagination
+                query={query}
+                page={result.page}
+                totalPages={result.totalPages}
+                basePath={path}
+                hidden
+                class="mt-12"
+              />
+            </>
+          ) : (
+            <ListingEmptyState variant="not-configured" />
+          )
+        }
+      </div>
+
+      {
+        listingProvider.attribution?.disclaimer && (
+          <p class="mt-12 border-t border-line pt-6 text-xs leading-relaxed text-ink-muted">
+            {listingProvider.attribution.disclaimer}
+          </p>
+        )
+      }
+    </Container>
+  </section>
+</BaseLayout>
+
+{showResults && <script>
+  import { initListingSearch } from '@lib/listings/search-client';
+  import { initFavorites } from '@lib/listings/favorites';
+  initListingSearch();
+  initFavorites();
+</script>}

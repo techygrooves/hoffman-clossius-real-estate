@@ -1,0 +1,130 @@
+---
+/**
+ * ListingCard — one property in a grid.
+ *
+ * Reused by the homepage, every listing index and the "similar properties"
+ * row. It speaks only the normalised `Listing` type, so it is unaffected by
+ * which provider produced the record.
+ */
+import type { Listing } from '@lib/listings/types';
+import { formatPrice } from '@lib/format';
+import { cn } from '@lib/cn';
+import MediaSlot from '@components/ui/MediaSlot.astro';
+import ListingStatusBadge from './ListingStatusBadge.astro';
+import ListingFacts from './ListingFacts.astro';
+import FavoriteButton from './FavoriteButton.astro';
+
+interface Props {
+  listing: Listing;
+  seed?: number;
+  /** Heading level, so the card fits the page's outline. */
+  headingLevel?: 'h3' | 'h4';
+  /** Eager-load the first row of images; lazy-load the rest. */
+  priority?: boolean;
+  class?: string;
+}
+
+const {
+  listing,
+  seed = 0,
+  headingLevel: Heading = 'h3',
+  priority = false,
+  class: className,
+} = Astro.props;
+
+const price = formatPrice(listing.price);
+const isRental = listing.status === 'for-rent' || listing.status === 'leased';
+const primary = listing.images[0] ?? null;
+
+const fullAddress = [
+  listing.address.line1,
+  listing.address.line2,
+].filter(Boolean).join(', ');
+---
+
+<article
+  class={cn(
+    'group relative flex flex-col overflow-hidden rounded-xs border border-line bg-white',
+    'transition-shadow duration-500 ease-[var(--ease-editorial)] hover:shadow-card',
+    className,
+  )}
+  data-listing-card
+  data-reveal
+>
+  <div class="relative overflow-hidden">
+    <MediaSlot
+      src={primary?.url ?? null}
+      alt={primary?.alt ?? ''}
+      width={primary?.width ?? 800}
+      height={primary?.height ?? 600}
+      ratio="4/3"
+      seed={seed}
+      marker={false}
+      loading={priority ? 'eager' : 'lazy'}
+      sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+      imgClass="transition-transform duration-700 ease-[var(--ease-editorial)] motion-safe:group-hover:scale-[1.04]"
+    />
+
+    <div class="pointer-events-none absolute left-4 top-4 flex flex-wrap gap-2">
+      <ListingStatusBadge status={listing.status} />
+      {
+        listing.listingAgent?.isOurAgent && (
+          <span class="rounded-xs bg-gold-500 px-2.5 py-1 text-[0.625rem] uppercase tracking-eyebrow text-evergreen-900">
+            Our Listing
+          </span>
+        )
+      }
+    </div>
+
+    <div class="absolute right-4 top-4 z-10 flex items-center gap-2">
+      {
+        listing.demo && (
+          <span class="pointer-events-none rounded-xs border border-dashed border-white/60 bg-charcoal-900/70 px-2.5 py-1 text-[0.625rem] uppercase tracking-eyebrow text-white backdrop-blur-sm">
+            Sample
+          </span>
+        )
+      }
+      <FavoriteButton listingId={listing.id} label={fullAddress} />
+    </div>
+  </div>
+
+  <div class="flex flex-1 flex-col p-6">
+    {
+      price && (
+        <p class="font-serif text-2xl text-evergreen-800">
+          {price}
+          {isRental && <span class="text-base text-ink-muted"> / month</span>}
+        </p>
+      )
+    }
+
+    <Heading class="mt-2 font-sans text-sm font-medium leading-snug text-ink">
+      {/* The stretched link makes the whole card clickable while keeping one
+          focusable target. The favourite button sits above it via z-index. */}
+      <a href={`/property/${listing.slug}/`} class="after:absolute after:inset-0 after:content-['']">
+        {fullAddress}
+      </a>
+    </Heading>
+
+    <p class="mt-1 text-sm text-ink-muted">
+      {listing.address.city}, {listing.address.state} {listing.address.zip}
+    </p>
+
+    <ListingFacts listing={listing} class="mt-5 border-t border-line pt-4" />
+
+    <p class="mt-6 inline-flex items-center gap-2 text-xs uppercase tracking-eyebrow text-evergreen-700">
+      View Property
+      <svg
+        class="h-3 w-3 transition-transform duration-300 ease-[var(--ease-editorial)] motion-safe:group-hover:translate-x-1"
+        viewBox="0 0 16 16"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.5"
+        stroke-linecap="square"
+        aria-hidden="true"
+      >
+        <path d="M1 8h13M9 3l5 5-5 5"></path>
+      </svg>
+    </p>
+  </div>
+</article>
