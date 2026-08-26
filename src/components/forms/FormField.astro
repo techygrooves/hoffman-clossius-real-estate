@@ -1,0 +1,154 @@
+---
+/**
+ * FormField — one labelled control, with its hint and error slot.
+ *
+ * Every control on the site goes through this, so the accessibility wiring is
+ * written once: a real <label for>, `aria-describedby` pointing at the hint
+ * and the error, and a `role="alert"` region the script fills in.
+ *
+ * `data-label` carries the human-readable name into the client script, so an
+ * error message reads "Email is required" rather than naming a form field.
+ */
+import { cn } from '@lib/cn';
+
+type FieldType =
+  | 'text'
+  | 'email'
+  | 'tel'
+  | 'number'
+  | 'search'
+  | 'select'
+  | 'textarea';
+
+interface Props {
+  name: string;
+  label: string;
+  type?: FieldType;
+  required?: boolean;
+  autocomplete?: string;
+  inputmode?: 'text' | 'numeric' | 'decimal' | 'tel' | 'email' | 'url';
+  placeholder?: string;
+  hint?: string;
+  /** For `select`. The first entry becomes the empty prompt. */
+  options?: readonly { value: string; label: string }[];
+  rows?: number;
+  value?: string;
+  /** Grid span within a FormSection's 12-column grid. */
+  span?: 4 | 6 | 8 | 12;
+  /**
+   * Query-string key this control accepts as a starting value, filled in by
+   * the browser. See `@lib/forms/prefill-client`.
+   */
+  prefillParam?: string;
+  class?: string;
+}
+
+const {
+  name,
+  label,
+  type = 'text',
+  required = false,
+  autocomplete,
+  inputmode,
+  placeholder,
+  hint,
+  options = [],
+  rows = 4,
+  value = '',
+  span = 6,
+  prefillParam,
+  class: className,
+} = Astro.props;
+
+const id = `field-${name}`;
+const hintId = hint ? `${id}-hint` : undefined;
+const errorId = `${id}-error`;
+const describedBy = [hintId, errorId].filter(Boolean).join(' ');
+
+const control =
+  'w-full rounded-xs border border-line-control bg-white px-3.5 text-sm text-ink placeholder:text-ink-subtle ' +
+  'transition-colors hover:border-evergreen-700 focus:border-evergreen-800 ' +
+  'aria-[invalid=true]:border-red-700 aria-[invalid=true]:bg-red-50/40';
+
+const SPANS: Record<number, string> = {
+  4: 'sm:col-span-4',
+  6: 'sm:col-span-6',
+  8: 'sm:col-span-8',
+  12: 'sm:col-span-12',
+};
+---
+
+<div class={cn('col-span-full', SPANS[span], className)} data-field>
+  <label for={id} class="block text-xs uppercase tracking-wide-sm text-ink-muted">
+    {label}
+    {
+      required ? (
+        <span class="text-gold-700" aria-hidden="true"> *</span>
+      ) : (
+        <span class="ml-1 normal-case tracking-normal text-ink-subtle">(optional)</span>
+      )
+    }
+  </label>
+
+  {hint && <p id={hintId} class="mt-1.5 text-xs text-ink-subtle">{hint}</p>}
+
+  {
+    type === 'select' ? (
+      <select
+        id={id}
+        name={name}
+        required={required}
+        autocomplete={autocomplete}
+        data-label={label}
+        data-prefill={prefillParam}
+        aria-describedby={describedBy}
+        class={cn('mt-2 h-12', control)}
+      >
+        {options.map((option) => (
+          <option value={option.value} selected={option.value === value}>
+            {option.label}
+          </option>
+        ))}
+      </select>
+    ) : type === 'textarea' ? (
+      <textarea
+        id={id}
+        name={name}
+        rows={rows}
+        required={required}
+        placeholder={placeholder}
+        autocomplete={autocomplete}
+        data-label={label}
+        data-prefill={prefillParam}
+        aria-describedby={describedBy}
+        class={cn('mt-2 py-3 leading-relaxed', control)}
+        set:text={value}
+      />
+    ) : (
+      <input
+        id={id}
+        name={name}
+        type={type}
+        required={required}
+        placeholder={placeholder}
+        autocomplete={autocomplete}
+        inputmode={inputmode}
+        value={value}
+        data-label={label}
+        data-prefill={prefillParam}
+        aria-describedby={describedBy}
+        class={cn('mt-2 h-12', control)}
+      />
+    )
+  }
+
+  {/* Filled in by the client script. Announced because of role="alert". */}
+  <p
+    id={errorId}
+    data-field-error
+    role="alert"
+    hidden
+    class="mt-2 flex items-start gap-1.5 text-xs leading-relaxed text-red-800"
+  >
+  </p>
+</div>
