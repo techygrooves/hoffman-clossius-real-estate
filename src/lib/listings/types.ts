@@ -208,6 +208,16 @@ export interface ListingQuery {
   readonly pool?: boolean;
   /** Restrict to listings represented by this site's own agents. */
   readonly ourListingsOnly?: boolean;
+  /**
+   * Restrict to one professional's listings, matched on the profile path the
+   * provider set (`listingAgent.profilePath`, e.g. `/about/martin-hoffman/`).
+   *
+   * Matched on the path rather than on a name because names arrive from a feed
+   * in whatever form the MLS holds them — "Martin Hoffman", "Hoffman, Martin
+   * P.A.", a middle initial — and a profile page must not quietly show nothing
+   * because of a punctuation difference.
+   */
+  readonly agentProfilePath?: string;
   readonly sort?: ListingSort;
   readonly page?: number;
   readonly pageSize?: number;

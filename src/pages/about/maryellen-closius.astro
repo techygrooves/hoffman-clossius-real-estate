@@ -1,13 +1,246 @@
 ---
-import StubPage from '@layouts/StubPage.astro';
+/**
+ * MaryEllen Closius P.A. — profile.
+ *
+ * Confirmed facts only: name, title, phone, email (PROJECT_CONTEXT.md §1).
+ *
+ * "Relocation Specialist" is part of her confirmed title and is used as such.
+ * It is NOT treated as evidence of a certification, a designation, a corporate
+ * relocation programme, a partner network, a referral membership or a record
+ * of relocations handled — none of that has been supplied, and a relocating
+ * family choosing an agent from another state has no way to check a claim
+ * before they have already committed to it (CONTENT_PENDING.md 8.4, 10.8).
+ *
+ * The relocation section therefore describes what the problem is for someone
+ * moving from out of state, and offers a conversation. It does not describe a
+ * service nobody has told us the shape of.
+ */
+import BaseLayout from '@layouts/BaseLayout.astro';
+import Section from '@components/ui/Section.astro';
+import SectionHeader from '@components/ui/SectionHeader.astro';
+import Button from '@components/ui/Button.astro';
+import MediaSlot from '@components/ui/MediaSlot.astro';
+import PersonHero from '@components/people/PersonHero.astro';
+import PersonBio from '@components/people/PersonBio.astro';
+import PersonSpecialties from '@components/people/PersonSpecialties.astro';
+import PersonContactCard from '@components/people/PersonContactCard.astro';
+import PersonListings from '@components/people/PersonListings.astro';
+import ConsultationCta from '@components/people/ConsultationCta.astro';
+import { getProfessional } from '@config/site';
+
+const person = getProfessional('maryellen-closius');
+if (!person) throw new Error('MaryEllen Closius is missing from src/config/site.ts');
+
+/**
+ * What makes an out-of-state move different. These are properties of the
+ * problem, not claims about MaryEllen's service or her record with it.
+ */
+const RELOCATION_POINTS = [
+  {
+    title: 'You are choosing an area before you know it',
+    body: 'A commute that looks fine on a map is a different thing at 8am in August. Where you buy shapes daily life more than the house does, and it is the hardest part to judge from four states away.',
+  },
+  {
+    title: 'Fewer trips than you would like',
+    body: 'Most people get one or two visits to decide. That changes how a search should be run — what gets shortlisted, what gets ruled out before you fly, and what has to be seen in person.',
+  },
+  {
+    title: 'Florida has its own paperwork',
+    body: 'Insurance, flood zones, condominium association finances, hurricane requirements. None of it is obvious if you have not bought here before, and some of it changes what a property costs to own.',
+  },
+  {
+    title: 'Timing two moves at once',
+    body: 'Selling where you are while buying where you are going rarely lines up neatly. It usually needs planning rather than luck.',
+  },
+];
+
+const ROUTES = [
+  {
+    eyebrow: 'Relocation',
+    title: 'Moving to South Florida',
+    body: 'What to think about before you start looking, and what MaryEllen can help with once you do.',
+    href: '/relocation/',
+    cta: 'Relocation guide',
+  },
+  {
+    eyebrow: 'Communities',
+    title: 'Where to live',
+    body: 'From the Intracoastal to the western suburbs — the areas Hoffman & Closius work across.',
+    href: '/communities/',
+    cta: 'Explore communities',
+  },
+  {
+    eyebrow: 'Buying',
+    title: 'How buying works here',
+    body: 'The stages of a Florida purchase, in the order they usually happen.',
+    href: '/buy/',
+    cta: 'How buying works',
+  },
+  {
+    eyebrow: 'Selling',
+    title: 'Selling before you go',
+    body: 'Preparation, pricing and marketing — and how to line a sale up with a purchase elsewhere.',
+    href: '/sell/',
+    cta: 'How selling works',
+  },
+];
 ---
 
-<StubPage
-  title={'MaryEllen Closius P.A.'}
-  heading={'MaryEllen Closius P.A.'}
-  eyebrow={'Realtor Associate · Relocation Specialist'}
-  description={'MaryEllen Closius P.A., Realtor Associate and Relocation Specialist. Reach MaryEllen directly at 954-471-4626 or MaryEllenC@keyes.com.'}
-  lead={'Realtor Associate and Relocation Specialist. Direct line 954-471-4626.'}
-  breadcrumbs={[{ label: 'About', href: '/about/' }, { label: 'MaryEllen Closius P.A.' }]}
-  note={'MaryEllen\'s profile, photograph and biography will appear here once supplied.'}
-/>
+<BaseLayout
+  title="MaryEllen Closius P.A."
+  description="MaryEllen Closius P.A., Realtor Associate and Relocation Specialist with Hoffman & Closius, working with buyers, sellers and families moving to South Florida. Direct line 954-471-4626."
+>
+  <PersonHero
+    person={person}
+    lead="Realtor Associate and Relocation Specialist with Hoffman & Closius, working with buyers, sellers and families moving to South Florida."
+    breadcrumbs={[
+      { label: 'About', href: '/about/' },
+      { label: 'MaryEllen Closius P.A.' },
+    ]}
+    seed={2}
+  />
+
+  {/* Introduction + contact card */}
+  <Section tone="white" labelledby="maryellen-bio-heading">
+    <div class="grid gap-12 lg:grid-cols-12 lg:gap-16">
+      <div class="lg:col-span-7 xl:col-span-8">
+        <SectionHeader
+          id="maryellen-bio-heading"
+          eyebrow="About MaryEllen"
+          title="Who you would be working with"
+        />
+        <PersonBio person={person} class="mt-8" />
+      </div>
+
+      <aside class="lg:col-span-5 xl:col-span-4">
+        <div class="lg:sticky lg:top-32 flex flex-col gap-8">
+          <PersonContactCard person={person} heading="Reach MaryEllen directly" />
+
+          <div class="rounded-xs border border-line p-6 sm:p-8">
+            <h2 class="font-serif text-xl text-evergreen-800">Working as a pair</h2>
+            <p class="mt-3 text-sm leading-relaxed text-ink-muted">
+              MaryEllen works alongside Martin Hoffman P.A., a Broker-Associate.
+              Between them you get two people on a transaction rather than one,
+              and the one better placed to help takes the lead.
+            </p>
+            <a
+              href="/about/martin-hoffman/"
+              class="link-underline mt-4 inline-block text-sm text-evergreen-800"
+            >
+              Meet Martin
+            </a>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </Section>
+
+  {/* Specialities — renders nothing at all until the client confirms them. */}
+  <PersonSpecialties person={person} id="maryellen-specialties-heading" />
+
+  {/* Relocation feature */}
+  <Section tone="deep" labelledby="maryellen-relocation-heading">
+    <div class="grid gap-12 lg:grid-cols-2 lg:gap-20">
+      <div data-reveal>
+        <p class="eyebrow text-gold-300">
+          <span class="rule-gold" aria-hidden="true"></span>
+          Relocation
+        </p>
+        <h2 id="maryellen-relocation-heading" class="mt-5 text-display-sm text-white">
+          Moving from out of state
+        </h2>
+        <p class="mt-5 max-w-lg leading-relaxed text-white/75">
+          Relocation Specialist is part of MaryEllen's title, and buying
+          somewhere you do not yet know is a different exercise from buying down
+          the road. Here is what actually makes it different — and why it is
+          worth a conversation before you start looking rather than after.
+        </p>
+
+        <ul class="mt-10 flex flex-col gap-5">
+          {
+            RELOCATION_POINTS.map((point) => (
+              <li class="border-t border-white/15 pt-5">
+                <h3 class="font-serif text-xl text-white">{point.title}</h3>
+                <p class="mt-2 max-w-lg text-sm leading-relaxed text-white/75">
+                  {point.body}
+                </p>
+              </li>
+            ))
+          }
+        </ul>
+
+        <div class="mt-10 flex flex-wrap gap-3">
+          <Button href="/relocation/" variant="gold" withArrow>
+            Relocation guide
+          </Button>
+          <Button href={person.phone.href} variant="inverse">
+            Call MaryEllen — {person.phone.value}
+          </Button>
+        </div>
+      </div>
+
+      <div class="lg:pt-20" data-reveal style="--reveal-delay:100ms">
+        <MediaSlot
+          src={null}
+          width={900}
+          height={1100}
+          ratio="9/11"
+          tone="deep"
+          seed={6}
+          sizes="(min-width: 1024px) 45vw, 100vw"
+          class="max-h-[30rem] rounded-xs"
+        />
+      </div>
+    </div>
+  </Section>
+
+  {/* Listings */}
+  <PersonListings person={person} id="maryellen-listings-heading" tone="warm" />
+
+  {/* Where to go next */}
+  <Section tone="white" labelledby="maryellen-routes-heading">
+    <SectionHeader
+      id="maryellen-routes-heading"
+      eyebrow="Where to start"
+      title="Four ways in"
+    />
+
+    <ul class="mt-12 grid gap-6 sm:grid-cols-2">
+      {
+        ROUTES.map((item, index) => (
+          <li>
+            <a
+              href={item.href}
+              class="group flex h-full flex-col rounded-xs border border-line p-7 transition-shadow duration-500 hover:shadow-card"
+              data-reveal
+              style={`--reveal-delay:${index * 60}ms`}
+            >
+              <p class="eyebrow text-evergreen-600">
+                <span class="rule-gold" aria-hidden="true" />
+                {item.eyebrow}
+              </p>
+              <h3 class="mt-4 font-serif text-2xl text-evergreen-800">{item.title}</h3>
+              <p class="mt-3 flex-1 text-sm leading-relaxed text-ink-muted">{item.body}</p>
+              <span class="mt-6 inline-flex items-center gap-2 text-xs uppercase tracking-eyebrow text-evergreen-700">
+                {item.cta}
+                <svg
+                  class="h-3 w-3 transition-transform duration-300 ease-[var(--ease-editorial)] motion-safe:group-hover:translate-x-1"
+                  viewBox="0 0 16 16"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                  stroke-linecap="square"
+                  aria-hidden="true"
+                >
+                  <path d="M1 8h13M9 3l5 5-5 5" />
+                </svg>
+              </span>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </Section>
+
+  <ConsultationCta person={person} id="maryellen-consultation-heading" />
+</BaseLayout>

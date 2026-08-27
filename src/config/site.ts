@@ -34,8 +34,26 @@ export type Professional = {
   readonly href: string;
   /** Portrait lives in /public/images/team/. Null until the client supplies it. */
   readonly portrait: string | null;
-  /** Long-form biography. Null until supplied — never write one from scratch. */
-  readonly bio: string | null;
+  /**
+   * Long-form biography, as paragraphs. Null until the client supplies or
+   * approves it — never written from scratch, and never assembled from a
+   * brokerage profile page (CONTENT_PENDING.md 8.1–8.2).
+   *
+   * `PersonBio` renders these verbatim when present and a neutral, factual
+   * introduction when null, so supplying the copy is a one-line change here.
+   */
+  readonly bio: readonly string[] | null;
+  /**
+   * Areas of focus, in the person's own words or approved by them.
+   *
+   * Empty today, and it stays empty until confirmed: a speciality is a claim
+   * about competence, and guessing one from a job title is the kind of thing
+   * a client gets asked about in a listing appointment. MaryEllen's
+   * "Relocation Specialist" lives in `specialty` above because it is part of
+   * her confirmed title — it is not evidence of anything else.
+   * CONTENT_PENDING.md 8.5.
+   */
+  readonly specialties: readonly string[];
   /** State licence number, null until confirmed. */
   readonly licenseNumber: string | null;
 };
@@ -91,6 +109,7 @@ export const professionals: readonly Professional[] = [
     href: '/about/martin-hoffman/',
     portrait: null,
     bio: null,
+    specialties: [],
     licenseNumber: null,
   },
   {
@@ -109,6 +128,7 @@ export const professionals: readonly Professional[] = [
     href: '/about/maryellen-closius/',
     portrait: null,
     bio: null,
+    specialties: [],
     licenseNumber: null,
   },
 ] as const;

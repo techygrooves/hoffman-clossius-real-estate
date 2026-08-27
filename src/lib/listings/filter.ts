@@ -73,6 +73,10 @@ export function matchesQuery(listing: Listing, query: ListingQuery): boolean {
 
   if (query.ourListingsOnly && listing.listingAgent?.isOurAgent !== true) return false;
 
+  if (query.agentProfilePath !== undefined) {
+    if (listing.listingAgent?.profilePath !== query.agentProfilePath) return false;
+  }
+
   return true;
 }
 

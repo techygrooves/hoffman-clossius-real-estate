@@ -120,12 +120,14 @@ below must come from the client or the provider; none may be assumed.
 
 | # | Item | Status | Notes |
 | --- | --- | --- | --- |
-| 8.1 | **Martin Hoffman — biography** | 🔴 | In his own words, or approved by him. Not to be written from scratch. |
-| 8.2 | **MaryEllen Closius — biography** | 🔴 | Same. |
-| 8.3 | **Professional portraits** | 🔴 | High resolution, plus photographer credit if required. Set `professionals[].portrait` in `src/config/site.ts` and the homepage, About pages and agent cards all pick it up. Portrait orientation (4:5) suits the slot best. |
-| 8.4 | Designations, memberships, languages | 🟠 | Only the two confirmed titles are on record. |
-| 8.5 | Areas of focus / specialities | 🟠 | Beyond MaryEllen's confirmed "Relocation Specialist". |
-| 8.6 | Team story — how they work together | 🟠 | For `/about/`. |
+| 8.1 | **Martin Hoffman — biography** | 🔴 | In his own words, or approved by him. Not to be written from scratch. Set `professionals[0].bio` in `src/config/site.ts` to an **array of paragraphs** and `/about/martin-hoffman/` renders them verbatim, replacing the neutral stand-in and removing the "a fuller profile is on the way" note. No other change. |
+| 8.2 | **MaryEllen Closius — biography** | 🔴 | Same, at `professionals[1].bio`. |
+| 8.3 | **Professional portraits** | 🔴 | High resolution, plus photographer credit if required. Set `professionals[].portrait` in `src/config/site.ts` and the homepage, About pages, profile heroes and agent cards all pick it up. Portrait orientation (4:5) suits the slot best. |
+| 8.3a | **Joint photograph of the two of them** | 🟠 | For the `/about/` hero, landscape (4:3). Currently the neutral placeholder — **never** a stock photograph of two people who are not Martin and MaryEllen. Set it in `src/pages/about/index.astro`, one `src` on the hero `MediaSlot`. |
+| 8.4 | Designations, memberships, languages | 🟠 | Only the two confirmed titles are on record. Nothing on the site claims a certification, a designation, an association membership or a licence number, and nothing may be added without documentation — including anything that might be inferred from "Relocation Specialist". |
+| 8.5 | **Areas of focus / specialities** | 🟠 | Beyond MaryEllen's confirmed "Relocation Specialist". Add strings to `professionals[].specialties` in `src/config/site.ts` and the "Areas of focus" section appears on that person's page; with an empty array it renders **nothing at all**, not an empty band. A speciality is a claim about competence, so each one needs the professional's own confirmation. |
+| 8.6 | Team story — how they work together | 🟠 | For `/about/`. The page currently describes the shape of the team (two people, two licences, three counties, direct lines) without asserting any history, founding date or record. |
+| 8.7 | What MaryEllen's relocation service actually includes | 🟠 | Her profile page describes what makes an out-of-state move *difficult* — properties of the problem, not of the service. No network, partner, corporate programme, referral membership or number of relocations handled is claimed. See also 10.8. |
 
 ---
 
@@ -147,7 +149,11 @@ below must come from the client or the provider; none may be assumed.
 
 | # | Item | Status | Notes |
 | --- | --- | --- | --- |
-| 10.1 | **Testimonials** | 🟠 | Real, attributable quotes with permission to publish. `src/data/testimonials.ts` stays empty until then, and each entry needs `verified: true` — meaning the client has confirmed the quote and that we may publish it. Unverified entries never render. **No sample testimonials, in any environment.** |
+| 10.1 | **Testimonials** | 🟠 | Real, attributable quotes with permission to publish. `src/data/testimonials.ts` stays empty until then, and each entry needs `verified: true` — meaning the client has confirmed the quote and that we may publish it. Unverified entries never render. **No sample testimonials, in any environment.** Per entry: `quote` (as written, not tidied), `clientName` (as they want to be credited), `location`, `source`, `sourceUrl`, `date`. Everything but the quote, the name and `verified` may be null. |
+| 10.1a | **Which source each quote came from** | 🟠 | `source` is one of `'Google'`, `'Zillow'` or `'Direct Client'`, and drives the badge on the card. Null when the client has not said. Once two or more sources are in use, `/testimonials/` groups the quotes by source automatically. |
+| 10.1b | **Real review URLs** | 🟠 | `sourceUrl` links to the review as published, and is **only ever a URL the client supplies**. Never constructed from a profile page, a search result or a guess at a review id. Null is fine — the badge then names the platform without linking. |
+| 10.1c | Written permission to quote each client | 🔴 | `verified: true` means two things: the quote is real, **and** the client has agreed we may publish it under that name. Do not set it on the strength of a public review alone. |
+| 10.1d | Whether star ratings may ever be shown | 🟡 | There is deliberately no rating field: we hold no Google or Zillow rating and no review count, and `/testimonials/` states in public that none is shown. Displaying platform ratings is a separate decision with its own terms-of-use questions — it is not something to approximate from a quote's tone. |
 | 10.2 | **FAQ answers** | 🟠 | Questions touching process, fees and Florida practice must be client-reviewed. |
 | 10.3 | Buying guide content | 🟠 | |
 | 10.4 | Selling guide content | 🟠 | |
@@ -201,6 +207,10 @@ Every placeholder shipped today, so none can be forgotten:
 | "Online submission is still being set up" note above every submit button | `src/components/forms/LeadForm.astro` | 6.1 `PUBLIC_LEAD_FORM_ENDPOINT` set |
 | No median figure published for any of the six cities | `src/pages/sell/median-home-values.astro` | 10.7 sourced figures supplied, or a valuation provider connected |
 | "Questions worth asking" list instead of seller FAQ answers | `src/pages/sell/index.astro` | 10.2 client-reviewed answers added to `src/data/faqs.ts` |
+| Neutral two-line stand-in where each biography goes, with a visible "a fuller profile is on the way" note | `src/components/people/PersonBio.astro` | 8.1 / 8.2 supplied |
+| "Areas of focus" section absent from both profile pages | `src/components/people/PersonSpecialties.astro` | 8.5 confirmed |
+| Joint-photograph placeholder in the `/about/` hero | `src/pages/about/index.astro` | 8.3a supplied |
+| Testimonials empty state on `/about/`, `/testimonials/` and the homepage | `src/components/testimonials/TestimonialEmptyState.astro` | 10.1 verified quotes supplied |
 
 No placeholder above is phrased as a factual claim about the client, and none
 uses lorem ipsum.

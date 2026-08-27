@@ -1,0 +1,57 @@
+---
+/**
+ * PersonSpecialties — areas of focus.
+ *
+ * Renders `professionals[].specialties` when the client has confirmed them,
+ * and nothing at all when they have not. That is deliberate: an empty list is
+ * not an invitation to fill it with plausible categories. "Waterfront",
+ * "luxury condominiums", "first-time buyers" are all claims about what someone
+ * is good at, and a buyer choosing an agent on that basis deserves to know it
+ * came from the agent.
+ *
+ * MaryEllen's "Relocation Specialist" is part of her confirmed title and is
+ * shown as such elsewhere on her page — it is not evidence of anything more.
+ *
+ * Set `specialties` in `src/config/site.ts` and this section appears.
+ * CONTENT_PENDING.md 8.5.
+ */
+import Section from '@components/ui/Section.astro';
+import SectionHeader from '@components/ui/SectionHeader.astro';
+import type { Professional } from '@config/site';
+
+interface Props {
+  person: Professional;
+  id: string;
+  tone?: 'white' | 'warm';
+}
+
+const { person, id, tone = 'white' } = Astro.props;
+const items = person.specialties;
+---
+
+{/*
+  The component owns its <Section>, so an empty list renders nothing at all —
+  not an empty band with a heading and padding above it.
+*/}
+{
+  items.length > 0 && (
+    <Section tone={tone} labelledby={id}>
+      <SectionHeader
+        id={id}
+        eyebrow="Areas of focus"
+        title={`What ${person.firstName} works on`}
+      />
+      <ul class="mt-10 grid gap-px overflow-hidden rounded-xs border border-line bg-line sm:grid-cols-2">
+        {items.map((item) => (
+          <li class="flex gap-3.5 bg-white p-6" data-reveal>
+            <span
+              class="mt-2 h-1 w-1 shrink-0 rounded-full bg-gold-600"
+              aria-hidden="true"
+            />
+            <span class="text-sm leading-relaxed text-ink-muted">{item}</span>
+          </li>
+        ))}
+      </ul>
+    </Section>
+  )
+}

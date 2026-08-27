@@ -1,0 +1,86 @@
+---
+/**
+ * TestimonialEmptyState — what stands in when nothing has been verified.
+ *
+ * This is the state the site ships in today, and it is deliberately a real
+ * piece of design rather than an apology. It says plainly why the section is
+ * empty, which is more trustworthy than three invented quotes would be, and
+ * it gives a reader somewhere useful to go.
+ *
+ * It renders identically in development and production. Testimonials are the
+ * one thing excluded from the demo-content mechanism: a fabricated review is
+ * unacceptable in every environment (PROJECT_CONTEXT.md §9).
+ */
+import Button from '@components/ui/Button.astro';
+import { professionals } from '@config/site';
+import { cn } from '@lib/cn';
+
+interface Props {
+  /** `page` is the fuller treatment for /testimonials/. */
+  variant?: 'section' | 'page';
+  class?: string;
+}
+
+const { variant = 'section', class: className } = Astro.props;
+const isPage = variant === 'page';
+---
+
+<div
+  class={cn(
+    'mx-auto rounded-xs border border-dashed border-line-strong bg-white text-center',
+    isPage ? 'max-w-3xl px-8 py-16 sm:px-14' : 'max-w-2xl px-8 py-14',
+    className,
+  )}
+  data-reveal
+>
+  <svg
+    class="mx-auto h-6 w-6 text-gold-500"
+    viewBox="0 0 24 24"
+    fill="currentColor"
+    aria-hidden="true"
+  >
+    <path
+      d="M9.6 5.4A6.6 6.6 0 0 0 3 12v6.6h6.6V12H6.3a3.3 3.3 0 0 1 3.3-3.3V5.4Zm11.4 0A6.6 6.6 0 0 0 14.4 12v6.6H21V12h-3.3A3.3 3.3 0 0 1 21 8.7V5.4Z"
+    ></path>
+  </svg>
+
+  <p class={cn('mt-6 font-serif text-evergreen-800', isPage ? 'text-3xl' : 'text-2xl')}>
+    Client testimonials are published here once they are confirmed.
+  </p>
+
+  <p class="mx-auto mt-4 max-w-md text-sm leading-relaxed text-ink-muted">
+    We only publish words people have actually said, with their permission.
+    Nothing on this page is written on anyone's behalf, and no rating or review
+    count is shown that we cannot stand behind.
+  </p>
+
+  {
+    isPage && (
+      <>
+        <p class="mx-auto mt-8 max-w-md border-t border-line pt-8 text-sm leading-relaxed text-ink-muted">
+          If you have worked with Martin or MaryEllen and would be willing to
+          say so publicly, they would be glad to hear from you.
+        </p>
+
+        <ul class="mt-6 flex flex-col items-center justify-center gap-3 text-sm sm:flex-row sm:gap-6">
+          {professionals.map((person) => (
+            <li>
+              <a href={person.email.href} class="link-underline text-evergreen-800">
+                Email {person.firstName}
+              </a>
+            </li>
+          ))}
+        </ul>
+
+        <div class="mt-10 flex flex-col justify-center gap-3 sm:flex-row">
+          <Button href="/about/" variant="secondary" withArrow>
+            Meet Martin and MaryEllen
+          </Button>
+          <Button href="/contact/" variant="ghost">
+            Get in touch
+          </Button>
+        </div>
+      </>
+    )
+  }
+</div>

@@ -3,15 +3,16 @@
 Living record of what exists, what is broken and what comes next.
 **Update this file at the end of every session.**
 
-Last updated: **2026-08-26** — Session 6 (buyer & seller conversion pages)
+Last updated: **2026-08-27** — Session 7 (about, profiles & testimonials)
 
 ---
 
 ## Current state
 
 Foundation, global chrome, homepage, the property/listing system, the
-developments subsystem and **the buyer and seller conversion pages** are built.
-Listings, developments and valuation data are all still unsupplied, and in each
+developments subsystem, the buyer and seller conversion pages and **the people
+and testimonial pages** are built. Listings, developments, valuation data,
+biographies, portraits and testimonials are all still unsupplied, and in every
 case the architecture makes that a supply step rather than a rewrite.
 
 | Metric | Value |
@@ -19,13 +20,17 @@ case the architecture makes that a supply step rather than a rewrite.
 | Build | ✅ passing — `astro check`: 0 errors, 0 warnings, 0 hints |
 | Pages | 36 in production · 54 with demo content on |
 | Internal links | ✅ all resolve, both modes |
-| Tests | ✅ **296 checks passing** — see below |
+| Tests | ✅ **441 checks passing** — see below |
 | Contrast | ✅ every rendered text node on all 53 pages × 2 widths clears WCAG 2.2 AA |
 | JavaScript | ~19 KB total across the site, inlined, no dependencies |
 | Third-party runtime requests | none |
 
 | Suite | Checks |
 | --- | --- |
+| About, profiles & testimonials — no invented credentials | 104 |
+| People pages — mobile, no-JavaScript, SC 2.5.8 targets | 32 |
+| Populated content — bios, specialities, verified quotes, badges | 32 |
+| Per-agent listings attribution | 9 |
 | Lead forms — fields, validation, states, prefill | 114 |
 | Forms — mobile + no-JavaScript | 36 |
 | Forms — contrast, keyboard, focus | 15 |
@@ -36,6 +41,106 @@ case the architecture makes that a supply step rather than a rewrite.
 | Listings — mobile + no-JavaScript | 8 |
 | Homepage | 15 |
 | Navigation | 21 |
+
+---
+
+## ✅ Completed — Session 7 (2026-08-27) · About, profiles & testimonials
+
+Four pages about the two people the business is, built on almost no
+information about them. `PROJECT_CONTEXT.md` §1 is explicit that name, title,
+phone and email are the **only** confirmed facts — so the work was deciding
+what a profile page can honestly be without a biography, a portrait, a
+credential or a track record.
+
+### The rule that shaped this session
+
+**An invented credential does the most damage exactly here.** A visitor reaches
+`/about/` while deciding whether to trust two people with the largest
+transaction of their life, and every reassuring number on a page like this is
+unverifiable by the reader. So none appears: no years in business, no
+transaction count, no sales volume, no award, no ranking, no designation, no
+association membership, no licence number, no star rating, no review count.
+
+What the pages say instead is what is true and checkable: there are two of
+them, here is what each is licensed as, here is the area they cover, and here
+are their direct lines. That is a real proposition.
+
+### Testimonials — `src/data/testimonials.ts`
+- [x] Reshaped to the specified contract: `quote`, `clientName`, `location`,
+      `source`, `sourceUrl`, `date`, `verified` (plus `id`). Everything but the
+      quote, the name and `verified` is nullable, and a null renders **nothing**
+      — no dash, no "Location not provided".
+- [x] `TestimonialSource` is a union of `'Google' | 'Zillow' | 'Direct Client'`,
+      with `SOURCE_BADGES` carrying the label and an explanatory description.
+      Adding a platform is one entry in that map.
+- [x] **No rating field, deliberately.** We hold no Google or Zillow rating and
+      no review count, and `/testimonials/` says so in public. A star row
+      inferred from a quote's tone would be a fabrication.
+- [x] **No constructed URLs.** `sourceUrl` is only ever a link the client
+      supplies — never built from a profile page, a search result or a guess at
+      a review id. Null simply means the badge names the platform without
+      linking.
+
+### Components
+- [x] `TestimonialCard` — quote, name, optional location, optional source badge,
+      optional date. `feature` variant for the lead quote on a page.
+- [x] `TestimonialSourceBadge` — **wording only, no logos.** Google's and
+      Zillow's marks are trademarks with their own usage rules and neither has
+      been licensed. Links open in a new tab with `rel="noopener"`.
+- [x] `TestimonialEmptyState` — shared by the homepage, `/about/` and
+      `/testimonials/`, so the three cannot drift. Renders identically in
+      development and production: testimonials are the one thing excluded from
+      the demo-content mechanism.
+- [x] `PersonHero`, `PersonBio`, `PersonSpecialties`, `PersonContactCard`,
+      `PersonListings`, `ConsultationCta` — the profile page kit.
+
+### How the pending content is handled
+- `professionals[].bio` became `readonly string[] | null`. With copy supplied,
+  `PersonBio` renders the paragraphs verbatim. With none, it renders a
+  two-sentence stand-in built **only** from confirmed facts — name, title,
+  service area — plus a visible note that a fuller profile is coming. The note
+  is phrased as a fact about the website, not about the person.
+- `professionals[].specialties` is new and empty. `PersonSpecialties` owns its
+  own `<Section>`, so an empty list renders **nothing at all** rather than a
+  heading over a blank band.
+- Portraits and the joint `/about/` photograph go through `MediaSlot`, so the
+  placeholder is the neutral abstract wash — never a stock headshot of someone
+  who is not them.
+
+### Listings on a profile page
+- [x] `ListingQuery` gained `agentProfilePath`, matched against
+      `listingAgent.profilePath` rather than a name — a feed returns "Martin
+      Hoffman", "Hoffman, Martin P.A." or a middle initial depending on the MLS,
+      and a profile page must not silently show nothing over a punctuation
+      difference.
+- [x] `PersonListings` never pads a thin section with the other agent's
+      properties. Verified: the two pages share no listing in the demo build.
+
+### Pages
+- [x] `/about/` — hero with joint photograph slot, introduction, profile
+      previews, approach for buyers/sellers/relocating clients, South Florida
+      focus with all six community guides, service links, testimonial preview,
+      final contact CTA.
+- [x] `/about/martin-hoffman/` — portrait, title, biography component, listings,
+      contact card, consultation CTA. Carries three notes on what a
+      Broker-Associate licence **is**, which is Florida licensing law rather
+      than a claim about his record.
+- [x] `/about/maryellen-closius/` — the same, plus a relocation feature. Her
+      confirmed "Relocation Specialist" title is used as a title and nothing
+      more: the section describes what makes an out-of-state move difficult —
+      properties of the problem, not of a service nobody has described to us.
+- [x] `/testimonials/` — empty state today; grouped by source with working jump
+      links once two or more sources are in use. Carries a public statement of
+      what will and will not appear on it.
+
+### Verified by temporarily supplying content, then reverting
+Both the empty and the populated paths are tested, because a component that
+only works empty is not finished. With test bios, specialities and five
+testimonials (one deliberately `verified: false`) patched in: paragraphs
+rendered, the pending note disappeared, the specialities section appeared, all
+three badges rendered, the one supplied URL became the only link, the
+unverified quote **did not render anywhere**, and every jump link resolved to a
+real section. The patch was reverted and the build re-scanned for leakage.
 
 ---
 
@@ -526,6 +631,15 @@ twelve homepage sections in `src/components/home/`.
 | `FormField` | `src/components/forms/FormField.astro` | ✅ stable — one labelled control + hint + error |
 | `FormChoiceGroup` | `src/components/forms/FormChoiceGroup.astro` | ✅ stable — fieldset + legend chips |
 | `FormSection` | `src/components/forms/FormSection.astro` | ✅ stable — a numbered step of a longer form |
+| `PersonHero` | `src/components/people/PersonHero.astro` | ✅ stable — profile masthead with portrait slot |
+| `PersonBio` | `src/components/people/PersonBio.astro` | ⚠️ neutral stand-in until 8.1 / 8.2 supplied |
+| `PersonSpecialties` | `src/components/people/PersonSpecialties.astro` | ✅ stable — renders nothing until 8.5 confirmed |
+| `PersonContactCard` | `src/components/people/PersonContactCard.astro` | ✅ stable |
+| `PersonListings` | `src/components/people/PersonListings.astro` | ✅ stable — filtered on `agentProfilePath` |
+| `ConsultationCta` | `src/components/people/ConsultationCta.astro` | ✅ stable |
+| `TestimonialCard` | `src/components/testimonials/TestimonialCard.astro` | ✅ stable — shared by home, /about/ and /testimonials/ |
+| `TestimonialSourceBadge` | `src/components/testimonials/TestimonialSourceBadge.astro` | ✅ stable — wording only, no trademarked logos |
+| `TestimonialEmptyState` | `src/components/testimonials/TestimonialEmptyState.astro` | ⚠️ the shipping state until 10.1 supplied |
 | Homepage sections | `src/components/home/*.astro` | ✅ stable — twelve sections |
 | `InPreparation` | `src/components/sections/InPreparation.astro` | ⚠️ temporary |
 
@@ -554,6 +668,9 @@ primitive rather than adding a near-duplicate.
 | 9 | Gold on white is 2.4:1 | 🟢 low | By design — gold is ornament only. The wordmark ampersand is a logotype (SC 1.4.3 exempt, and marked `data-wordmark` so the contrast sweep can say so). `gold-600` (3.4:1) is fine for text at 24px and above; **anything smaller uses `gold-700`** (5.5:1). Do not extend gold to body text or links on light surfaces. |
 | 10 | No form goes anywhere | 🔴 high | `PUBLIC_LEAD_FORM_ENDPOINT` is unset, so every enquiry form shows the contact fallback rather than sending. This is the correct behaviour, not a bug — but it is the single highest-value item on `CONTENT_PENDING.md` (6.1), and it resolves with an environment variable and a rebuild. |
 | 11 | Forms need JavaScript | 🟠 med | Submission runs in the browser, so with JavaScript off the submit block is replaced by a contact panel. Honest, but a real limitation — a server-side form handler would remove it, and is worth revisiting alongside 6.1. |
+| 13 | No biographies or portraits | 🔴 high | Both profile pages carry a two-sentence neutral stand-in built only from confirmed facts, plus a visible note. `/about/` has no joint photograph. The pages are complete and correct — they are just thin, and they will stay thin until Martin and MaryEllen supply copy and photographs. `CONTENT_PENDING.md` 8.1–8.3a. |
+| 14 | No testimonials anywhere | 🟠 med | Homepage, `/about/` and `/testimonials/` all show the shared empty state. `/testimonials/` is deliberately still a substantial page — it explains the policy — but it has no quotes on it. `CONTENT_PENDING.md` 10.1. |
+| 15 | Per-agent listings untestable against real data | 🟢 low | `agentProfilePath` matches `listingAgent.profilePath`, which the demo provider sets from `professionals[].href`. A real IDX feed must map its own agent identity onto the same paths in `idxProvider.ts`, or both profile pages will show the honest "nothing on the open market" state forever. Noted in `IDX_INTEGRATION.md`. |
 | 12 | No median home values published | 🟠 med | `/sell/median-home-values/` shows no figure for any of the six cities, because none carries a source and a date. Resolves via a `medianHomeValue` on a community record, or a live `ValuationProvider`. `CONTENT_PENDING.md` 10.7. |
 
 ---
@@ -565,12 +682,12 @@ primitive rather than adding a near-duplicate.
    is mostly assembly: a `kind="contact"` form plus the two direct lines. The
    office address (`CONTENT_PENDING.md` 2.1) is the only blocker, and the page
    can ship without it.
-2. **`/about/` and the two profile pages.** `AgentCard` and `MediaSlot` are
-   already built and reusable. Blocked on biographies and portraits
-   (`CONTENT_PENDING.md` 8.1–8.3) for the copy; the layout can be built now.
 
 ### Then, roughly in order
-3. `/relocation/` — buildable once MaryEllen's service description arrives.
+2. `/relocation/` — buildable now. `/about/maryellen-closius/` carries a
+   relocation feature describing what makes an out-of-state move difficult;
+   the guide should go deeper rather than repeat it, and describing the
+   *service* still needs 8.7 / 10.8.
 4. `/mortgage-calculator/` — buildable now; vanilla JS, estimates clearly
    labelled, no lending claims. **Not artificial intelligence** — same rule as
    the valuation pages.
@@ -588,9 +705,7 @@ primitive rather than adding a near-duplicate.
    sourced `medianHomeValue` on any of them also lights up that city on
    `/sell/median-home-values/`.
 9. `/developments/new/` and `/existing/` — blocked on client material.
-10. `/testimonials/` — blocked on real, attributable quotes. Supplying them
-    also brings back the testimonials band on `/sell/`.
-11. `/blog/` index and article template — buildable ahead of the first post.
+10. `/blog/` index and article template — buildable ahead of the first post.
 12. **IDX integration** — `/properties/*`, `/property/[slug]/`, `/login/`,
     `/register/`. Fully blocked on `CONTENT_PENDING.md` §5.
 
@@ -606,6 +721,10 @@ primitive rather than adding a near-duplicate.
 - [ ] Confirm domain, set `urlConfirmed: true`, regenerate `robots.txt`,
       verify the sitemap.
 - [ ] Delete `StubPage.astro` and `InPreparation.astro` once no route uses them.
+- [ ] **Chase 8.1–8.3.** Biographies and portraits are the highest-value
+      outstanding content item after the form endpoint: two profile pages and
+      every agent card on the site are visibly thin without them, and no amount
+      of design work substitutes for them.
 - [ ] Old-site redirect map.
 - [ ] Cross-browser check: Safari (iOS + macOS), Chrome, Firefox, Edge.
 
@@ -782,3 +901,42 @@ correctness one.** A form with nowhere to send its data could have been a
 disabled button and an apology. Instead it hands back what you typed, attached
 to an email link and two phone numbers — which is arguably better than a
 success message, and cost about thirty lines.
+
+### Session 7 — 2026-08-27 · About, profiles & testimonials
+Built four pages, six profile components, three testimonial components, and
+reshaped `src/data/testimonials.ts` to the specified contract. Added
+`agentProfilePath` to `ListingQuery` so a profile page can show one person's
+listings without showing the other's.
+
+The interesting problem this session was not technical. It was: **what is an
+"about" page when you have been given four facts about each person?** The
+temptation is to reach for the things every competitor writes — years in the
+business, homes sold, a warm paragraph about a passion for South Florida — and
+every one of them would have been invented. So the pages were built the other
+way round: say what is checkable, and say plainly why the rest is missing.
+
+That turned out to produce better copy than a padded version would have. "Most
+real estate websites open with a number. You have no way to check any of it" is
+a stronger opening than an unverifiable statistic, and it is true.
+
+Three things worth remembering:
+
+**A component that only works empty is not finished.** Both the empty and the
+populated paths were tested by temporarily patching in test bios, specialities
+and five testimonials — one deliberately `verified: false` — building, running
+32 assertions against the populated output, then reverting and re-scanning the
+build for leakage. That caught nothing broken, which is the point: the
+supply-day change is now a known-good path rather than a hope.
+
+**Match on identity, not on a name.** `agentProfilePath` compares against the
+profile path the provider set rather than the agent's name, because an MLS
+returns "Martin Hoffman", "Hoffman, Martin P.A." or a middle initial depending
+on the feed. A name match would have looked correct in the demo build and shown
+an empty section forever in production.
+
+**WCAG 2.2 SC 2.5.8 is not a flat 24×24 rule.** A first pass flagged every
+stacked contact link on the new pages. The success criterion has an explicit
+spacing exception — an undersized target passes if a 24px circle centred on it
+does not intersect another target's circle — and the contact lists clear it.
+The test now implements the criterion as written rather than an approximation
+of it, so it stops producing false failures on correct markup.
