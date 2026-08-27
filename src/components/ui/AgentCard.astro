@@ -25,7 +25,13 @@ const { person, intro, ctaLabel, seed = 0, class: className } = Astro.props;
 ---
 
 <article class={cn('group flex flex-col', className)} data-reveal>
-  <a href={person.href} class="block overflow-hidden rounded-xs">
+  {/*
+    Redundant with the named link below, so it is hidden from assistive
+    technology and taken out of the tab order: with no portrait supplied the
+    MediaSlot's alt is empty, which left this announcing as a link with no name
+    (WCAG 2.4.4 / 4.1.2). Still clickable with a mouse.
+  */}
+  <a href={person.href} class="block overflow-hidden rounded-xs" aria-hidden="true" tabindex="-1">
     <MediaSlot
       src={person.portrait}
       alt={person.portrait ? `${person.name}, ${person.title}` : ''}

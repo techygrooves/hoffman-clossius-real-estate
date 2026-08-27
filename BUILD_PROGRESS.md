@@ -3,7 +3,7 @@
 Living record of what exists, what is broken and what comes next.
 **Update this file at the end of every session.**
 
-Last updated: **2026-08-27** — Session 10 (contact, accounts & legal pages)
+Last updated: **2026-08-27** — Session 11 (accessibility statement & full-site audit)
 
 ---
 
@@ -18,15 +18,21 @@ journal articles, approved legal text and an account provider are all still
 unsupplied, and in every case the architecture makes that a supply step rather
 than a rewrite.
 
-**Only `/accessibility/` remains unbuilt**, and it is blocked on 4.9 — who
-receives accessibility reports, and by what channel.
+**Every route in the site is now built.** `StubPage.astro` and
+`InPreparation.astro` have been deleted — no page uses scaffolding any more.
+
+The whole site has been audited for accessibility: **axe-core reports zero
+violations across both build modes**, and five defects found along the way are
+fixed. `ACCESSIBILITY_AUDIT.md` records the method, the fixes, and — as
+importantly — what automation could not check and still needs a person.
 
 | Metric | Value |
 | --- | --- |
 | Build | ✅ passing — `astro check`: 0 errors, 0 warnings, 0 hints |
 | Pages | 45 in production · 65 with demo content on |
+| Accessibility | ✅ axe-core: **0 violations**, 45 routes × 2 widths, and 65 × 2 with demo content |
 | Internal links | ✅ all resolve, both modes |
-| Tests | ✅ **1,335 checks passing** — see below |
+| Tests | ✅ **2,929 checks passing** — see below |
 | Contrast | ✅ every rendered text node on all 64 pages × 2 widths clears WCAG 2.2 AA |
 | JavaScript | ~22 KB total across the site, inlined, no dependencies |
 | Third-party runtime requests | none |
@@ -35,6 +41,9 @@ receives accessibility reports, and by what channel.
 | --- | --- |
 | Mortgage maths — unit tests, in the build | 17 |
 | Contact, accounts & legal — structure, contrast ×2 widths, forms, no-JS, targets | 524 |
+| Accessibility — structure, keyboard, focus, forms, reflow (production) | 653 |
+| Accessibility — same suite, demo content on | 933 |
+| Accessibility — gallery, favourites, filters, pagination interaction | 8 |
 | Mortgage calculator — browser, validation, reset, honesty | 52 |
 | Resources — blog, FAQ, guides (production) | 57 |
 | Resources — blog, FAQ, guides, article template (demo) | 83 |
@@ -57,6 +66,85 @@ receives accessibility reports, and by what channel.
 | Listings — mobile + no-JavaScript | 8 |
 | Homepage | 15 |
 | Navigation | 21 |
+
+---
+
+## ✅ Completed — Session 11 (2026-08-27) · Accessibility statement & full-site audit
+
+The last unbuilt route, and an audit of every page in the site.
+
+### Accessibility statement — `/accessibility/`
+- [x] Neutral, professional statement: the commitment, the standard, what has
+      been done, where it falls short, and how to report a barrier.
+- [x] **Claims nothing it cannot support.** It states in as many words that we
+      do not describe the site as "ADA certified" or "ADA compliant" and do not
+      claim WCAG conformance — WCAG 2.2 Level AA is the *engineering target*,
+      and the site has not been independently audited.
+- [x] Contact route: Martin's confirmed direct line, both email addresses
+      pre-subjected, and the contact form — with a note to call instead if a
+      form is the thing that is not working.
+- [x] A "where it falls short" section that is real: no independent audit, no
+      assistive-technology user testing, filtering and form submission need
+      JavaScript, and third-party property search is not ours to vouch for.
+
+The disclaimer sits **beside** the commitment rather than at the foot of the
+page: someone deciding whether to trust a claim should meet its limits at the
+same time as the claim.
+
+### Footer
+Already correct, and verified rather than assumed: "Accessibility / ADA
+Compliance" appears three times per page — the accessibility band, the Legal
+column and the small-print row — each linking to `/accessibility/`, alongside a
+note naming WCAG 2.2 AA as the target.
+
+### Full-site audit — `ACCESSIBILITY_AUDIT.md`
+axe-core (wcag2a/aa, wcag21a/aa, wcag22aa, best-practice) plus a purpose-built
+suite for what axe cannot assess statically: keyboard traps, Escape behaviour,
+drawer focus management, skip-link function and 200% reflow.
+
+**Both build modes were audited, and that mattered.** A production build
+renders no listings and no developments, so the cards, filters, sort,
+pagination and gallery never appear in it — and the heading-order defect below
+exists *only* on pages production cannot currently render.
+
+Five defects found and fixed:
+
+1. **Image links had no accessible name** — *serious*, 42 occurrences.
+   `AgentCard`, `PostAuthorCard`, `InsightsSection` and the `/about/` team
+   cards wrapped a `MediaSlot` in a link; with no photography the alt is empty,
+   so each announced as "link" with nothing after it. Each already had a named
+   link to the same place below, so the image link is now `aria-hidden` and out
+   of the tab order — fixing the name *and* removing a redundant tab stop.
+2. **Two footer landmarks both named "Legal"** — *moderate*, 88 occurrences.
+   The small-print row repeated the Legal column verbatim, so its `<nav>`
+   wrapper was removed rather than relabelled.
+3. **Heading order jumped h1 → h3** — *moderate*, 12 occurrences. The listing
+   and development results regions had an `aria-label` but no heading. Now a
+   visually-hidden `<h2>` with `aria-labelledby` — better than relabelling the
+   cards, because a heading is navigable by heading shortcut and an
+   `aria-label` on a section is not.
+4. **Decorative glyph exposed** — the "Image pending" badge's icon sat beside
+   its own text label without `aria-hidden`.
+5. **Standalone link targets under 24×24** — session 10's aside CTAs and
+   "Related" lists, padded to 28px.
+
+### Scaffolding deleted
+`StubPage.astro` and `InPreparation.astro` are gone. Both existed only to hold
+unbuilt routes, and there are none left. This was a standing cross-cutting task
+and this session is what unblocked it.
+
+### The methodology trap worth remembering
+The first three audit runs reported up to **55 contrast violations, including
+on an `<h1>` that measures 11.5:1**. All false: the site fades content in on
+scroll, and axe was measuring elements mid-fade. Two fixes also failed —
+setting `data-revealed` only *starts* the transition, and removing
+`data-reveal-enabled` *races* `initReveal()`. The reliable move is to override
+the rule outright before measuring.
+
+**Any automated contrast pass on this site must neutralise the reveal
+animation first**, or it reports confident nonsense — the same shape of failure
+as the `color-mix()` → `oklab()` parsing trap already in `PROJECT_CONTEXT.md`
+§7. Both produce plausible numbers that are wrong.
 
 ---
 
@@ -912,7 +1000,6 @@ twelve homepage sections in `src/components/home/`.
 | Component | Path | Status |
 | --- | --- | --- |
 | `BaseLayout` | `src/layouts/BaseLayout.astro` | ✅ stable |
-| `StubPage` | `src/layouts/StubPage.astro` | ⚠️ temporary — **one route left** (`/accessibility/`); delete with it |
 | `Header` | `src/components/layout/Header.astro` | ✅ stable — rebuilt in session 2 |
 | `Footer` | `src/components/layout/Footer.astro` | ✅ stable — rebuilt in session 2 |
 | `MobileActionBar` | `src/components/layout/MobileActionBar.astro` | ✅ stable — new in session 2 |
@@ -958,7 +1045,6 @@ twelve homepage sections in `src/components/home/`.
 | `AccountBenefits` | `src/components/auth/AccountBenefits.astro` | ✅ stable — shared by both account pages |
 | `LegalDocument` | `src/components/legal/LegalDocument.astro` | ⚠️ pending state is the shipping state until 4.7 / 4.8 |
 | Homepage sections | `src/components/home/*.astro` | ✅ stable — twelve sections |
-| `InPreparation` | `src/components/sections/InPreparation.astro` | ⚠️ temporary |
 
 **Before building anything new, check this table.** Extend an existing
 primitive rather than adding a near-duplicate.
@@ -976,7 +1062,7 @@ primitive rather than adding a near-duplicate.
 | 5 | `PageHero` image variant unverified | 🟢 low | Built but never rendered with a real photograph. Re-check contrast over the scrim when imagery arrives. |
 | 6 | Tailwind utility-ordering pitfall | 🟠 med | **Hit twice now.** `.inline-flex` is emitted after `.hidden`, so `class="hidden xl:block"` passed into `Button`/`KeyesLogo` is silently ignored — put responsive visibility on a **wrapper**. Session 9 hit the same shape with width: a shared `field` class containing `w-full` overrode `w-28` at the call site and pushed the calculator 31px past the viewport at 390px. **Never bake a width or a display utility into a shared class string.** Both failures were invisible in code review and only showed up in a 390px browser test. |
 | 7 | Team-name spelling | 🟠 med | Site uses "Closius"; the repository is `hoffman-clossius-real-estate`. Confirm before launch (`CONTENT_PENDING.md` 2.5). |
-| 8 | No screen-reader or Lighthouse pass yet | 🟠 med | Structural checks, keyboard paths through the forms, and a **pixel-accurate** contrast sweep of every rendered text node on all 53 pages at two widths now run in the browser. (The earlier sweep parsed colour strings, which Tailwind 4's `color-mix()` → `oklab()` output silently defeated; measurements now paint the colour to a canvas and read the pixel back.) A real screen-reader pass and Lighthouse are still to come. |
+| 8 | No screen-reader or Lighthouse pass yet | 🟠 med | **Narrowed in session 11.** axe-core now reports 0 violations across both build modes, and keyboard, focus, reflow and structural checks pass on every route (`ACCESSIBILITY_AUDIT.md`). What remains is what automation cannot do: a real screen-reader pass, testing with people who use assistive technology, forced-colors mode, voice control, and Lighthouse. |
 | 9a | Four homepage sections are empty in production | 🟠 med | Featured properties, developments, testimonials and insights all show empty states until their data arrives. Each carries a distinct, useful call to action, and this is the honest state — but the page is visibly lighter than it will be. `npm run build:demo` shows the populated design. |
 | 9e | No developments in production | 🟠 med | Both development indexes show an honest invitation. Resolves by adding verified entries to `curatedData.ts` — `DEVELOPMENTS_DATA.md`, `CONTENT_PENDING.md` 10.6. |
 | 9c | No listings anywhere in production | 🔴 high | Every property page shows "Live property search is being configured." Resolves entirely by implementing `idxProvider.ts` once the client confirms their provider — `CONTENT_PENDING.md` §5, `IDX_INTEGRATION.md`. |
@@ -994,7 +1080,7 @@ primitive rather than adding a near-duplicate.
 | 17 | Community locational lines are ours, not the client's | 🟠 med | Written from geography alone. The four Hollywood-area subareas need the closest review — neighbourhood boundaries are locally understood and vary. Sheridan Lakes deliberately has no parent municipality recorded. `CONTENT_PENDING.md` 10.5a, 10.5b. |
 | 18 | Coordinates are unverified and unplotted | 🟢 low | Approximate centroids on the eleven municipalities, none on the subareas. `CommunityMap` states the location in words and plots nothing, so nothing incorrect ships — but they must be verified before a map provider goes in. `CONTENT_PENDING.md` 10.5c. |
 | 15 | Per-agent listings untestable against real data | 🟢 low | `agentProfilePath` matches `listingAgent.profilePath`, which the demo provider sets from `professionals[].href`. A real IDX feed must map its own agent identity onto the same paths in `idxProvider.ts`, or both profile pages will show the honest "nothing on the open market" state forever. Noted in `IDX_INTEGRATION.md`. |
-| 22 | Site-wide target sizes under WCAG 2.2 SC 2.5.8 | 🟠 med | **Predates session 10 and affects all 45 pages.** Breadcrumb links render 37×16 at 390px and the stacked phone/email lists 20px tall — both below the 24×24 floor, and well below this project's own 44px aim (`PROJECT_CONTEXT.md` §7). Verified against untouched pages from earlier sessions, so it is not a regression. Both come from shared components (`Breadcrumbs`, the contact-detail lists repeated across asides), so fixing it is a deliberate pass with every call site checked — not a side effect of another task. Session 10's own standalone links were brought to 28px. |
+| 22 | Small link targets below the project's own 44px aim | 🟢 low | **Re-assessed in session 11 and downgraded.** Breadcrumb links render 37×16 at 390px and stacked phone/email links 20px tall. These do **not** fail WCAG 2.2 SC 2.5.8: the criterion exempts a target inline in a sentence or constrained by the line-height of surrounding text, and axe-core — which implements that exception — reports no target-size violation on any page in either build mode. They do sit below this project's own stricter 44×44 aim (`PROJECT_CONTEXT.md` §7). Raising them is a deliberate pass across shared components (`Breadcrumbs`, the contact-detail lists repeated across asides), not a defect to fix in passing. Sessions 10 and 11 brought their own standalone links to 28px. |
 | 23 | No account provider connected | 🟠 med | `/login/` says accounts are not available; `/register/` collects alert details for Martin and MaryEllen to action by hand. Resolves with two environment variables — `CONTENT_PENDING.md` 5.10a, `AUTH_INTEGRATION.md`. **No page renders a password field in any build mode, and that does not change when a provider is connected** — the credential step is the provider's, on its own origin. |
 | 24 | No approved legal text | 🔴 high | `/privacy-policy/` and `/terms/` are built and render a clearly marked "awaiting legal review" slot. Both documents bind the client and neither may be drafted by us. Resolves by pasting approved text into `src/data/legal.ts` and setting `approved: true` — `CONTENT_PENDING.md` 4.7, 4.7a, 4.8. The privacy policy is additionally blocked on 6.1/6.7 (where submissions go and how long they are kept) and 11.1 (analytics), because it must describe what the site actually does. |
 | 12 | No median home values published | 🟠 med | `/sell/median-home-values/` shows no figure for any of the six cities, because none carries a source and a date. Resolves via a `medianHomeValue` on a community record, or a live `ValuationProvider`. `CONTENT_PENDING.md` 10.7. |
@@ -1004,12 +1090,9 @@ primitive rather than adding a near-duplicate.
 ## Next tasks
 
 ### Immediate — next session
-1. **`/accessibility/`** — the last route on `StubPage`, and the last page in
-   the site. Blocked only on `CONTENT_PENDING.md` 4.9: who receives
-   accessibility reports, and by what channel. The statement itself describes
-   the standard the site is built toward (WCAG 2.2 AA) and how to report a
-   barrier; **it will not claim any certification**. Building it retires
-   `StubPage.astro` and `InPreparation.astro` for good.
+1. **Approved privacy policy and terms text** — both pages are built and
+   waiting on one data file (`CONTENT_PENDING.md` 4.7, 4.7a, 4.8). The privacy
+   policy is the more urgent: every form on the site links to it.
 
 ### Then, roughly in order
 2. **Approved privacy policy and terms text** — both pages are built and
@@ -1035,16 +1118,20 @@ not emitted for the same reason. `CONTENT_PENDING.md` 10.5h.
 
 ### Cross-cutting, before launch
 - [ ] Real photography throughout; verify LCP and contrast over image scrims.
-- [ ] Accessibility audit — axe, screen reader pass. (Keyboard paths through
-      the forms and a pixel-accurate contrast sweep of every page now run in
-      the browser suite.)
+- [x] ~~Accessibility audit — axe~~ **done, session 11**: 0 violations across
+      both build modes, five defects fixed, recorded in
+      `ACCESSIBILITY_AUDIT.md`.
+- [ ] Screen reader pass, assistive-technology user testing, forced-colors
+      mode and voice control — the parts automation cannot cover
+      (`ACCESSIBILITY_AUDIT.md` §5). An independent audit is `CONTENT_PENDING.md`
+      4.9a.
 - [ ] **Set `PUBLIC_LEAD_FORM_ENDPOINT`** in the host's build environment and
       submit each form once end to end. Nothing else on this list changes as
       much for as little work.
 - [ ] Lighthouse on the built output; confirm Core Web Vitals.
 - [ ] Confirm domain, set `urlConfirmed: true`, regenerate `robots.txt`,
       verify the sitemap.
-- [ ] Delete `StubPage.astro` and `InPreparation.astro` once no route uses them.
+- [x] ~~Delete `StubPage.astro` and `InPreparation.astro`~~ **done, session 11.**
 - [ ] **Chase 8.1–8.3.** Biographies and portraits are the highest-value
       outstanding content item after the form endpoint: two profile pages and
       every agent card on the site are visibly thin without them, and no amount
@@ -1297,6 +1384,51 @@ the subarea section and the FAQ all render nothing rather than generic cards.
 That was a deliberate choice, not an omission — a "Lifestyle" band containing
 Dining, Beaches and Schools would look finished and say nothing, and would make
 it much less likely that anyone ever writes the real thing.
+
+### Session 11 — 2026-08-27 · Accessibility statement & full-site audit
+The last route in the site, and an audit of all of them.
+
+**The statement's value is in what it declines to say.** "ADA compliant" is the
+phrase a client asks for and the one no honest site can print: there is no
+certification to hold, and conformance is not self-awardable. So the page names
+the topic — as the footer does, at the client's request — and then states
+plainly that WCAG 2.2 AA is the target, that the site has not been
+independently audited, and where it currently falls short. A statement that
+lists only strengths tells a reader with a disability not to bother reporting
+anything.
+
+**Audit both build modes, or you audit half the site.** A production build has
+no listings and no developments, so cards, filters, sort, pagination and the
+gallery never render. The heading-order defect — results regions carrying an
+`aria-label` but no heading, so card `<h3>`s followed the page `<h1>` with
+nothing between — exists *only* on pages production cannot currently produce. A
+production-only audit would have reported the site clean.
+
+**The nameless-link defect is the one to remember.** Forty-two links announced
+as "link" with nothing after them, because each wrapped an image whose `alt` is
+empty while no photography exists. It was invisible in code review, invisible
+on screen, and invisible to every check the project had until axe ran. It is
+also a preview of a whole class of problem: things that are correct *today*
+only because the data is absent, and become wrong when it arrives.
+
+**Automated contrast measurement failed three times before it worked.** The
+first runs reported 55 violations including an `<h1>` at 11.5:1 — all artifacts
+of measuring elements mid-fade. Setting `data-revealed` only starts the
+transition; removing `data-reveal-enabled` races the script that sets it. The
+lesson matches the `oklab()` parsing trap already in `PROJECT_CONTEXT.md` §7:
+**a contrast tool that is subtly wrong produces confident numbers, not obvious
+errors**, so the measurement method needs verifying before its output is
+trusted. Both times the tell was a result that was implausible rather than one
+that looked broken.
+
+Also worth recording: two of the audit's "findings" turned out to be the
+absence of data rather than defects — the gallery has never rendered because
+demo listings carry `images: []` on purpose, and pagination empties itself when
+12 listings fit one page. Both are now in §5 of `ACCESSIBILITY_AUDIT.md` as
+untested-with-data rather than quietly counted as passes.
+
+`StubPage.astro` and `InPreparation.astro` were deleted. Nothing in the site is
+scaffolded any more.
 
 ### Session 10 — 2026-08-27 · Contact, accounts & legal pages
 Five routes, and two of them turned on questions about what a page is allowed

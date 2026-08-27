@@ -240,7 +240,8 @@ const LINKS = [
                   makes it narrower than the column, rather than leaving it
                   pinned left with a gap beside it.
                 */}
-                <a href={person.href} class="block overflow-hidden rounded-xs">
+                {/* Redundant with the named link below — see AgentCard. */}
+                <a href={person.href} class="block overflow-hidden rounded-xs" aria-hidden="true" tabindex="-1">
                   <MediaSlot
                     src={person.portrait}
                     alt={person.portrait ? `${person.name}, ${person.title}` : ''}

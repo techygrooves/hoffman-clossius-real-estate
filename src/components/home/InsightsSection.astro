@@ -51,7 +51,8 @@ const anySamples = posts.some(isSample);
                 data-reveal
                 style={`--reveal-delay:${index * 70}ms`}
               >
-                <a href={`/blog/${post.id}/`} class="block overflow-hidden rounded-xs">
+                {/* Redundant with the title link below — see AgentCard. */}
+                <a href={`/blog/${post.id}/`} class="block overflow-hidden rounded-xs" aria-hidden="true" tabindex="-1">
                   <MediaSlot
                     src={post.data.heroImage?.src ?? null}
                     alt={post.data.heroImage?.alt ?? ''}
