@@ -354,6 +354,45 @@ without unchecked claims about someone else's project reaching the public site.
 
 Supply guide: `DEVELOPMENTS_DATA.md`.
 
+**The communities system.** `src/data/communities.ts` is the single source: one
+object creates the community's page, its card on the index, its entry in the
+header navigation (when `featured`), its cross-links from neighbouring guides
+and its subarea listing on its parent's page. **There is no per-community page
+code and there must never be** — `/communities/[slug].astro` is one template
+for all of them.
+
+- `kind` (`'city' | 'neighborhood'`) is stated explicitly, never inferred from
+  whether `parent` is set. "We have not recorded a parent" and "it has no
+  parent" are different facts, and conflating them once listed a neighbourhood
+  as a city on `/sell/median-home-values/`.
+- Sections whose content is client-supplied render **nothing at all** until it
+  exists: lifestyle (`highlights`), subareas and the FAQ (`seo.faqs`). An empty
+  band with a heading over it reads as a failure to fill it in; absence reads
+  as what it is.
+- **Never** add to a community record: school ratings or rankings, crime
+  statistics, median or average prices, population figures, commute or travel
+  times, days on market, rent figures, HOA fees, appreciation rates,
+  demographic claims, or "best of" / "most desirable" superlatives. Those are
+  the sentences a buyer acts on, and each needs a citable, dated source (§9).
+- `latitude` / `longitude` are approximate centroids carried so the map seam is
+  ready. **No pin is plotted from them** — `CommunityMap` states the location in
+  words, as `DevelopmentMap` does, until they are verified and a map provider
+  is chosen (`CONTENT_PENDING.md` 10.5c, 11.4).
+- `seo` is reserved for a later, deliberate SEO phase and is empty on every
+  record. Do not pre-fill it with keyword variations or generated copy, and do
+  not emit `FAQPage` structured data over answers nobody has approved —
+  marking up an unsourced answer puts it in a search result, stated as fact,
+  above the page that qualifies it.
+
+**`src/config/navigation.ts` must stay importable by plain Node.**
+`scripts/verify-links.mjs` imports it directly to cross-check every declared
+href, and that runs outside Vite, where `@`-aliases do not resolve. Use a
+relative import with an explicit `.ts` extension for anything it needs at
+runtime, and keep the imported module free of runtime imports of its own
+(`import type` is erased, so it is safe). The verifier now **fails the build**
+if that import breaks — it previously reported "0 from the nav config" and
+exited zero, which disabled the dead-link check silently.
+
 **The demo-content mechanism.** `src/config/flags.ts` exposes one flag,
 `demoContent`: ON in `astro dev`, OFF in a production build, overridable with
 `PUBLIC_DEMO_CONTENT=true|false`. `npm run build:demo` produces a populated

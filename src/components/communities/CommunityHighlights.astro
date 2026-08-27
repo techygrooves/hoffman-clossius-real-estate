@@ -1,0 +1,51 @@
+---
+/**
+ * CommunityHighlights — the lifestyle section.
+ *
+ * Renders `highlights` when the client has supplied them, and NOTHING at all
+ * when they have not — not a heading, not an empty band, not a set of generic
+ * cards saying "Dining", "Beaches", "Schools".
+ *
+ * That last option is the tempting one and it is the wrong one. A lifestyle
+ * section is where invented neighbourhood claims live on most real estate
+ * sites, and an empty section is a visible prompt to write real ones.
+ *
+ * The component owns its <Section>, so an empty list costs no layout.
+ */
+import Section from '@components/ui/Section.astro';
+import SectionHeader from '@components/ui/SectionHeader.astro';
+import type { Community } from '@data/communities';
+
+interface Props {
+  community: Community;
+  id: string;
+  tone?: 'white' | 'warm' | 'sage';
+}
+
+const { community, id, tone = 'warm' } = Astro.props;
+const items = community.highlights;
+---
+
+{
+  items.length > 0 && (
+    <Section tone={tone} labelledby={id}>
+      <SectionHeader
+        id={id}
+        eyebrow="Lifestyle"
+        title={`Living in ${community.name}`}
+      />
+      <ul class="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        {items.map((item, index) => (
+          <li
+            class="flex h-full flex-col rounded-xs border border-line bg-white p-7"
+            data-reveal
+            style={`--reveal-delay:${index * 60}ms`}
+          >
+            <h3 class="font-serif text-xl text-evergreen-800">{item.title}</h3>
+            <p class="mt-3 text-sm leading-relaxed text-ink-muted">{item.body}</p>
+          </li>
+        ))}
+      </ul>
+    </Section>
+  )
+}

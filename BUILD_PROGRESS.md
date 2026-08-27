@@ -3,30 +3,35 @@
 Living record of what exists, what is broken and what comes next.
 **Update this file at the end of every session.**
 
-Last updated: **2026-08-27** — Session 7 (about, profiles & testimonials)
+Last updated: **2026-08-27** — Session 8 (communities architecture)
 
 ---
 
 ## Current state
 
 Foundation, global chrome, homepage, the property/listing system, the
-developments subsystem, the buyer and seller conversion pages and **the people
-and testimonial pages** are built. Listings, developments, valuation data,
-biographies, portraits and testimonials are all still unsupplied, and in every
-case the architecture makes that a supply step rather than a rewrite.
+developments subsystem, the buyer and seller conversion pages, the people and
+testimonial pages and **the communities architecture** are built. Listings,
+developments, valuation data, biographies, portraits, testimonials and
+community guide copy are all still unsupplied, and in every case the
+architecture makes that a supply step rather than a rewrite.
 
 | Metric | Value |
 | --- | --- |
 | Build | ✅ passing — `astro check`: 0 errors, 0 warnings, 0 hints |
-| Pages | 36 in production · 54 with demo content on |
+| Pages | 45 in production · 63 with demo content on |
 | Internal links | ✅ all resolve, both modes |
-| Tests | ✅ **441 checks passing** — see below |
-| Contrast | ✅ every rendered text node on all 53 pages × 2 widths clears WCAG 2.2 AA |
+| Tests | ✅ **576 checks passing** — see below |
+| Contrast | ✅ every rendered text node on all 62 pages × 2 widths clears WCAG 2.2 AA |
 | JavaScript | ~19 KB total across the site, inlined, no dependencies |
 | Third-party runtime requests | none |
 
 | Suite | Checks |
 | --- | --- |
+| Communities & relocation — no invented statistics | 77 |
+| Communities — mobile, no-JavaScript, SC 2.5.8 targets | 34 |
+| One-object add + client-supplied content | 22 |
+| Per-community listing attribution | 12 |
 | About, profiles & testimonials — no invented credentials | 104 |
 | People pages — mobile, no-JavaScript, SC 2.5.8 targets | 32 |
 | Populated content — bios, specialities, verified quotes, badges | 32 |
@@ -41,6 +46,92 @@ case the architecture makes that a supply step rather than a rewrite.
 | Listings — mobile + no-JavaScript | 8 |
 | Homepage | 15 |
 | Navigation | 21 |
+
+---
+
+## ✅ Completed — Session 8 (2026-08-27) · Communities architecture
+
+Fifteen communities, one template, and a data file that is the only thing
+anyone should ever have to edit to add a sixteenth.
+
+### The rule that shaped this session
+
+**A community page is where invented neighbourhood claims live.** School
+ratings, crime figures, median prices, population, commute times — every one
+of them reads like a fact, is unverifiable by the reader, and is the sort of
+thing a buyer acts on. None appears anywhere in this subsystem, and the
+sections that would normally carry them render **nothing at all** rather than
+generic filler.
+
+That is the deliberate choice: an absent "Living in Hollywood" section is a
+visible prompt to write a real one. A section headed "Lifestyle" containing
+cards labelled Dining, Beaches and Schools would look finished and say nothing.
+
+### Data — `src/data/communities.ts`
+- [x] Rebuilt around the specified contract: `name`, `slug`, `county`,
+      `shortDescription`, `heroImage`, `latitude`, `longitude`,
+      `neighborhoods`, `highlights`, `propertySearchQuery`, `featured`, and a
+      `seo` object reserved for later. Plus `kind`, `parent` and
+      `introduction`, which the structure needed.
+- [x] A `base` object supplies every default, so a new community is a short
+      literal — slug, name, county, one factual line, a search query.
+- [x] Fifteen communities: eleven municipalities and four neighbourhoods.
+- [x] Helpers: `featuredCommunities`, `cityCommunities`, `childCommunities`,
+      `communityCounties`, `communityNeighborhoods`, `nearbyCommunities`.
+
+### `kind` is explicit, and that matters
+`kind: 'city' | 'neighborhood'` is stated on every record rather than inferred
+from whether `parent` is set. **Sheridan Lakes has no `parent` because we do
+not know its municipality**, not because it is a city — and inferring
+cityhood from a null parent listed it as one on `/sell/median-home-values/`.
+Two different facts, two different fields.
+
+### Components — `src/components/communities/`
+`CommunityCard`, `CommunityFilters`, `CommunityHero`, `CommunityIntro`,
+`CommunityListings`, `CommunityHighlights`, `CommunityNeighborhoods`,
+`CommunityPropertyTypes`, `CommunityMap`, `NearbyCommunities`,
+`CommunityCtas`, `CommunityFaq`. Each section component owns its own
+`<Section>`, so an empty one costs no layout at all.
+
+### Pages
+- [x] `/communities/` — hero, featured grid, search + county + type filters
+      over every community, honest empty state, relocation CTA. Filtering
+      follows the listings pattern: server-render every card once, show and
+      hide in the browser, full list without JavaScript.
+- [x] `/communities/[slug]/` — all fourteen specified sections in one
+      template. Subareas and cross-links derive from the data.
+- [x] `/relocation/` — "Moving to South Florida?", introduction, community
+      explorer, buy-or-rent trade-offs, property search, new developments,
+      checklist teaser, MaryEllen's confirmed title, and a `kind: 'relocation'`
+      lead form.
+
+### Deliberate omissions on `/relocation/`
+No response-time promise, no relocation certification or network, no corporate
+programme, no "download our relocation guide" gate. The checklist is simply on
+the page — if it is useful it should not cost an email address.
+
+### Fixed while testing
+- **The link verifier had gone silent.** Adding `@data/communities` to
+  `navigation.ts` made it unresolvable under plain Node, where
+  `scripts/verify-links.mjs` imports it. A `.catch()` swallowed the failure and
+  the script reported "0 from the nav config" while still exiting zero — the
+  dead-link check was off and nothing said so. The import is now relative with
+  an explicit extension, and the script **exits non-zero** if it ever breaks
+  again, or if `allNavHrefs()` returns nothing.
+- **Neighbourhoods were being listed as cities.** See `kind`, above.
+- **The intro stand-in said the county twice** — "Hollywood is a community in
+  Broward County. A coastal city in Broward County, between …". It now leads
+  with the record's own line instead of wrapping it.
+
+### Verified by temporarily adding a community, then reverting
+The "one data object" claim is tested rather than asserted. Two records were
+patched in — a city and a child neighbourhood, in a county that did not exist
+yet — and with no other edit: both pages built, the index showed 17 cards, the
+subarea section appeared on the parent and linked the child, the child's
+breadcrumb pointed at its parent, the new county became a filter option, and
+the header navigation picked up the featured one. Client-supplied
+`introduction`, `highlights`, `neighborhoods` and `seo` were exercised the same
+way. Then reverted and the build re-scanned for leakage.
 
 ---
 
@@ -640,6 +731,11 @@ twelve homepage sections in `src/components/home/`.
 | `TestimonialCard` | `src/components/testimonials/TestimonialCard.astro` | ✅ stable — shared by home, /about/ and /testimonials/ |
 | `TestimonialSourceBadge` | `src/components/testimonials/TestimonialSourceBadge.astro` | ✅ stable — wording only, no trademarked logos |
 | `TestimonialEmptyState` | `src/components/testimonials/TestimonialEmptyState.astro` | ⚠️ the shipping state until 10.1 supplied |
+| Community components | `src/components/communities/*.astro` | ✅ stable — twelve components, all data-driven |
+| `CommunityIntro` | `src/components/communities/CommunityIntro.astro` | ⚠️ neutral stand-in until 10.5 supplied |
+| `CommunityHighlights` | `src/components/communities/CommunityHighlights.astro` | ✅ stable — renders nothing until 10.5d confirmed |
+| `CommunityFaq` | `src/components/communities/CommunityFaq.astro` | ✅ stable — reserved for the SEO phase (10.5h) |
+| `CommunityMap` | `src/components/communities/CommunityMap.astro` | ⚠️ location in words; no pin until 10.5c + 11.4 |
 | Homepage sections | `src/components/home/*.astro` | ✅ stable — twelve sections |
 | `InPreparation` | `src/components/sections/InPreparation.astro` | ⚠️ temporary |
 
@@ -670,6 +766,9 @@ primitive rather than adding a near-duplicate.
 | 11 | Forms need JavaScript | 🟠 med | Submission runs in the browser, so with JavaScript off the submit block is replaced by a contact panel. Honest, but a real limitation — a server-side form handler would remove it, and is worth revisiting alongside 6.1. |
 | 13 | No biographies or portraits | 🔴 high | Both profile pages carry a two-sentence neutral stand-in built only from confirmed facts, plus a visible note. `/about/` has no joint photograph. The pages are complete and correct — they are just thin, and they will stay thin until Martin and MaryEllen supply copy and photographs. `CONTENT_PENDING.md` 8.1–8.3a. |
 | 14 | No testimonials anywhere | 🟠 med | Homepage, `/about/` and `/testimonials/` all show the shared empty state. `/testimonials/` is deliberately still a substantial page — it explains the policy — but it has no quotes on it. `CONTENT_PENDING.md` 10.1. |
+| 16 | No community guide copy | 🟠 med | All fifteen pages carry one factual line and a visible "the guide is being written" note. The template is complete; the copy is not, and the lifestyle and FAQ sections are absent until it arrives. `CONTENT_PENDING.md` 10.5, 10.5d. |
+| 17 | Community locational lines are ours, not the client's | 🟠 med | Written from geography alone. The four Hollywood-area subareas need the closest review — neighbourhood boundaries are locally understood and vary. Sheridan Lakes deliberately has no parent municipality recorded. `CONTENT_PENDING.md` 10.5a, 10.5b. |
+| 18 | Coordinates are unverified and unplotted | 🟢 low | Approximate centroids on the eleven municipalities, none on the subareas. `CommunityMap` states the location in words and plots nothing, so nothing incorrect ships — but they must be verified before a map provider goes in. `CONTENT_PENDING.md` 10.5c. |
 | 15 | Per-agent listings untestable against real data | 🟢 low | `agentProfilePath` matches `listingAgent.profilePath`, which the demo provider sets from `professionals[].href`. A real IDX feed must map its own agent identity onto the same paths in `idxProvider.ts`, or both profile pages will show the honest "nothing on the open market" state forever. Noted in `IDX_INTEGRATION.md`. |
 | 12 | No median home values published | 🟠 med | `/sell/median-home-values/` shows no figure for any of the six cities, because none carries a source and a date. Resolves via a `medianHomeValue` on a community record, or a live `ValuationProvider`. `CONTENT_PENDING.md` 10.7. |
 
@@ -684,30 +783,33 @@ primitive rather than adding a near-duplicate.
    can ship without it.
 
 ### Then, roughly in order
-2. `/relocation/` — buildable now. `/about/maryellen-closius/` carries a
-   relocation feature describing what makes an out-of-state move difficult;
-   the guide should go deeper rather than repeat it, and describing the
-   *service* still needs 8.7 / 10.8.
-4. `/mortgage-calculator/` — buildable now; vanilla JS, estimates clearly
+2. `/mortgage-calculator/` — buildable now; vanilla JS, estimates clearly
    labelled, no lending claims. **Not artificial intelligence** — same rule as
    the valuation pages.
-5. `/resources/buying-guide/` and `/selling-guide/` — blocked on copy. Note
-   that `/buy/` and `/sell/` now carry the process narrative, so the guides
-   should go deeper rather than repeat them.
-6. `/faq/` — blocked on client-reviewed answers. `/sell/` currently shows
+3. `/resources/buying-guide/` and `/selling-guide/` — blocked on copy. `/buy/`
+   and `/sell/` carry the process narrative, so the guides should go deeper
+   rather than repeat them.
+4. `/faq/` — blocked on client-reviewed answers. `/sell/` currently shows
    "questions worth asking" in place of seller answers; that section switches
    to real answers automatically once `src/data/faqs.ts` has entries with
    `category: 'selling'`.
-7. `/accessibility/`, `/privacy-policy/`, `/terms/` — blocked on legal wording.
+5. `/accessibility/`, `/privacy-policy/`, `/terms/` — blocked on legal wording.
    The privacy policy also needs 6.7 (where submissions are stored, and for how
    long).
-8. `/communities/` and community guides — blocked on the priority list. A
-   sourced `medianHomeValue` on any of them also lights up that city on
-   `/sell/median-home-values/`.
-9. `/developments/new/` and `/existing/` — blocked on client material.
-10. `/blog/` index and article template — buildable ahead of the first post.
-12. **IDX integration** — `/properties/*`, `/property/[slug]/`, `/login/`,
-    `/register/`. Fully blocked on `CONTENT_PENDING.md` §5.
+6. `/blog/` index and article template — buildable ahead of the first post.
+7. Community guide copy — the template is built; a sourced `medianHomeValue`
+   on any record also lights up that city on `/sell/median-home-values/`.
+8. `/developments/new/` and `/existing/` — blocked on client material.
+9. **IDX integration** — `/properties/*`, `/property/[slug]/`, `/login/`,
+   `/register/`. Fully blocked on `CONTENT_PENDING.md` §5.
+
+### The SEO phase — deferred on purpose, and scaffolded for
+Every community record carries an empty `seo` object (`title`, `description`,
+`body`, `faqs`) and `CommunityFaq` renders from it, so the pass has somewhere
+to land. **Nothing there may be filled with keyword variations or generated
+copy**: an FAQ written to catch a search query is still an invented answer
+about somebody's neighbourhood, and `FAQPage` structured data is deliberately
+not emitted for the same reason. `CONTENT_PENDING.md` 10.5h.
 
 ### Cross-cutting, before launch
 - [ ] Real photography throughout; verify LCP and contrast over image scrims.
@@ -940,3 +1042,36 @@ spacing exception — an undersized target passes if a 24px circle centred on it
 does not intersect another target's circle — and the contact lists clear it.
 The test now implements the criterion as written rather than an approximation
 of it, so it stops producing false failures on correct markup.
+
+### Session 8 — 2026-08-27 · Communities architecture
+Fifteen communities, one template, twelve components, a client-side filter and
+a rebuilt `/relocation/`. Three bugs found by testing; two are worth carrying
+forward.
+
+**A safety net that fails open is worse than no safety net.** Adding a path
+alias to `navigation.ts` made it unresolvable under plain Node, where
+`scripts/verify-links.mjs` imports it directly. A `.catch()` turned that into
+`allNavHrefs: null`, the script printed "0 from the nav config", and **exited
+zero**. The dead-link check had been disabled and the only evidence was one
+number in a line of output nobody reads closely. It was caught because the
+number had been 35 in the previous build and was 0 in this one.
+
+Two fixes, and the second matters more: the import is relative with an explicit
+extension, *and* the script now exits non-zero if the import fails or if
+`allNavHrefs()` returns nothing. Any check that can silently stop checking
+should be made to fail loudly instead — that is the general lesson, and it is
+worth auditing the other scripts for the same shape.
+
+**Two different facts need two different fields.** `kind` was originally
+inferred from `parent === null`. That reads as "no parent means it is a city",
+which is false for Sheridan Lakes — it is a neighbourhood whose municipality we
+have not confirmed. The inference put it under a heading reading "Choose a
+city" on `/sell/median-home-values/`. Unknown and absent are not the same
+value, and a schema that cannot tell them apart will eventually assert the
+wrong one.
+
+Also worth recording: **the empty state is the design.** The lifestyle section,
+the subarea section and the FAQ all render nothing rather than generic cards.
+That was a deliberate choice, not an omission — a "Lifestyle" band containing
+Dining, Beaches and Schools would look finished and say nothing, and would make
+it much less likely that anyone ever writes the real thing.

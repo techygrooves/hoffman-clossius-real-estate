@@ -1,12 +1,700 @@
 ---
-import StubPage from '@layouts/StubPage.astro';
+/**
+ * Relocation.
+ *
+ * MaryEllen Closius P.A.'s "Relocation Specialist" title is confirmed and is
+ * used as a title. It is NOT treated as evidence of a certification, a
+ * corporate relocation programme, a partner network, a referral membership or
+ * a number of relocations handled — none of that has been supplied
+ * (CONTENT_PENDING.md 8.7, 10.8).
+ *
+ * So this page describes the PROBLEM of moving somewhere you do not know, and
+ * offers a conversation. It does not describe a service nobody has told us the
+ * shape of, and it promises nothing: no response time, no relocation package,
+ * no "we handle everything", no school or commute guidance the site has no
+ * basis for.
+ *
+ * The checklist is a teaser by design — the stages of a move, not a downloadable
+ * PDF that does not exist.
+ */
+import BaseLayout from '@layouts/BaseLayout.astro';
+import Container from '@components/ui/Container.astro';
+import Breadcrumbs from '@components/ui/Breadcrumbs.astro';
+import Section from '@components/ui/Section.astro';
+import SectionHeader from '@components/ui/SectionHeader.astro';
+import Button from '@components/ui/Button.astro';
+import MediaSlot from '@components/ui/MediaSlot.astro';
+import CommunityCard from '@components/communities/CommunityCard.astro';
+import LeadForm from '@components/forms/LeadForm.astro';
+import FormSection from '@components/forms/FormSection.astro';
+import FormField from '@components/forms/FormField.astro';
+import FormChoiceGroup from '@components/forms/FormChoiceGroup.astro';
+import DevelopmentGrid from '@components/developments/DevelopmentGrid.astro';
+import { communities, featuredCommunities, getCommunity } from '@data/communities';
+import { developmentProvider } from '@lib/developments/provider';
+import { getProfessional, professionals } from '@config/site';
+
+const maryellen = getProfessional('maryellen-closius');
+const featured = featuredCommunities();
+
+const parentNames: Record<string, string | null> = Object.fromEntries(
+  communities.map((c) => [c.slug, c.parent ? (getCommunity(c.parent)?.name ?? null) : null]),
+);
+
+/** New construction, for people who would rather arrive into something new. */
+const developments = (
+  await developmentProvider.search({ category: 'new' })
+).slice(0, 3);
+
+/**
+ * What is genuinely different about moving from out of state. Properties of
+ * the problem — not claims about a service, and not advice about schools,
+ * commutes or neighbourhoods, which this site has no sourced basis for.
+ */
+const WHAT_CHANGES = [
+  {
+    title: 'You are choosing an area before you know it',
+    body: 'A commute that looks fine on a map is a different thing at 8am in August. Where you buy shapes daily life more than the house does, and it is the hardest part to judge from four states away.',
+  },
+  {
+    title: 'Fewer trips than you would like',
+    body: 'Most people get one or two visits to decide. That changes how a search should be run — what gets shortlisted, what is ruled out before you fly, and what has to be seen in person.',
+  },
+  {
+    title: 'Florida has its own paperwork',
+    body: 'Insurance, flood zones, condominium association finances, hurricane requirements. None of it is obvious if you have not bought here before, and some of it changes what a property costs to own rather than to buy.',
+  },
+  {
+    title: 'Two moves, one timeline',
+    body: 'Selling where you are while buying where you are going rarely lines up neatly. It usually needs planning rather than luck, and the planning starts earlier than people expect.',
+  },
+];
+
+const BUY_OR_RENT = [
+  {
+    eyebrow: 'Renting first',
+    title: 'Learn the area before committing',
+    body: 'A lease buys you time to find out what an area is actually like — the traffic, the noise, whether you use the beach as much as you thought. It costs a year of ownership and removes most of the risk of buying in the wrong place.',
+    points: [
+      'Useful when you do not know the area, or the job is new.',
+      'Lets you sell where you are without a deadline attached.',
+      'A year of rent is money you do not get back.',
+    ],
+    href: '/properties/for-rent/',
+    cta: 'Rentals',
+  },
+  {
+    eyebrow: 'Buying straight away',
+    title: 'Move once',
+    body: 'If you already know the area, or the move is permanent and the numbers work, buying directly saves a move, a lease and a second round of paperwork.',
+    points: [
+      'Needs a lender conversation before you tour, not after.',
+      'Sellers here generally expect a pre-approval alongside an offer.',
+      'Worth being certain about the area first.',
+    ],
+    href: '/buy/',
+    cta: 'How buying works',
+  },
+];
+
+/**
+ * The stages of a move, in the order they usually happen. Deliberately not
+ * "download our relocation guide" — there is no PDF, and offering one that
+ * does not exist to collect an email address is the kind of thing this site
+ * does not do.
+ */
+const CHECKLIST = [
+  {
+    stage: 'Before you start looking',
+    items: [
+      'Work out the budget with a lender who lends in Florida',
+      'Decide what is fixed — a commute, a school, a boat, a budget — and what is not',
+      'Understand what your current home is worth and how long it may take to sell',
+    ],
+  },
+  {
+    stage: 'Choosing an area',
+    items: [
+      'Narrow to two or three areas before booking a trip',
+      'Plan the visit around the areas, not just the houses',
+      'See somewhere at the time of day you would actually be there',
+    ],
+  },
+  {
+    stage: 'Making the move',
+    items: [
+      'Line up insurance quotes early — they can change what you can afford',
+      'Read the association documents on anything with an association',
+      'Plan the overlap between selling there and closing here',
+    ],
+  },
+];
+
+const CONTACT_METHODS = ['Email', 'Phone call', 'Text message'].map((label) => ({
+  value: label,
+  label,
+}));
+
+const TIMEFRAMES = [
+  'Within 3 months',
+  '3 to 6 months',
+  '6 to 12 months',
+  'More than a year',
+  'Still deciding',
+].map((label) => ({ value: label, label }));
+
+const PLANS = [
+  'Buy when I arrive',
+  'Rent first, then buy',
+  'Not sure yet',
+].map((label) => ({ value: label, label }));
 ---
 
-<StubPage
-  title={'Relocation'}
-  heading={'Relocating to South Florida'}
-  eyebrow={'Relocation'}
-  description={'Support for families and professionals moving to South Florida from out of state or abroad, with MaryEllen Closius P.A., Relocation Specialist.'}
-  breadcrumbs={[{ label: 'Relocation' }]}
-  note={'This page will cover what a move to South Florida involves and how MaryEllen supports relocating buyers.'}
-/>
+<BaseLayout
+  title="Relocation"
+  description="Moving to South Florida from out of state? MaryEllen Closius P.A., Relocation Specialist with Hoffman & Closius, works with buyers and families relocating to Broward and Miami-Dade."
+>
+  {/* Hero */}
+  <section class="relative isolate overflow-hidden bg-cream-100 text-ink">
+    <Container>
+      <div class="section-space">
+        <Breadcrumbs items={[{ label: 'Relocation' }]} class="mb-10" />
+
+        <div class="grid gap-12 lg:grid-cols-12 lg:items-end lg:gap-16">
+          <div class="lg:col-span-6" data-reveal>
+            <p class="eyebrow text-evergreen-600">
+              <span class="rule-gold" aria-hidden="true"></span>
+              Relocation
+            </p>
+            <h1 class="mt-5 text-display text-evergreen-800">
+              Moving to South Florida?
+            </h1>
+            <p class="mt-7 max-w-xl text-lg leading-relaxed text-ink-muted">
+              Buying somewhere you have never lived is a different exercise from
+              buying down the road. Most of the work happens before the touring
+              does — and it is worth a conversation before you book the trip
+              rather than after.
+            </p>
+            <div class="mt-9 flex flex-wrap gap-3">
+              <Button href="#relocation-contact" size="lg" withArrow>
+                Start a conversation
+              </Button>
+              <Button href="/communities/" size="lg" variant="secondary">
+                Explore communities
+              </Button>
+            </div>
+          </div>
+
+          <div class="lg:col-span-6" data-reveal style="--reveal-delay:100ms">
+            <MediaSlot
+              src={null}
+              alt=""
+              width={1200}
+              height={900}
+              ratio="4/3"
+              seed={8}
+              sizes="(min-width: 1024px) 50vw, 100vw"
+              class="max-h-[26rem] rounded-xs"
+            />
+          </div>
+        </div>
+      </div>
+    </Container>
+  </section>
+
+  {/* Introduction */}
+  <Section tone="white" labelledby="relocation-intro-heading">
+    <div class="grid gap-12 lg:grid-cols-12 lg:gap-16">
+      <div class="lg:col-span-7">
+        <SectionHeader
+          id="relocation-intro-heading"
+          eyebrow="Introduction"
+          title="What actually changes when you are moving from out of state"
+        />
+        <div class="mt-8 flex max-w-prose flex-col gap-5 leading-relaxed text-ink-muted">
+          <p>
+            The property part of a relocation is rarely the hard part. Choosing
+            where to live is — because you are making a decision about daily
+            life with less information than a local buyer has, on a shorter
+            timetable, usually while selling somewhere else.
+          </p>
+          <p>
+            {maryellen
+              ? `${maryellen.name} is a ${maryellen.title} and ${maryellen.specialty}. `
+              : ''}What that means in practice is starting earlier: working out
+            which two or three areas are actually worth your trip, so the visit
+            is spent deciding rather than orienting.
+          </p>
+          <p class="text-sm text-ink-subtle">
+            You will not find school ratings, crime figures or commute times on
+            this site. They are the things people most want when they are moving
+            blind, and they are exactly the things that need a source and a date
+            rather than an agent's recollection. Ask, and you will get either a
+            straight answer or a pointer to where the real figure lives.
+          </p>
+        </div>
+      </div>
+
+      <div class="lg:col-span-5">
+        <ul class="flex flex-col gap-4 lg:mt-4">
+          {
+            WHAT_CHANGES.map((item, index) => (
+              <li
+                class="rounded-xs border border-line bg-cream-50 p-6"
+                data-reveal
+                style={`--reveal-delay:${index * 60}ms`}
+              >
+                <h3 class="font-serif text-xl text-evergreen-800">{item.title}</h3>
+                <p class="mt-2 text-sm leading-relaxed text-ink-muted">{item.body}</p>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+    </div>
+  </Section>
+
+  {/* Community explorer */}
+  <Section tone="warm" labelledby="relocation-communities-heading">
+    <div class="flex flex-col gap-8 md:flex-row md:items-end md:justify-between">
+      <SectionHeader
+        id="relocation-communities-heading"
+        eyebrow="Community explorer"
+        title="Start with the area, not the house"
+        lead="Narrow to two or three before you book a trip. Each guide links straight through to what is on the market there."
+      />
+      <div class="hidden shrink-0 md:block" data-reveal>
+        <Button href="/communities/" variant="secondary" withArrow>
+          All communities
+        </Button>
+      </div>
+    </div>
+
+    <ul class="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+      {
+        featured.map((community, index) => (
+          <CommunityCard
+            community={community}
+            parentName={parentNames[community.slug] ?? null}
+            seed={index}
+          />
+        ))
+      }
+    </ul>
+
+    <div class="mt-10 flex md:hidden" data-reveal>
+      <Button href="/communities/" variant="secondary" block withArrow>
+        All communities
+      </Button>
+    </div>
+  </Section>
+
+  {/* Buying or renting */}
+  <Section tone="white" labelledby="relocation-buy-rent-heading">
+    <SectionHeader
+      id="relocation-buy-rent-heading"
+      eyebrow="Buy or rent"
+      title="Two ways to arrive"
+      lead="There is no right answer here, only a trade. What follows is the trade, not a recommendation — that depends on things a website does not know about you."
+    />
+
+    <ul class="mt-12 grid gap-6 lg:grid-cols-2">
+      {
+        BUY_OR_RENT.map((option, index) => (
+          <li
+            class="flex h-full flex-col rounded-xs border border-line p-7 sm:p-9"
+            data-reveal
+            style={`--reveal-delay:${index * 60}ms`}
+          >
+            <p class="eyebrow text-evergreen-600">
+              <span class="rule-gold" aria-hidden="true" />
+              {option.eyebrow}
+            </p>
+            <h3 class="mt-4 font-serif text-2xl text-evergreen-800">{option.title}</h3>
+            <p class="mt-3 leading-relaxed text-ink-muted">{option.body}</p>
+            <ul class="mt-6 flex flex-1 flex-col gap-3 border-t border-line pt-5">
+              {option.points.map((point) => (
+                <li class="flex gap-3 text-sm leading-relaxed text-ink-muted">
+                  <span
+                    class="mt-2 h-1 w-1 shrink-0 rounded-full bg-gold-600"
+                    aria-hidden="true"
+                  />
+                  <span>{point}</span>
+                </li>
+              ))}
+            </ul>
+            <div class="mt-7">
+              <Button href={option.href} variant="secondary" withArrow>
+                {option.cta}
+              </Button>
+            </div>
+          </li>
+        ))
+      }
+    </ul>
+  </Section>
+
+  {/* Property search */}
+  <Section tone="deep" labelledby="relocation-search-heading">
+    <div class="grid gap-12 lg:grid-cols-2 lg:items-center lg:gap-20">
+      <div data-reveal>
+        <p class="eyebrow text-gold-300">
+          <span class="rule-gold" aria-hidden="true"></span>
+          Search
+        </p>
+        <h2 id="relocation-search-heading" class="mt-5 text-display-sm text-white">
+          See what is available
+        </h2>
+        <p class="mt-5 max-w-lg leading-relaxed text-white/75">
+          Filter by area, price, size and features. Every search is shareable —
+          the URL carries your filters, so you can send one to whoever is moving
+          with you. Tell us what you are after and you will hear about matches
+          as they come up, including the ones that never reach a portal.
+        </p>
+        <div class="mt-9 flex flex-wrap gap-3">
+          <Button href="/properties/search/" variant="gold" withArrow>
+            Search properties
+          </Button>
+          <Button href="/buy/dream-home-finder/" variant="inverse">
+            Dream Home Finder
+          </Button>
+        </div>
+      </div>
+
+      <div data-reveal style="--reveal-delay:100ms">
+        <MediaSlot
+          src={null}
+          width={1000}
+          height={800}
+          ratio="5/4"
+          tone="deep"
+          seed={9}
+          sizes="(min-width: 1024px) 45vw, 100vw"
+          class="max-h-[26rem] rounded-xs"
+        />
+      </div>
+    </div>
+  </Section>
+
+  {/* New developments */}
+  {
+    developments.length > 0 && (
+      <Section tone="white" labelledby="relocation-developments-heading">
+        <div class="flex flex-col gap-8 md:flex-row md:items-end md:justify-between">
+          <SectionHeader
+            id="relocation-developments-heading"
+            eyebrow="New construction"
+            title="Arriving into something new"
+            lead="Pre-construction rarely reaches the open market the way resale does, and allocations move through relationships."
+          />
+          <div class="hidden shrink-0 md:block" data-reveal>
+            <Button href="/developments/new/" variant="secondary" withArrow>
+              All developments
+            </Button>
+          </div>
+        </div>
+        <DevelopmentGrid developments={developments} class="mt-12" />
+        <div class="mt-10 flex md:hidden" data-reveal>
+          <Button href="/developments/new/" variant="secondary" block withArrow>
+            All developments
+          </Button>
+        </div>
+      </Section>
+    )
+  }
+
+  {/* Checklist teaser */}
+  <Section tone="warm" labelledby="relocation-checklist-heading">
+    <SectionHeader
+      id="relocation-checklist-heading"
+      eyebrow="The shape of it"
+      title="What a move usually involves"
+      lead="The stages, in the order they tend to happen. Nothing to download and no email required — if it is useful, it should just be here."
+    />
+
+    <ol class="mt-12 grid gap-6 lg:grid-cols-3">
+      {
+        CHECKLIST.map((group, index) => (
+          <li
+            class="flex h-full flex-col rounded-xs border border-line bg-white p-7"
+            data-reveal
+            style={`--reveal-delay:${index * 60}ms`}
+          >
+            <span class="font-serif text-lg text-gold-700" aria-hidden="true">
+              {String(index + 1).padStart(2, '0')}
+            </span>
+            <h3 class="mt-2 font-serif text-xl text-evergreen-800">{group.stage}</h3>
+            <ul class="mt-5 flex flex-col gap-3 border-t border-line pt-5">
+              {group.items.map((item) => (
+                <li class="flex gap-3 text-sm leading-relaxed text-ink-muted">
+                  <span
+                    class="mt-2 h-1 w-1 shrink-0 rounded-full bg-gold-600"
+                    aria-hidden="true"
+                  />
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
+          </li>
+        ))
+      }
+    </ol>
+
+    <p class="mt-10 max-w-prose text-sm leading-relaxed text-ink-subtle">
+      Every move differs, and this is the general shape rather than a promise
+      about yours. Insurance, lending and association rules in particular change
+      — check them at the time, not from a web page.
+    </p>
+  </Section>
+
+  {/* MaryEllen */}
+  {
+    maryellen && (
+      <Section tone="white" labelledby="relocation-maryellen-heading">
+        <div class="rounded-xs border border-line bg-cream-50 p-8 sm:p-12" data-reveal>
+          <div class="grid gap-10 lg:grid-cols-12 lg:items-center lg:gap-16">
+            <div class="lg:col-span-4">
+              <MediaSlot
+                src={maryellen.portrait}
+                alt={maryellen.portrait ? `${maryellen.name}, ${maryellen.title}` : ''}
+                width={720}
+                height={900}
+                ratio="4/5"
+                seed={2}
+                sizes="(min-width: 1024px) 30vw, 100vw"
+                class="mx-auto max-h-[24rem] rounded-xs"
+              />
+            </div>
+
+            <div class="lg:col-span-8">
+              <p class="eyebrow text-evergreen-600">
+                <span class="rule-gold" aria-hidden="true" />
+                {maryellen.title} · {maryellen.specialty}
+              </p>
+              <h2
+                id="relocation-maryellen-heading"
+                class="mt-4 text-display-sm text-evergreen-800"
+              >
+                {maryellen.name}
+              </h2>
+              <p class="mt-5 max-w-2xl leading-relaxed text-ink-muted">
+                Relocation Specialist is part of MaryEllen's confirmed title.
+                She works with buyers and sellers across South Florida, and with
+                families arriving from out of state — the part of the job that
+                starts before the searching does.
+              </p>
+
+              <dl class="mt-7 flex flex-col gap-x-10 gap-y-4 border-t border-line pt-6 sm:flex-row">
+                <div>
+                  <dt class="text-xs uppercase tracking-wide-sm text-ink-subtle">
+                    Direct line
+                  </dt>
+                  <dd class="mt-1">
+                    <a
+                      href={maryellen.phone.href}
+                      class="link-underline text-evergreen-800"
+                    >
+                      <span class="sr-only">Call {maryellen.name} on </span>
+                      {maryellen.phone.value}
+                    </a>
+                  </dd>
+                </div>
+                <div>
+                  <dt class="text-xs uppercase tracking-wide-sm text-ink-subtle">
+                    Email
+                  </dt>
+                  <dd class="mt-1 break-all">
+                    <a
+                      href={maryellen.email.href}
+                      class="link-underline text-evergreen-800"
+                    >
+                      <span class="sr-only">Email {maryellen.name} at </span>
+                      {maryellen.email.value}
+                    </a>
+                  </dd>
+                </div>
+              </dl>
+
+              <div class="mt-8 flex flex-wrap gap-3">
+                <Button href={maryellen.href} withArrow>
+                  Meet MaryEllen
+                </Button>
+                <Button href={maryellen.phone.href} variant="secondary">
+                  Call MaryEllen
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </Section>
+    )
+  }
+
+  {/* Contact form */}
+  <Section tone="warm" id="relocation-contact" labelledby="relocation-contact-heading">
+    <div class="grid gap-12 lg:grid-cols-12 lg:gap-16">
+      <div class="lg:col-span-7 xl:col-span-8">
+        <SectionHeader
+          id="relocation-contact-heading"
+          eyebrow="Get in touch"
+          title="Tell us about the move"
+          lead="Enough to give you a useful answer rather than a brochure. Only three answers are required."
+        />
+
+        <LeadForm
+          kind="relocation"
+          submitLabel="Send"
+          emailSubject="Relocation enquiry"
+          class="mt-10"
+        >
+          <FormSection
+            step={1}
+            title="How to reach you"
+            description="So we can reply, and in the way you prefer."
+          >
+            <FormField name="name" label="Full name" required autocomplete="name" span={6} />
+            <FormField
+              name="email"
+              label="Email"
+              type="email"
+              required
+              autocomplete="email"
+              inputmode="email"
+              span={6}
+            />
+            <FormField
+              name="phone"
+              label="Phone"
+              type="tel"
+              autocomplete="tel"
+              inputmode="tel"
+              span={6}
+            />
+            <FormChoiceGroup
+              name="contactMethod"
+              legend="Preferred contact method"
+              options={CONTACT_METHODS}
+              required
+              span={12}
+            />
+          </FormSection>
+
+          <FormSection
+            step={2}
+            title="The move"
+            description="Rough answers are fine. Nothing here is treated as a commitment."
+          >
+            <FormField
+              name="movingFrom"
+              label="Where are you moving from?"
+              placeholder="City and state, or country"
+              span={6}
+            />
+            <FormField
+              name="movingWith"
+              label="Who is moving with you?"
+              placeholder="Partner, children, pets"
+              span={6}
+            />
+            <FormChoiceGroup
+              name="timeframe"
+              legend="When are you hoping to move?"
+              options={TIMEFRAMES}
+              span={12}
+            />
+            <FormChoiceGroup
+              name="plan"
+              legend="Buying or renting first?"
+              options={PLANS}
+              span={12}
+            />
+          </FormSection>
+
+          <FormSection
+            step={3}
+            title="What you are looking for"
+            description="Including anything you already know you do not want."
+          >
+            <FormField
+              name="areas"
+              label="Areas you are considering"
+              placeholder="Or say if you are open — that is a useful answer too"
+              span={12}
+            />
+            <FormField
+              name="notes"
+              label="Anything else"
+              type="textarea"
+              rows={5}
+              placeholder="A commute, a school year, a lease ending, a job start date, an area you have already ruled out."
+              span={12}
+            />
+          </FormSection>
+        </LeadForm>
+      </div>
+
+      <aside class="lg:col-span-5 xl:col-span-4">
+        <div class="lg:sticky lg:top-32 flex flex-col gap-8">
+          <div class="rounded-xs border border-line bg-white p-6 sm:p-8">
+            <span class="rule-gold" aria-hidden="true"></span>
+            <h2 class="mt-4 font-serif text-2xl text-evergreen-800">
+              Would rather just talk?
+            </h2>
+            <p class="mt-3 text-sm leading-relaxed text-ink-muted">
+              A time-zone-friendly phone call usually covers more than a form.
+              Both numbers are direct lines.
+            </p>
+            <ul class="mt-6 flex flex-col gap-4 border-t border-line pt-5">
+              {
+                professionals.map((person) => (
+                  <li>
+                    <p class="text-sm font-medium text-evergreen-800">{person.name}</p>
+                    <p class="text-xs text-ink-subtle">
+                      {person.specialty
+                        ? `${person.title} · ${person.specialty}`
+                        : person.title}
+                    </p>
+                    <div class="mt-2 flex flex-wrap gap-x-5 gap-y-1 text-sm">
+                      <a href={person.phone.href} class="link-underline text-evergreen-800">
+                        {person.phone.value}
+                      </a>
+                      <a href={person.email.href} class="link-underline text-evergreen-800">
+                        {person.email.value}
+                      </a>
+                    </div>
+                  </li>
+                ))
+              }
+            </ul>
+          </div>
+
+          <div class="rounded-xs border border-line p-6 sm:p-8">
+            <h2 class="font-serif text-xl text-evergreen-800">While you are deciding</h2>
+            <ul class="mt-4 flex flex-col gap-2 text-sm">
+              <li>
+                <a href="/communities/" class="link-underline text-evergreen-800">
+                  Explore communities
+                </a>
+              </li>
+              <li>
+                <a href="/properties/search/" class="link-underline text-evergreen-800">
+                  Search properties
+                </a>
+              </li>
+              <li>
+                <a href="/developments/new/" class="link-underline text-evergreen-800">
+                  New developments
+                </a>
+              </li>
+              <li>
+                <a href="/mortgage-calculator/" class="link-underline text-evergreen-800">
+                  Estimate a monthly payment
+                </a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </Section>
+</BaseLayout>

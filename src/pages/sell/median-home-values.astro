@@ -36,15 +36,23 @@ import { professionals } from '@config/site';
  * honest "no published figure" state.
  */
 const areas = await Promise.all(
-  communities.map(async (community) => {
-    const snapshot = await valuationProvider.getMarketSnapshot(community.name);
-    return {
-      community,
-      snapshot,
-      curated: community.medianHomeValue,
-      hasFigure: Boolean(snapshot || community.medianHomeValue),
-    };
-  }),
+  /*
+     Municipalities only. Median home values are published at city level, and
+     listing "Emerald Hills" under a heading that says "Choose a city" would
+     imply a figure exists for it at a granularity it usually does not. Subareas
+     are covered by their parent city's row.
+  */
+  communities
+    .filter((community) => community.kind === 'city')
+    .map(async (community) => {
+      const snapshot = await valuationProvider.getMarketSnapshot(community.name);
+      return {
+        community,
+        snapshot,
+        curated: community.medianHomeValue,
+        hasFigure: Boolean(snapshot || community.medianHomeValue),
+      };
+    }),
 );
 
 const anyFigures = areas.some((area) => area.hasFigure);
@@ -206,7 +214,7 @@ const AUTOMATED = [
 
             <div class="mt-5 border-t border-line pt-5">
               <p class="max-w-prose text-sm leading-relaxed text-ink-muted">
-                {community.summary}
+                {community.shortDescription}
               </p>
 
               {hasFigure ? (

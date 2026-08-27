@@ -1,0 +1,62 @@
+---
+/**
+ * CommunityIntro — the guide copy for a community.
+ *
+ * Renders `introduction` verbatim when the client has written or approved it.
+ * When they have not, it renders a short, strictly factual stand-in built only
+ * from what the record actually holds — the name, the county, the parent
+ * municipality — plus a visible note that the guide is still being written.
+ *
+ * The note is phrased as a fact about the website, never as a claim about the
+ * neighbourhood. What it must never do is fill the gap with the sort of
+ * paragraph that could be written about anywhere: "a vibrant community with
+ * excellent schools and easy beach access" is four claims, none of them
+ * sourced (PROJECT_CONTEXT.md §9).
+ */
+import type { Community } from '@data/communities';
+import { cn } from '@lib/cn';
+
+interface Props {
+  community: Community;
+  class?: string;
+}
+
+const { community, class: className } = Astro.props;
+
+/*
+ * The stand-in leads with the record's own line rather than wrapping it in a
+ * constructed sentence: `shortDescription` already names the county and the
+ * place type, so "Hollywood is a community in Broward County. A coastal city in
+ * Broward County, between …" said everything twice.
+ */
+const neutral = [
+  community.shortDescription,
+  `Hoffman & Closius work across ${community.county} and the two counties either side of it. If you are considering ${community.name} — buying, selling, or still deciding whether it is the right area — the fastest way to a useful answer is to ask.`,
+];
+
+const paragraphs = community.introduction ?? neutral;
+const isPending = community.introduction === null;
+---
+
+<div class={cn('flex flex-col', className)}>
+  <div class="flex max-w-prose flex-col gap-5 leading-relaxed text-ink-muted">
+    {paragraphs.map((paragraph) => <p>{paragraph}</p>)}
+  </div>
+
+  {
+    isPending && (
+      <p
+        data-pending-content="community-guide"
+        class="mt-8 max-w-prose rounded-xs border border-dashed border-line-strong bg-cream-50 px-5 py-4 text-sm leading-relaxed text-ink-muted"
+      >
+        <span class="font-medium text-evergreen-800">
+          The full {community.name} guide is being written.
+        </span>{' '}
+        It is written with Martin and MaryEllen so every detail is one they have
+        checked. Until it is ready this page carries only what we can stand
+        behind — and no figures about schools, safety, prices or commutes, which
+        are the ones worth being right about.
+      </p>
+    )
+  }
+</div>

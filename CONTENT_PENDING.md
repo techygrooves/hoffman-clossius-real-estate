@@ -157,8 +157,15 @@ below must come from the client or the provider; none may be assumed.
 | 10.2 | **FAQ answers** | 🟠 | Questions touching process, fees and Florida practice must be client-reviewed. |
 | 10.3 | Buying guide content | 🟠 | |
 | 10.4 | Selling guide content | 🟠 | |
-| 10.5 | **Community guide copy — six pages already live** | 🟠 | The navigation names Hollywood, Fort Lauderdale, Dania Beach, Hallandale Beach, Pembroke Pines and Aventura, so those six routes now exist. Each currently carries **only a one-line verifiable locational fact** (which county it sits in and where, relative to its neighbours) and an "in preparation" band. Real guide copy, photography and any figures — with sources — are needed. No statistics, school ratings, median values or superlatives may be added without them. |
-| 10.5a | Any further communities to add | 🟡 | Beyond the six above. |
+| 10.5 | **Community guide copy — fifteen pages now live** | 🟠 | Every community page carries **only a one-line verifiable locational fact** plus a visible "the full guide is being written" note. Real copy goes in `introduction` (an array of paragraphs) on the record in `src/data/communities.ts`; the note disappears on its own. **No statistics, school ratings, crime figures, median values, population counts, commute times or superlatives** may be added without a citable, dated source — see the header of that file for the full list. |
+| 10.5a | **Confirm each community's locational line** | 🟠 | Fifteen written from geography alone. The four Hollywood-area subareas need the closest look: neighbourhood boundaries are locally understood and vary between who you ask. |
+| 10.5b | **Sheridan Lakes — which municipality?** | 🟠 | Recorded as `kind: 'neighborhood'` with `parent: null`, i.e. a neighbourhood whose city we have not confirmed. Setting `parent` to the right slug links it to that city's page and lists it under that city's subareas automatically. It is deliberately not guessed. |
+| 10.5c | **Verify the latitude/longitude on each record** | 🟠 | Approximate municipal centroids, carried so the map seam is ready. **No pin is plotted from them today** — `CommunityMap` states the location in words. Verify against an authoritative source before any map goes live (see also 11.4). The four subareas have none at all. |
+| 10.5d | **Community lifestyle points** (`highlights`) | 🟠 | The "Living in …" section renders **nothing at all** until these are supplied — deliberately, because a lifestyle section is where invented neighbourhood claims usually live. Each entry must be something Martin or MaryEllen will stand behind. "Walkable to the beach" is fine if true; "top-rated schools" is not, ever, without a source. |
+| 10.5e | Named subareas without their own page (`neighborhoods`) | 🟡 | Extra subarea names per community. Any community record with `parent` set is merged in automatically, so this is only for areas that do not warrant their own guide. |
+| 10.5f | Which communities are `featured` | 🟡 | `featured: true` puts a community in the header dropdown and the index's featured row. Currently Hollywood, Dania Beach, Hallandale Beach, Fort Lauderdale, Pembroke Pines and Aventura — an editorial guess, not a client instruction. |
+| 10.5g | Any further communities to add | 🟡 | One object in `src/data/communities.ts` creates the page, the index card, the navigation entry and the cross-links. No page code is written per community. |
+| 10.5h | **Community SEO fields** — reserved | 🟡 | `seo.title`, `seo.description`, `seo.body` and `seo.faqs` are empty on every record and are for a later, deliberate SEO phase. **Do not pre-fill them with keyword variations or generated copy.** An FAQ written to catch a search query is still an invented answer about somebody's neighbourhood; `FAQPage` structured data is deliberately not emitted for the same reason. |
 | 10.6 | **Developments to feature** | 🟠 | Which projects should appear under New and Established. For each: the published starting price, delivery year, residence count, developer and architect, amenities and residence types — **published figures only, never estimates**. Supply guide: `DEVELOPMENTS_DATA.md`. |
 | 10.6a | **Written permission for developer imagery** | 🔴 | Renderings, photographs and site plans are copyrighted developer material. Nothing may be published without the client holding written permission. **Nothing has been downloaded from any developer's site.** |
 | 10.6b | **Authorised floor plans** | 🟠 | Floor plans are never drawn, approximated or reconstructed. Until an authorised asset exists, each residence type says "Floor plans are available on request". |
@@ -193,7 +200,10 @@ Every placeholder shipped today, so none can be forgotten:
 | `site.url = 'https://hoffmanclosius.com'`, `urlConfirmed: false` | `src/config/site.ts` | 3.1 confirmed |
 | "Content for this page is on the way" band | `src/components/sections/InPreparation.astro`, on every stub route | Each page is built out |
 | Empty data modules | `src/data/*.ts` | The matching source is confirmed |
-| Six community pages carrying only a locational one-liner | `src/data/communities.ts` | 10.5 supplied |
+| Fifteen community pages carrying only a locational one-liner, with a visible "guide is being written" note | `src/components/communities/CommunityIntro.astro` | 10.5 supplied |
+| "Living in …" lifestyle section absent from every community page | `src/components/communities/CommunityHighlights.astro` | 10.5d supplied |
+| Map stated in words, no pin plotted, on every community page | `src/components/communities/CommunityMap.astro` | 10.5c verified **and** 11.4 map provider chosen |
+| Community FAQ section absent from every community page | `src/components/communities/CommunityFaq.astro` | 10.5h — the SEO phase, with client-approved answers |
 | Social icon slots rendering nothing | `src/components/layout/SocialLinks.astro` | §7 URLs supplied |
 | Abstract media placeholders in every image position | `src/components/ui/MediaSlot.astro` | §9 photography supplied |
 | Twelve demo listings, dev-only, badged "Sample" | `src/lib/listings/demoData.ts` | §5 IDX feed connected (delete the file) |
@@ -205,7 +215,7 @@ Every placeholder shipped today, so none can be forgotten:
 | Homepage empty states: listings, developments, testimonials, insights | the matching section components | Each data source is supplied |
 | Contact-fallback panel shown instead of a success message on every form | `src/components/forms/LeadForm.astro` | 6.1 `PUBLIC_LEAD_FORM_ENDPOINT` set |
 | "Online submission is still being set up" note above every submit button | `src/components/forms/LeadForm.astro` | 6.1 `PUBLIC_LEAD_FORM_ENDPOINT` set |
-| No median figure published for any of the six cities | `src/pages/sell/median-home-values.astro` | 10.7 sourced figures supplied, or a valuation provider connected |
+| No median figure published for any of the eleven municipalities | `src/pages/sell/median-home-values.astro` | 10.7 sourced figures supplied, or a valuation provider connected |
 | "Questions worth asking" list instead of seller FAQ answers | `src/pages/sell/index.astro` | 10.2 client-reviewed answers added to `src/data/faqs.ts` |
 | Neutral two-line stand-in where each biography goes, with a visible "a fuller profile is on the way" note | `src/components/people/PersonBio.astro` | 8.1 / 8.2 supplied |
 | "Areas of focus" section absent from both profile pages | `src/components/people/PersonSpecialties.astro` | 8.5 confirmed |

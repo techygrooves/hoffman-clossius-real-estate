@@ -1,0 +1,108 @@
+---
+/**
+ * CommunityCard — one community on the index or a cross-link grid.
+ *
+ * Shows the name, its county, its parent municipality when it is a subarea,
+ * and the single factual line from the data file. Nothing else, because
+ * nothing else has been supplied — no price band, no "popular for", no rating.
+ *
+ * Carries a compact JSON payload so the client filter can show and hide it
+ * without re-rendering any markup.
+ */
+import MediaSlot from '@components/ui/MediaSlot.astro';
+import type { Community } from '@data/communities';
+import { cn } from '@lib/cn';
+
+interface Props {
+  community: Community;
+  /** Resolved by the caller so this component stays free of lookups. */
+  parentName?: string | null;
+  seed?: number;
+  /** `feature` is the taller treatment used on the index's featured row. */
+  variant?: 'default' | 'feature';
+  class?: string;
+}
+
+const {
+  community,
+  parentName = null,
+  seed = 0,
+  variant = 'default',
+  class: className,
+} = Astro.props;
+
+const isFeature = variant === 'feature';
+
+/** Only the fields `matchesCommunity` reads. */
+const payload = JSON.stringify({
+  slug: community.slug,
+  name: community.name,
+  county: community.county,
+  kind: community.kind,
+  parent: community.parent,
+  parentName,
+});
+---
+
+<li data-community={payload} class={cn('min-w-0', className)}>
+  <a
+    href={`/communities/${community.slug}/`}
+    class={cn(
+      'group relative isolate flex h-full flex-col overflow-hidden rounded-xs bg-evergreen-900 text-white',
+      isFeature ? 'min-h-[24rem] sm:min-h-[28rem]' : 'min-h-[18rem]',
+    )}
+    data-surface="dark"
+  >
+    <span class="absolute inset-0 -z-10">
+      <MediaSlot
+        src={community.heroImage?.src ?? null}
+        alt=""
+        width={800}
+        height={1000}
+        ratio="auto"
+        tone="deep"
+        seed={seed}
+        marker={false}
+        sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+        class="h-full w-full"
+        imgClass="transition-transform duration-700 ease-[var(--ease-editorial)] motion-safe:group-hover:scale-[1.04]"
+      />
+    </span>
+
+    {/* Scrim, so the text keeps its contrast over any photograph. */}
+    <span
+      class="absolute inset-0 -z-10 bg-gradient-to-t from-evergreen-900 via-evergreen-900/70 to-evergreen-900/25"
+      aria-hidden="true"></span>
+
+    <span class="mt-auto flex flex-col p-6 sm:p-7">
+      <span class="text-xs uppercase tracking-eyebrow text-white/70">
+        {community.parent && parentName ? `${parentName} · ${community.county}` : community.county}
+      </span>
+      <span
+        class={cn(
+          'mt-2 font-serif text-white',
+          isFeature ? 'text-3xl' : 'text-2xl',
+        )}
+      >
+        {community.name}
+      </span>
+      <span class="mt-3 text-sm leading-relaxed text-white/75">
+        {community.shortDescription}
+      </span>
+      <span class="mt-5 inline-flex items-center gap-2 text-xs uppercase tracking-eyebrow text-gold-300">
+        Explore {community.name}
+        <svg
+          class="h-3 w-3 transition-transform duration-300 ease-[var(--ease-editorial)] motion-safe:group-hover:translate-x-1"
+          viewBox="0 0 16 16"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.5"
+          stroke-linecap="square"
+          aria-hidden="true"
+        >
+          <path d="M1 8h13M9 3l5 5-5 5"></path>
+        </svg>
+      </span>
+    </span>
+  </a>
+</li>

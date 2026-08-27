@@ -1,0 +1,83 @@
+---
+/**
+ * CommunityNeighborhoods — the subareas within a community.
+ *
+ * The list is assembled by `communityNeighborhoods()`: every community record
+ * that names this one as its parent, plus any extra names the client has
+ * supplied. So adding "Emerald Hills" as a community with
+ * `parent: 'hollywood'` puts it on Hollywood's page, links the two, and needs
+ * no edit here.
+ *
+ * Renders nothing when a community has no subareas — most do not, and an empty
+ * "Neighbourhoods" heading would imply we simply failed to list them.
+ */
+import Section from '@components/ui/Section.astro';
+import SectionHeader from '@components/ui/SectionHeader.astro';
+import type { Community, Neighborhood } from '@data/communities';
+
+interface Props {
+  community: Community;
+  neighborhoods: readonly Neighborhood[];
+  id: string;
+  tone?: 'white' | 'warm';
+}
+
+const { community, neighborhoods, id, tone = 'white' } = Astro.props;
+---
+
+{
+  neighborhoods.length > 0 && (
+    <Section tone={tone} labelledby={id}>
+      <SectionHeader
+        id={id}
+        eyebrow="Neighbourhoods"
+        title={`Areas within ${community.name}`}
+        lead={`Each is a distinct part of ${community.name}. Where one has its own guide, it is linked.`}
+      />
+
+      <ul class="mt-12 grid gap-px overflow-hidden rounded-xs border border-line bg-line sm:grid-cols-2">
+        {neighborhoods.map((area) => (
+          <li class="bg-white">
+            {area.slug ? (
+              <a
+                href={`/communities/${area.slug}/`}
+                class="group flex h-full flex-col p-7 transition-colors hover:bg-cream-50"
+                data-reveal
+              >
+                <span class="font-serif text-xl text-evergreen-800">{area.name}</span>
+                {area.note && (
+                  <span class="mt-2 text-sm leading-relaxed text-ink-muted">
+                    {area.note}
+                  </span>
+                )}
+                <span class="mt-4 inline-flex items-center gap-2 text-xs uppercase tracking-eyebrow text-evergreen-700">
+                  View guide
+                  <svg
+                    class="h-3 w-3 transition-transform duration-300 ease-[var(--ease-editorial)] motion-safe:group-hover:translate-x-1"
+                    viewBox="0 0 16 16"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                    stroke-linecap="square"
+                    aria-hidden="true"
+                  >
+                    <path d="M1 8h13M9 3l5 5-5 5" />
+                  </svg>
+                </span>
+              </a>
+            ) : (
+              <div class="flex h-full flex-col p-7" data-reveal>
+                <span class="font-serif text-xl text-evergreen-800">{area.name}</span>
+                {area.note && (
+                  <span class="mt-2 text-sm leading-relaxed text-ink-muted">
+                    {area.note}
+                  </span>
+                )}
+              </div>
+            )}
+          </li>
+        ))}
+      </ul>
+    </Section>
+  )
+}

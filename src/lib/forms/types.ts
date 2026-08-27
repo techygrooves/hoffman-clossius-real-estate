@@ -20,6 +20,7 @@ export type LeadKind =
   | 'dream-home-finder'
   | 'home-evaluation'
   | 'contact'
+  | 'relocation'
   | 'development-enquiry'
   | 'property-enquiry';
 

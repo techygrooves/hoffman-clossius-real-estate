@@ -1,11 +1,52 @@
 ---
 /**
- * Individual community guide. Generates nothing until guides are written with
- * the client — see src/data/communities.ts.
+ * Community guide template.
+ *
+ * ONE template for every community. Adding a community is one object in
+ * src/data/communities.ts — the page, its card on the index, its entry in the
+ * navigation and its cross-links from neighbouring guides all follow from it.
+ * There is no per-community page code and there must never be.
+ *
+ * ── Sections, and which of them render today ──────────────────────────────
+ * Sections whose content is client-supplied render NOTHING until it exists:
+ * lifestyle (`highlights`), subareas (`neighborhoods` + child records) and the
+ * FAQ (`seo.faqs`). An empty band with a heading over it would read as a
+ * failure to fill it in; absence reads as what it is.
+ *
+ * ── What this page will never say ─────────────────────────────────────────
+ * School ratings or rankings · crime statistics · median or average prices ·
+ * population figures · commute or travel times · days on market · rent
+ * figures · appreciation rates · "one of the most desirable areas in South
+ * Florida". Those are the sentences a buyer acts on, and each needs a citable,
+ * dated source (PROJECT_CONTEXT.md §9). None has been supplied.
+ *
+ * Property-type counts come from the live listing provider and are absent when
+ * no feed is connected — never rendered as a zero.
  */
 import type { GetStaticPaths } from 'astro';
-import StubPage from '@layouts/StubPage.astro';
-import { communities } from '@data/communities';
+import BaseLayout from '@layouts/BaseLayout.astro';
+import Section from '@components/ui/Section.astro';
+import SectionHeader from '@components/ui/SectionHeader.astro';
+import AgentCard from '@components/ui/AgentCard.astro';
+import Button from '@components/ui/Button.astro';
+import CommunityHero from '@components/communities/CommunityHero.astro';
+import CommunityIntro from '@components/communities/CommunityIntro.astro';
+import CommunityListings from '@components/communities/CommunityListings.astro';
+import CommunityHighlights from '@components/communities/CommunityHighlights.astro';
+import CommunityNeighborhoods from '@components/communities/CommunityNeighborhoods.astro';
+import CommunityPropertyTypes from '@components/communities/CommunityPropertyTypes.astro';
+import CommunityMap from '@components/communities/CommunityMap.astro';
+import NearbyCommunities from '@components/communities/NearbyCommunities.astro';
+import CommunityCtas from '@components/communities/CommunityCtas.astro';
+import CommunityFaq from '@components/communities/CommunityFaq.astro';
+import {
+  communities,
+  getCommunity,
+  communityNeighborhoods,
+  nearbyCommunities,
+} from '@data/communities';
+import { PARAM } from '@lib/listings/query';
+import { getProfessional } from '@config/site';
 
 export const getStaticPaths = (() =>
   communities.map((community) => ({
@@ -14,16 +55,157 @@ export const getStaticPaths = (() =>
   }))) satisfies GetStaticPaths;
 
 const { community } = Astro.props;
+
+const parent = community.parent ? getCommunity(community.parent) : undefined;
+const parentName = parent?.name ?? null;
+
+const neighborhoods = communityNeighborhoods(community);
+const nearby = nearbyCommunities(community);
+
+/** Parent names for the nearby cards, resolved once here. */
+const nearbyParentNames: Record<string, string | null> = Object.fromEntries(
+  nearby.map((c) => [c.slug, c.parent ? (getCommunity(c.parent)?.name ?? null) : null]),
+);
+
+/** The community's own search URL, built from its `propertySearchQuery`. */
+const searchParams = new URLSearchParams();
+if (community.propertySearchQuery.location) {
+  searchParams.set(PARAM.location, community.propertySearchQuery.location);
+}
+const searchHref = `/properties/search/${searchParams.size > 0 ? `?${searchParams}` : ''}`;
+
+const martin = getProfessional('martin-hoffman');
+const maryellen = getProfessional('maryellen-closius');
+
+/**
+ * `seo.title` / `seo.description` are reserved for the later SEO phase and are
+ * null on every record. Until then the page uses its own factual line — which
+ * is a real description of the page, not a keyword string.
+ */
+const pageTitle = community.seo.title ?? `${community.name} Real Estate`;
+const pageDescription =
+  community.seo.description ??
+  `${community.shortDescription} Homes for sale in ${community.name} with Hoffman & Closius — Martin Hoffman P.A. and MaryEllen Closius P.A.`;
+
+const breadcrumbs = [
+  { label: 'Communities', href: '/communities/' },
+  ...(parent ? [{ label: parent.name, href: `/communities/${parent.slug}/` }] : []),
+  { label: community.name },
+];
+
+/** Index within the data file, so placeholder motifs vary between pages. */
+const seed = communities.findIndex((c) => c.slug === community.slug);
 ---
 
-<StubPage
-  title={community.name}
-  heading={community.name}
-  eyebrow={community.county}
-  description={community.summary}
-  breadcrumbs={[
-    { label: 'Communities', href: '/communities/' },
-    { label: community.name },
-  ]}
-  note="The community guide template is built alongside the first guides."
-/>
+<BaseLayout title={pageTitle} description={pageDescription}>
+  {/* 1 + 2 — breadcrumb and hero */}
+  <CommunityHero
+    community={community}
+    parentName={parentName}
+    breadcrumbs={breadcrumbs}
+    searchHref={searchHref}
+    seed={seed}
+  />
+
+  {/* 3 — introduction, with the map alongside it */}
+  <Section tone="white" labelledby="community-intro-heading">
+    <div class="grid gap-12 lg:grid-cols-12 lg:gap-16">
+      <div class="lg:col-span-7">
+        <SectionHeader
+          id="community-intro-heading"
+          eyebrow="Introduction"
+          title={`About ${community.name}`}
+        />
+        <CommunityIntro community={community} class="mt-8" />
+      </div>
+
+      {/* 8 — location */}
+      <div class="lg:col-span-5">
+        <CommunityMap community={community} parentName={parentName} class="lg:mt-4" />
+      </div>
+    </div>
+  </Section>
+
+  {/* 4 — homes for sale, filtered to this community */}
+  <CommunityListings
+    community={community}
+    id="community-listings-heading"
+    searchHref={searchHref}
+    tone="warm"
+  />
+
+  {/* 5 — lifestyle. Renders nothing until the client supplies highlights. */}
+  <CommunityHighlights community={community} id="community-lifestyle-heading" tone="white" />
+
+  {/* 6 — subareas. Renders nothing when a community has none. */}
+  <CommunityNeighborhoods
+    community={community}
+    neighborhoods={neighborhoods}
+    id="community-neighborhoods-heading"
+    tone="white"
+  />
+
+  {/* 7 — property types, counted live from the provider */}
+  <CommunityPropertyTypes
+    community={community}
+    id="community-types-heading"
+    tone="warm"
+  />
+
+  {/* 9 — nearby communities */}
+  <NearbyCommunities
+    communities={nearby}
+    parentNames={nearbyParentNames}
+    id="community-nearby-heading"
+    tone="white"
+  />
+
+  {/* 10 + 11 + 12 — buyer, seller and relocation routes */}
+  <CommunityCtas
+    community={community}
+    searchHref={searchHref}
+    id="community-ctas-heading"
+    tone="warm"
+  />
+
+  {/* 14 — FAQ, reserved for the SEO phase. Renders nothing today. */}
+  <CommunityFaq community={community} id="community-faq-heading" tone="white" />
+
+  {/* 13 — agent contact */}
+  <Section tone="warm" labelledby="community-contact-heading">
+    <SectionHeader
+      id="community-contact-heading"
+      eyebrow="Talk to us"
+      title={`Ask about ${community.name}`}
+      lead="Whatever you want to know about the area — including the things a website should not be telling you — ask a person who works in it."
+      align="center"
+    />
+
+    <div class="mt-14 grid gap-12 md:grid-cols-2 md:gap-10 lg:gap-16">
+      {
+        [martin, maryellen].map(
+          (person, index) =>
+            person && (
+              <AgentCard
+                person={person}
+                intro={
+                  person.slug === 'martin-hoffman'
+                    ? 'Martin holds a Broker-Associate licence and represents buyers and sellers across South Florida.'
+                    : 'MaryEllen is a Realtor Associate and Relocation Specialist, working with buyers, sellers and families moving to South Florida.'
+                }
+                ctaLabel={`Meet ${person.firstName}`}
+                seed={index + 1}
+              />
+            ),
+        )
+      }
+    </div>
+
+    <div class="mt-14 flex flex-wrap justify-center gap-3" data-reveal>
+      <Button href="/contact/" withArrow>Contact us</Button>
+      <Button href={searchHref} variant="secondary">
+        Search {community.name}
+      </Button>
+    </div>
+  </Section>
+</BaseLayout>

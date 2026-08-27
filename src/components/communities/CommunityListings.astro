@@ -1,0 +1,105 @@
+---
+/**
+ * CommunityListings — homes for sale in this community.
+ *
+ * Comes from the listing provider, filtered by the record's own
+ * `propertySearchQuery`. Never from markup, and never padded out with
+ * properties from a neighbouring city to make the section look busier — a
+ * page about Emerald Hills showing a Fort Lauderdale listing is a
+ * misattribution, not a design decision.
+ *
+ * Three states, all honest: results; "nothing on the market here this week",
+ * which is a normal state for a small neighbourhood rather than a failure; and
+ * "live property search is being configured" when no feed exists at all.
+ */
+import Section from '@components/ui/Section.astro';
+import SectionHeader from '@components/ui/SectionHeader.astro';
+import Button from '@components/ui/Button.astro';
+import DemoNotice from '@components/ui/DemoNotice.astro';
+import ListingGrid from '@components/listings/ListingGrid.astro';
+import { listingProvider, hasListingData } from '@lib/listings/provider';
+import type { Community } from '@data/communities';
+
+interface Props {
+  community: Community;
+  id: string;
+  searchHref: string;
+  limit?: number;
+  tone?: 'white' | 'warm';
+}
+
+const { community, id, searchHref, limit = 3, tone = 'warm' } = Astro.props;
+
+const result = await listingProvider.search({
+  ...community.propertySearchQuery,
+  status: ['for-sale', 'coming-soon'],
+  sort: 'newest',
+  page: 1,
+  pageSize: limit,
+});
+
+const items = result.listings;
+---
+
+<Section tone={tone} labelledby={id}>
+  <div class="flex flex-col gap-8 md:flex-row md:items-end md:justify-between">
+    <SectionHeader
+      id={id}
+      eyebrow="On the market"
+      title={`Homes for sale in ${community.name}`}
+      lead={
+        items.length > 0
+          ? `${result.total} currently available. Updated as the market moves.`
+          : undefined
+      }
+    />
+    {
+      items.length > 0 && (
+        <div class="hidden shrink-0 md:block" data-reveal>
+          <Button href={searchHref} variant="secondary" withArrow>
+            View all
+          </Button>
+        </div>
+      )
+    }
+  </div>
+
+  {listingProvider.isDemo && items.length > 0 && <DemoNotice class="mt-8" />}
+
+  {
+    items.length > 0 ? (
+      <>
+        <ListingGrid listings={items} class="mt-12" />
+        <div class="mt-10 flex md:hidden" data-reveal>
+          <Button href={searchHref} variant="secondary" block withArrow>
+            View all homes in {community.name}
+          </Button>
+        </div>
+      </>
+    ) : (
+      <div
+        class="mt-12 rounded-xs border border-dashed border-line-strong bg-white px-8 py-12 text-center"
+        data-reveal
+      >
+        <p class="mx-auto max-w-xl font-serif text-2xl text-evergreen-800">
+          {hasListingData
+            ? `Nothing is on the open market in ${community.name} this week.`
+            : 'Live property search is being configured.'}
+        </p>
+        <p class="mx-auto mt-4 max-w-md text-sm leading-relaxed text-ink-muted">
+          {hasListingData
+            ? 'That changes constantly, and a good deal often never reaches a portal at all. Tell us what you are after and you will hear about it directly.'
+            : `In the meantime, tell us what you are looking for in ${community.name} and you will hear about it directly.`}
+        </p>
+        <div class="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
+          <Button href="/buy/dream-home-finder/" variant="secondary" withArrow>
+            Tell us what you want
+          </Button>
+          <Button href="/properties/search/" variant="ghost">
+            Search all properties
+          </Button>
+        </div>
+      </div>
+    )
+  }
+</Section>

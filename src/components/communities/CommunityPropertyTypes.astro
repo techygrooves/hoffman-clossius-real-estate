@@ -1,0 +1,110 @@
+---
+/**
+ * CommunityPropertyTypes — what kinds of home come up in this area.
+ *
+ * Every count here comes from the listing provider, live. Nothing is asserted
+ * about the housing stock: with no feed connected the section shows the search
+ * routes rather than claiming what an area is "known for". "Mostly
+ * single-family homes and low-rise condominiums" reads like a fact and is a
+ * guess, so it does not appear.
+ *
+ * With a feed connected, a type with no current listings is still shown as a
+ * search route — "none on the market this week" is a different statement from
+ * "this area has none", and only the first one is true.
+ */
+import Section from '@components/ui/Section.astro';
+import SectionHeader from '@components/ui/SectionHeader.astro';
+import { listingProvider, hasListingData } from '@lib/listings/provider';
+import { PARAM, PROPERTY_TYPE_LABELS } from '@lib/listings/query';
+import type { Community } from '@data/communities';
+import type { PropertyType } from '@lib/listings/types';
+
+interface Props {
+  community: Community;
+  id: string;
+  tone?: 'white' | 'warm';
+}
+
+const { community, id, tone = 'white' } = Astro.props;
+
+/** The types worth offering as a route. Land and commercial are not homes. */
+const TYPES: readonly PropertyType[] = [
+  'single-family',
+  'condominium',
+  'townhouse',
+  'villa',
+  'multi-family',
+];
+
+const base = community.propertySearchQuery;
+
+const rows = await Promise.all(
+  TYPES.map(async (propertyType) => {
+    const result = await listingProvider.search({
+      ...base,
+      propertyType: [propertyType],
+      status: ['for-sale', 'coming-soon'],
+      page: 1,
+      pageSize: 1,
+    });
+
+    const params = new URLSearchParams();
+    if (base.location) params.set(PARAM.location, base.location);
+    params.set(PARAM.propertyType, propertyType);
+
+    return {
+      propertyType,
+      label: PROPERTY_TYPE_LABELS[propertyType],
+      /** null when no feed is connected — never rendered as a zero. */
+      count: hasListingData ? result.total : null,
+      href: `/properties/search/?${params.toString()}`,
+    };
+  }),
+);
+---
+
+<Section tone={tone} labelledby={id}>
+  <SectionHeader
+    id={id}
+    eyebrow="Property types"
+    title={`What to search in ${community.name}`}
+    lead={
+      hasListingData
+        ? 'Counts are what is on the market right now, and change constantly.'
+        : undefined
+    }
+  />
+
+  <ul class="mt-12 grid gap-px overflow-hidden rounded-xs border border-line bg-line sm:grid-cols-2 lg:grid-cols-3">
+    {
+      rows.map((row) => (
+        <li class="bg-white">
+          <a
+            href={row.href}
+            class="group flex h-full items-baseline justify-between gap-4 p-6 transition-colors hover:bg-cream-50"
+            data-reveal
+          >
+            <span class="font-serif text-lg text-evergreen-800">{row.label}</span>
+            {row.count !== null && (
+              <span class="shrink-0 text-sm text-ink-muted">
+                {row.count}
+                <span class="sr-only"> currently for sale</span>
+              </span>
+            )}
+            <svg
+              class="h-3 w-3 shrink-0 text-evergreen-700 transition-transform duration-300 ease-[var(--ease-editorial)] motion-safe:group-hover:translate-x-1"
+              viewBox="0 0 16 16"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.5"
+              stroke-linecap="square"
+              aria-hidden="true"
+            >
+              <path d="M1 8h13M9 3l5 5-5 5" />
+            </svg>
+          </a>
+        </li>
+      ))
+    }
+  </ul>
+</Section>
