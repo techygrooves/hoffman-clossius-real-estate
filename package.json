@@ -3,18 +3,19 @@
   "type": "module",
   "version": "0.1.0",
   "private": true,
-  "description": "Hoffman & Closius — South Florida real estate website (Astro + Tailwind, static output).",
+  "description": "Hoffman & Closius \u2014 South Florida real estate website (Astro + Tailwind, static output).",
   "scripts": {
     "dev": "astro dev",
     "start": "astro dev",
-    "build": "astro check && astro build && node scripts/verify-links.mjs",
+    "build": "astro check && node --test tests/*.test.mjs && astro build && node scripts/verify-links.mjs",
     "build:fast": "astro build",
     "build:demo": "PUBLIC_DEMO_CONTENT=true astro build",
     "build:portable": "astro build && node scripts/make-portable.mjs",
     "preview": "astro preview",
     "check": "astro check",
     "verify:links": "node scripts/verify-links.mjs",
-    "astro": "astro"
+    "astro": "astro",
+    "test:unit": "node --test tests/*.test.mjs"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.3",

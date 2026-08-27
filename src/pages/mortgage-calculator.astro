@@ -1,12 +1,528 @@
 ---
-import StubPage from '@layouts/StubPage.astro';
+/**
+ * Mortgage calculator.
+ *
+ * ── What it is ────────────────────────────────────────────────────────────
+ * The standard amortisation formula applied to numbers the visitor typed. The
+ * arithmetic lives in `src/lib/mortgage/calculate.ts`, is pure, and is
+ * unit-tested (`npm run test:unit`, wired into `npm run build`).
+ *
+ * ── What it is not ────────────────────────────────────────────────────────
+ * Not a lending quote, not a pre-approval, not an affordability assessment,
+ * and not artificial intelligence — it is arithmetic, and the page says so.
+ *
+ * ── No rate is supplied ───────────────────────────────────────────────────
+ * The interest rate field starts EMPTY and nothing is calculated until it is
+ * filled in. Pre-filling a plausible rate would be the site stating a market
+ * figure it has no source for, and rates move daily. Nothing here fetches a
+ * rate, and nothing should until a verified provider is integrated
+ * (CONTENT_PENDING.md 11.3).
+ *
+ * Tax, insurance and HOA default to blank for the same reason: Florida
+ * insurance in particular varies enormously by property, and a default figure
+ * would be a guess presented as a starting point.
+ */
+import BaseLayout from '@layouts/BaseLayout.astro';
+import PageHero from '@components/ui/PageHero.astro';
+import Section from '@components/ui/Section.astro';
+import SectionHeader from '@components/ui/SectionHeader.astro';
+import Button from '@components/ui/Button.astro';
+import { LOAN_TERMS } from '@lib/mortgage/calculate';
+import { professionals } from '@config/site';
+
+/*
+ * Deliberately carries NO width utility. Tailwind emits `w-full` after `w-28`,
+ * so a shared class containing `w-full` silently overrides a fixed width at the
+ * call site — which is what pushed this form 31px past the viewport at 390px.
+ * Width is always applied explicitly below. (BUILD_PROGRESS.md, problem 6.)
+ */
+const control =
+  'h-12 rounded-xs border border-line-control bg-white px-3.5 text-sm text-ink ' +
+  'placeholder:text-ink-subtle transition-colors hover:border-evergreen-700 ' +
+  'focus:border-evergreen-800 aria-[invalid=true]:border-red-700 aria-[invalid=true]:bg-red-50/40';
+const field = `w-full ${control}`;
+const label = 'block text-xs uppercase tracking-wide-sm text-ink-muted';
+
+/** Each line of the monthly payment, in the order it is rendered. */
+const LINES = [
+  { key: 'pi', label: 'Principal and interest', out: 'out-pi' },
+  { key: 'tax', label: 'Property taxes', out: 'out-tax' },
+  { key: 'insurance', label: 'Homeowners insurance', out: 'out-insurance' },
+  { key: 'hoa', label: 'Association fees', out: 'out-hoa' },
+] as const;
+
+const NOT_INCLUDED = [
+  'Mortgage insurance (PMI), which most lenders require below 20% down.',
+  'Flood insurance, which is separate from homeowners insurance and is required in some zones.',
+  'Closing costs, prepaid items and escrow deposits.',
+  'Special assessments, which a condominium or HOA can levy on top of the regular fee.',
+  'Any change in your taxes or insurance after the first year — both are reassessed.',
+];
 ---
 
-<StubPage
-  title={'Mortgage Calculator'}
-  heading={'Mortgage calculator'}
-  eyebrow={'Tools'}
-  description={'Estimate a monthly mortgage payment, including taxes, insurance and association fees.'}
-  breadcrumbs={[{ label: 'Mortgage Calculator' }]}
-  note={'A client-side calculator will live here, with a clear note that results are estimates and not a lending offer.'}
-/>
+<BaseLayout
+  title="Mortgage Calculator"
+  description="Estimate a monthly mortgage payment including principal, interest, property taxes, insurance and association fees. An estimate only — not a lending quote."
+>
+  <PageHero
+    eyebrow="Tools"
+    title="Mortgage calculator"
+    lead="Work out roughly what a purchase looks like monthly. Enter your own interest rate — this site does not hold one, and will not guess at one."
+    breadcrumbs={[{ label: 'Mortgage Calculator' }]}
+  />
+
+  <Section tone="white" labelledby="calculator-heading">
+    <h2 id="calculator-heading" class="sr-only">Estimate a monthly payment</h2>
+
+    <form data-calculator class="grid gap-12 lg:grid-cols-12 lg:gap-16">
+      {/* Inputs */}
+      <div class="lg:col-span-7 xl:col-span-7">
+        <div class="grid grid-cols-1 gap-x-5 gap-y-6 sm:grid-cols-2">
+          <div data-calc-field class="sm:col-span-2">
+            <label class={label} for="calc-price">
+              Home price <span class="text-gold-700" aria-hidden="true">*</span>
+              <span class="sr-only">(required)</span>
+            </label>
+            <div class="relative mt-2">
+              <span
+                class="pointer-events-none absolute inset-y-0 left-3.5 flex items-center text-sm text-ink-muted"
+                aria-hidden="true">$</span>
+              <input
+                id="calc-price"
+                data-calc="price"
+                data-calc-noun="a price"
+                type="text"
+                inputmode="decimal"
+                autocomplete="off"
+                placeholder="600,000"
+                aria-describedby="calc-price-error"
+                class={`${field} pl-7`}
+              />
+            </div>
+            <p id="calc-price-error" data-calc-error role="alert" hidden
+              class="mt-2 text-xs leading-relaxed text-red-800"></p>
+          </div>
+
+          <div data-calc-field>
+            <label class={label} for="calc-down">Down payment</label>
+            <div class="mt-2 flex gap-2">
+              {/*
+                Two affixes rather than one that changes character: a currency
+                symbol belongs before the number and a percent sign after it,
+                and a single element on the left rendered "%20". The input
+                reserves room on both sides so switching mode does not shift
+                the layout.
+              */}
+              <div class="relative flex-1">
+                <span
+                  data-calc="down-affix-amount"
+                  hidden
+                  class="pointer-events-none absolute inset-y-0 left-3.5 flex items-center text-sm text-ink-muted"
+                  aria-hidden="true">$</span>
+                <input
+                  id="calc-down"
+                  data-calc="down-value"
+                  data-calc-noun="an amount"
+                  type="text"
+                  inputmode="decimal"
+                  autocomplete="off"
+                  value="20"
+                  placeholder="20"
+                  aria-describedby="calc-down-error"
+                  class={`${field} pl-7 pr-8`}
+                />
+                <span
+                  data-calc="down-affix-percent"
+                  class="pointer-events-none absolute inset-y-0 right-3.5 flex items-center text-sm text-ink-muted"
+                  aria-hidden="true">%</span>
+              </div>
+              <select
+                data-calc="down-mode"
+                aria-label="Down payment entered as"
+                class={`${control} w-28 shrink-0 px-2`}
+              >
+                <option value="percent">Percent</option>
+                <option value="amount">Dollars</option>
+              </select>
+            </div>
+            <p id="calc-down-error" data-calc-error role="alert" hidden
+              class="mt-2 text-xs leading-relaxed text-red-800"></p>
+          </div>
+
+          <div data-calc-field>
+            <label class={label} for="calc-rate">
+              Interest rate <span class="text-gold-700" aria-hidden="true">*</span>
+              <span class="sr-only">(required)</span>
+            </label>
+            <div class="relative mt-2">
+              <input
+                id="calc-rate"
+                data-calc="rate"
+                data-calc-noun="a rate"
+                type="text"
+                inputmode="decimal"
+                autocomplete="off"
+                placeholder="6.5"
+                aria-describedby="calc-rate-hint calc-rate-error"
+                class={`${field} pr-8`}
+              />
+              <span
+                class="pointer-events-none absolute inset-y-0 right-3.5 flex items-center text-sm text-ink-muted"
+                aria-hidden="true">%</span>
+            </div>
+            <p id="calc-rate-hint" class="mt-1.5 text-xs text-ink-subtle">
+              Your lender's quoted rate. We do not publish one.
+            </p>
+            <p id="calc-rate-error" data-calc-error role="alert" hidden
+              class="mt-2 text-xs leading-relaxed text-red-800"></p>
+          </div>
+
+          <div data-calc-field>
+            <label class={label} for="calc-term">Loan term</label>
+            <select id="calc-term" data-calc="term" class={`mt-2 ${field}`}>
+              {LOAN_TERMS.map((years) => (
+                <option value={years} selected={years === 30}>{years} years</option>
+              ))}
+            </select>
+          </div>
+
+          <div data-calc-field>
+            <label class={label} for="calc-tax">
+              Annual property taxes
+              <span class="ml-1 normal-case tracking-normal text-ink-subtle">(optional)</span>
+            </label>
+            <div class="relative mt-2">
+              <span
+                class="pointer-events-none absolute inset-y-0 left-3.5 flex items-center text-sm text-ink-muted"
+                aria-hidden="true">$</span>
+              <input
+                id="calc-tax"
+                data-calc="tax"
+                data-calc-noun="an amount"
+                type="text"
+                inputmode="decimal"
+                autocomplete="off"
+                placeholder="9,000"
+                aria-describedby="calc-tax-error"
+                class={`${field} pl-7`}
+              />
+            </div>
+            <p id="calc-tax-error" data-calc-error role="alert" hidden
+              class="mt-2 text-xs leading-relaxed text-red-800"></p>
+          </div>
+
+          <div data-calc-field>
+            <label class={label} for="calc-insurance">
+              Annual homeowners insurance
+              <span class="ml-1 normal-case tracking-normal text-ink-subtle">(optional)</span>
+            </label>
+            <div class="relative mt-2">
+              <span
+                class="pointer-events-none absolute inset-y-0 left-3.5 flex items-center text-sm text-ink-muted"
+                aria-hidden="true">$</span>
+              <input
+                id="calc-insurance"
+                data-calc="insurance"
+                data-calc-noun="an amount"
+                type="text"
+                inputmode="decimal"
+                autocomplete="off"
+                placeholder="4,800"
+                aria-describedby="calc-insurance-error"
+                class={`${field} pl-7`}
+              />
+            </div>
+            <p id="calc-insurance-error" data-calc-error role="alert" hidden
+              class="mt-2 text-xs leading-relaxed text-red-800"></p>
+          </div>
+
+          <div data-calc-field>
+            <label class={label} for="calc-hoa">
+              Monthly association fee
+              <span class="ml-1 normal-case tracking-normal text-ink-subtle">(optional)</span>
+            </label>
+            <div class="relative mt-2">
+              <span
+                class="pointer-events-none absolute inset-y-0 left-3.5 flex items-center text-sm text-ink-muted"
+                aria-hidden="true">$</span>
+              <input
+                id="calc-hoa"
+                data-calc="hoa"
+                data-calc-noun="an amount"
+                type="text"
+                inputmode="decimal"
+                autocomplete="off"
+                placeholder="350"
+                aria-describedby="calc-hoa-error"
+                class={`${field} pl-7`}
+              />
+            </div>
+            <p id="calc-hoa-error" data-calc-error role="alert" hidden
+              class="mt-2 text-xs leading-relaxed text-red-800"></p>
+          </div>
+        </div>
+
+        <div class="mt-8 flex flex-wrap items-center gap-4 border-t border-line pt-6">
+          {/*
+            The estimate updates as you type, so this submit exists for the
+            keyboard path (Enter in a field) and for anyone expecting a button.
+          */}
+          <button
+            type="submit"
+            class="inline-flex h-12 items-center justify-center rounded-xs border border-evergreen-800 bg-evergreen-800 px-6 text-sm font-medium tracking-wide-sm text-white transition-colors hover:bg-evergreen-900"
+          >
+            Calculate
+          </button>
+          <button
+            type="reset"
+            class="inline-flex h-12 items-center justify-center rounded-xs border border-line-control px-5 text-sm text-evergreen-800 transition-colors hover:border-evergreen-700"
+          >
+            Reset
+          </button>
+          <p class="text-xs text-ink-subtle">
+            Fields marked <span class="text-gold-700" aria-hidden="true">*</span>
+            <span class="sr-only">with an asterisk</span> are required.
+          </p>
+        </div>
+
+        {/*
+          Always visible, not tucked inside the results panel — someone needs to
+          know this is an estimate before they read a number, not after.
+        */}
+        <p class="mt-5 max-w-prose text-xs leading-relaxed text-ink-muted">
+          Every figure here is an estimate produced from what you entered. It is
+          not a lending quote, not a pre-approval and not an offer of credit.
+        </p>
+      </div>
+
+      {/* Results */}
+      <div class="lg:col-span-5 xl:col-span-5">
+        <div class="lg:sticky lg:top-32">
+          {/* Before there is anything to show. */}
+          <div
+            data-calc="prompt"
+            class="rounded-xs border border-dashed border-line-strong bg-cream-50 p-8 text-center"
+          >
+            <p class="font-serif text-2xl text-evergreen-800">
+              Enter a price and a rate
+            </p>
+            <p class="mx-auto mt-3 max-w-xs text-sm leading-relaxed text-ink-muted">
+              Nothing is estimated until both are filled in. We do not hold a
+              market interest rate, so yours has to come from your lender.
+            </p>
+          </div>
+
+          {/*
+            `aria-live="polite"` because the figures change as a person types.
+            Polite, not assertive: it should not interrupt them mid-number.
+          */}
+          <div
+            data-calc="results"
+            hidden
+            aria-live="polite"
+            class="rounded-xs border border-line bg-cream-50 p-6 sm:p-8"
+          >
+            <span class="rule-gold" aria-hidden="true"></span>
+            <p class="mt-4 text-xs uppercase tracking-wide-sm text-ink-muted">
+              Estimated monthly payment
+            </p>
+            <p
+              data-calc="out-total"
+              class="mt-2 font-serif text-4xl text-evergreen-800 sm:text-5xl"
+            ></p>
+
+            <dl class="mt-8 flex flex-col gap-4 border-t border-line pt-6">
+              {
+                LINES.map((line) => (
+                  <div>
+                    <div class="flex items-baseline justify-between gap-4">
+                      <dt class="text-sm text-ink-muted">{line.label}</dt>
+                      <dd
+                        data-calc={line.out}
+                        class="shrink-0 text-sm font-medium text-evergreen-800"
+                      />
+                    </div>
+                    {/* Proportional bar. Decorative — the figure above is the content. */}
+                    <div
+                      class="mt-1.5 h-1 w-full overflow-hidden rounded-full bg-evergreen-100"
+                      aria-hidden="true"
+                    >
+                      <div
+                        data-calc-bar={line.key}
+                        class="h-full rounded-full bg-evergreen-700 transition-[width] duration-300"
+                        style="width: var(--share, 0%)"
+                      />
+                    </div>
+                  </div>
+                ))
+              }
+            </dl>
+
+            <dl class="mt-7 grid grid-cols-2 gap-4 border-t border-line pt-6 text-sm">
+              <div>
+                <dt class="text-xs uppercase tracking-wide-sm text-ink-subtle">
+                  Loan amount
+                </dt>
+                <dd data-calc="out-loan" class="mt-1 text-evergreen-800"></dd>
+              </div>
+              <div>
+                <dt class="text-xs uppercase tracking-wide-sm text-ink-subtle">
+                  Down payment
+                </dt>
+                <dd data-calc="out-down-percent" class="mt-1 text-evergreen-800"></dd>
+              </div>
+              <div>
+                <dt class="text-xs uppercase tracking-wide-sm text-ink-subtle">
+                  Total interest
+                </dt>
+                <dd data-calc="out-interest" class="mt-1 text-evergreen-800"></dd>
+              </div>
+              <div>
+                <dt class="text-xs uppercase tracking-wide-sm text-ink-subtle">
+                  Total of payments
+                </dt>
+                <dd data-calc="out-total-paid" class="mt-1 text-evergreen-800"></dd>
+              </div>
+            </dl>
+
+            <p class="mt-6 border-t border-line pt-5 text-xs leading-relaxed text-ink-subtle">
+              An estimate from the figures you entered, using the standard
+              amortisation formula. Not a lending quote, not a pre-approval and
+              not an offer of credit. Your lender's figures are the ones that
+              count.
+            </p>
+          </div>
+
+          {/* Without JavaScript there is no calculator, and the page says so. */}
+          <noscript>
+            <div class="mt-6 rounded-xs border border-evergreen-800/25 bg-evergreen-100 p-6">
+              <p class="font-serif text-xl text-evergreen-900">
+                This calculator needs JavaScript
+              </p>
+              <p class="mt-3 text-sm leading-relaxed text-evergreen-900/80">
+                The arithmetic runs in your browser, so with JavaScript
+                switched off there is nothing to run it. Call either of us and
+                we will walk through the numbers with you.
+              </p>
+              <ul class="mt-4 flex flex-col gap-2 text-sm">
+                {
+                  professionals.map((person) => (
+                    <li>
+                      <a href={person.phone.href} class="link-underline text-evergreen-800">
+                        {person.firstName} — {person.phone.value}
+                      </a>
+                    </li>
+                  ))
+                }
+              </ul>
+            </div>
+          </noscript>
+        </div>
+      </div>
+    </form>
+  </Section>
+
+  {/* What the estimate leaves out */}
+  <Section tone="warm" labelledby="calculator-caveats-heading">
+    <div class="grid gap-12 lg:grid-cols-2 lg:gap-20">
+      <div data-reveal>
+        <SectionHeader
+          id="calculator-caveats-heading"
+          eyebrow="Read this bit"
+          title="What the estimate does not include"
+          lead="A monthly payment is rarely just the four lines above. These are the costs that most often surprise people, and none of them is in the figure."
+        />
+      </div>
+
+      <ul class="flex flex-col gap-4 lg:pt-16" data-reveal style="--reveal-delay:100ms">
+        {
+          NOT_INCLUDED.map((item) => (
+            <li class="flex gap-3.5 rounded-xs border border-line bg-white p-6 text-sm leading-relaxed text-ink-muted">
+              <span class="mt-2 h-1 w-1 shrink-0 rounded-full bg-gold-600" aria-hidden="true" />
+              <span>{item}</span>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+
+    <p class="mt-10 max-w-prose text-sm leading-relaxed text-ink-subtle">
+      This page is not financial, lending, tax or legal advice, and nothing on
+      it is an offer of credit or a commitment to lend. What you can actually
+      borrow, and on what terms, comes from a lender who has looked at your
+      circumstances.
+    </p>
+  </Section>
+
+  {/* Next steps */}
+  <Section tone="white" labelledby="calculator-next-heading">
+    <SectionHeader
+      id="calculator-next-heading"
+      eyebrow="Next"
+      title="Once the numbers make sense"
+    />
+
+    <ul class="mt-12 grid gap-6 sm:grid-cols-3">
+      {
+        [
+          {
+            title: 'Search properties',
+            body: 'Filter by area, price, size and features. Every search is shareable.',
+            href: '/properties/search/',
+            cta: 'Start searching',
+          },
+          {
+            title: 'Tell us what you want',
+            body: 'Hear about homes that fit as they come to market, including ones that never reach a portal.',
+            href: '/buy/dream-home-finder/',
+            cta: 'Dream Home Finder',
+          },
+          {
+            title: 'How buying works',
+            body: 'The stages of a Florida purchase, in the order they usually happen.',
+            href: '/buy/',
+            cta: 'The buying process',
+          },
+        ].map((item, index) => (
+          <li>
+            <a
+              href={item.href}
+              class="group flex h-full flex-col rounded-xs border border-line p-7 transition-shadow duration-500 hover:shadow-card"
+              data-reveal
+              style={`--reveal-delay:${index * 60}ms`}
+            >
+              <h3 class="font-serif text-xl text-evergreen-800">{item.title}</h3>
+              <p class="mt-3 flex-1 text-sm leading-relaxed text-ink-muted">{item.body}</p>
+              <span class="mt-6 inline-flex items-center gap-2 text-xs uppercase tracking-eyebrow text-evergreen-700">
+                {item.cta}
+                <svg
+                  class="h-3 w-3 transition-transform duration-300 ease-[var(--ease-editorial)] motion-safe:group-hover:translate-x-1"
+                  viewBox="0 0 16 16" fill="none" stroke="currentColor"
+                  stroke-width="1.5" stroke-linecap="square" aria-hidden="true"
+                >
+                  <path d="M1 8h13M9 3l5 5-5 5" />
+                </svg>
+              </span>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+
+    <div class="mt-12 flex flex-wrap gap-3" data-reveal>
+      <Button href="/contact/" withArrow>Talk to us about the numbers</Button>
+      {
+        professionals.map((person) => (
+          <Button href={person.phone.href} variant="secondary">
+            Call {person.firstName}
+          </Button>
+        ))
+      }
+    </div>
+  </Section>
+</BaseLayout>
+
+<script>
+  import { initMortgageCalculator } from '@lib/mortgage/calculator-client';
+  initMortgageCalculator();
+</script>

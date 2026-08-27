@@ -1,0 +1,125 @@
+---
+/**
+ * GuideSteps — the numbered stages of a guide, with a contents list.
+ *
+ * Shared by the buying and selling guides so the two cannot drift apart in
+ * layout or in behaviour. The contents list is plain anchors to sections that
+ * genuinely exist below — no script, and every entry works with JavaScript
+ * off.
+ *
+ * The copy for each step is passed in by the page. Nothing here asserts a
+ * timescale, a fee, a guarantee or an outcome: a guide that says "this takes
+ * 30 days" is making a promise on behalf of a lender, a title company and a
+ * seller, none of whom have agreed to it.
+ */
+import Section from '@components/ui/Section.astro';
+import SectionHeader from '@components/ui/SectionHeader.astro';
+import { cn } from '@lib/cn';
+
+export interface GuideStep {
+  readonly id: string;
+  readonly title: string;
+  /** One line under the heading. */
+  readonly summary: string;
+  /** The substance. Rendered as paragraphs. */
+  readonly body: readonly string[];
+  /** Optional checklist. Actions, not claims. */
+  readonly points?: readonly string[];
+  /** Optional aside — a thing people get wrong, or a caution. */
+  readonly note?: string;
+}
+
+interface Props {
+  steps: readonly GuideStep[];
+  /** Heading for the contents list. */
+  contentsTitle: string;
+  contentsId: string;
+  class?: string;
+}
+
+const { steps, contentsTitle, contentsId, class: className } = Astro.props;
+---
+
+<div class={cn(className)}>
+  {/* Contents */}
+  <Section tone="white" space="tight" labelledby={contentsId}>
+    <h2 id={contentsId} class="sr-only">{contentsTitle}</h2>
+    <nav aria-label={contentsTitle}>
+      <p class="text-xs uppercase tracking-wide-sm text-ink-muted">
+        {contentsTitle}
+      </p>
+      <ol class="mt-5 grid gap-px overflow-hidden rounded-xs border border-line bg-line sm:grid-cols-2 lg:grid-cols-3">
+        {
+          steps.map((step, index) => (
+            <li class="bg-white">
+              <a
+                href={`#${step.id}`}
+                class="group flex h-full items-baseline gap-4 p-5 transition-colors hover:bg-cream-50"
+              >
+                <span class="shrink-0 font-serif text-lg text-gold-700" aria-hidden="true">
+                  {String(index + 1).padStart(2, '0')}
+                </span>
+                <span class="text-sm text-evergreen-800">{step.title}</span>
+              </a>
+            </li>
+          ))
+        }
+      </ol>
+    </nav>
+  </Section>
+
+  {/* The steps */}
+  {
+    steps.map((step, index) => (
+      <Section
+        id={step.id}
+        tone={index % 2 === 0 ? 'white' : 'warm'}
+        labelledby={`${step.id}-heading`}
+      >
+        <div class="grid gap-12 lg:grid-cols-12 lg:gap-16">
+          <div class="lg:col-span-7">
+            <SectionHeader
+              id={`${step.id}-heading`}
+              eyebrow={`Step ${String(index + 1).padStart(2, '0')}`}
+              title={step.title}
+              lead={step.summary}
+            />
+
+            <div class="mt-8 flex max-w-prose flex-col gap-5 leading-relaxed text-ink-muted">
+              {step.body.map((paragraph) => (
+                <p>{paragraph}</p>
+              ))}
+            </div>
+
+            {step.note && (
+              <p class="mt-8 max-w-prose rounded-xs border-l-2 border-gold-500 bg-cream-50 py-4 pl-5 pr-4 text-sm leading-relaxed text-ink-muted">
+                {step.note}
+              </p>
+            )}
+          </div>
+
+          {step.points && step.points.length > 0 && (
+            <div class="lg:col-span-5">
+              <div class="rounded-xs border border-line bg-white p-6 sm:p-7 lg:mt-4">
+                <p class="text-xs uppercase tracking-wide-sm text-ink-muted">
+                  Worth doing
+                </p>
+                <ul class="mt-5 flex flex-col gap-3.5 border-t border-line pt-5">
+                  {step.points.map((point) => (
+                    <li class="flex gap-3 text-sm leading-relaxed text-ink-muted">
+                      <span
+                        class="mt-2 h-1 w-1 shrink-0 rounded-full bg-gold-600"
+                        aria-hidden="true"
+                      />
+                      <span>{point}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          )}
+        </div>
+      </Section>
+    ))
+  }
+</div>

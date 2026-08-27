@@ -30,8 +30,19 @@ export default defineConfig({
   },
   integrations: [
     sitemap({
-      filter: (page) =>
-        !['/login/', '/register/'].some((p) => new URL(page).pathname === p),
+      /*
+       * Excluded: the account routes, and the journal's sample posts.
+       *
+       * A sample post is scaffolding, not editorial content. It is dev-only
+       * and already carries `noindex`, but a demo build must not list it in a
+       * sitemap either — the two would contradict each other.
+       */
+      filter: (page) => {
+        const { pathname } = new URL(page);
+        if (['/login/', '/register/'].includes(pathname)) return false;
+        if (/^\/blog\/sample-/.test(pathname)) return false;
+        return true;
+      },
     }),
   ],
   vite: {

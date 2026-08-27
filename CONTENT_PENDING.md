@@ -154,7 +154,9 @@ below must come from the client or the provider; none may be assumed.
 | 10.1b | **Real review URLs** | 🟠 | `sourceUrl` links to the review as published, and is **only ever a URL the client supplies**. Never constructed from a profile page, a search result or a guess at a review id. Null is fine — the badge then names the platform without linking. |
 | 10.1c | Written permission to quote each client | 🔴 | `verified: true` means two things: the quote is real, **and** the client has agreed we may publish it under that name. Do not set it on the strength of a public review alone. |
 | 10.1d | Whether star ratings may ever be shown | 🟡 | There is deliberately no rating field: we hold no Google or Zillow rating and no review count, and `/testimonials/` states in public that none is shown. Displaying platform ratings is a separate decision with its own terms-of-use questions — it is not something to approximate from a quote's tone. |
-| 10.2 | **FAQ answers** | 🟠 | Questions touching process, fees and Florida practice must be client-reviewed. |
+| 10.2 | **FAQ answers — 24 drafted, none reviewed** | 🟠 | `/faq/` is live with answers describing **general practice** across Buying, Selling, Listings, Relocation and Website. Every entry in `src/data/faqs.ts` carries `reviewed: false`, and both `/faq/` and `/sell/` say in public that the answers are being reviewed and are not policy. **Read them and set `reviewed: true` on each one you are happy with** — the caveat disappears once every answer on a page is reviewed. Correct anything that does not match how you actually work. |
+| 10.2a | **Anything an answer had to leave out** | 🟠 | No answer quotes a fee, a commission, a timescale or a guarantee, because none has been supplied. Several say "ask" where a specific figure would have been more useful — tell us which of those you want answered directly and they can be. |
+| 10.2b | Further questions worth adding | 🟡 | The ones you are actually asked most. A question you answer on the phone five times a week belongs here. |
 | 10.3 | Buying guide content | 🟠 | |
 | 10.4 | Selling guide content | 🟠 | |
 | 10.5 | **Community guide copy — fifteen pages now live** | 🟠 | Every community page carries **only a one-line verifiable locational fact** plus a visible "the full guide is being written" note. Real copy goes in `introduction` (an array of paragraphs) on the record in `src/data/communities.ts`; the note disappears on its own. **No statistics, school ratings, crime figures, median values, population counts, commute times or superlatives** may be added without a citable, dated source — see the header of that file for the full list. |
@@ -174,7 +176,10 @@ below must come from the client or the provider; none may be assumed.
 | 10.7 | **Median home value data source** | 🟠 | Every figure needs a source and a date — both are required fields, not optional ones. Two ways to supply them: a per-city figure on `src/data/communities.ts` (`medianHomeValue: { value, source, asOf }`), or a live feed implementing `ValuationProvider` in `src/lib/valuation/`. `/sell/median-home-values/` renders figures automatically from either; with neither it publishes none. Before connecting a feed: a licence permitting public display, the provider's attribution and disclaimer wording **verbatim**, and the refresh cadence the licence requires. |
 | 10.7a | Whether an automated estimate should ever appear | 🟠 | Nothing on the site calculates a home value today, and the pages say so. If an AVM is added later it must be presented as a statistical model over comparable sales, always as a range, always sourced and dated — **never described as artificial intelligence**, and never as a substitute for an appraisal. |
 | 10.8 | Relocation content | 🟠 | What MaryEllen's relocation service actually includes. |
-| 10.9 | Journal / blog articles | 🟡 | Authoring format: `docs/authoring-blog-posts.md`. |
+| 10.9 | **Journal / blog articles** | 🟡 | The `/blog/` index and article template are built. **No real articles exist**, so a production build shows an honest empty state. One Markdown file in `src/content/blog/` publishes an article — format and checklist in `docs/authoring-blog-posts.md`. **Articles are written, never generated**: a post carries a named byline, which makes a fabricated one worse than fabricated listing data. |
+| 10.9a | **Delete the sample posts once the first real article lands** | 🟡 | `src/content/blog/sample-*.md` are structural placeholders carrying `sample: true`. They are dev-only, badged, `noindex`, excluded from the sitemap, and never appear as related reading from a real article. Nothing references them by name. |
+| 10.9b | Article photography | 🟡 | One image per post (`heroImage`). Without one the template uses the neutral placeholder. |
+| 10.9c | Article SEO fields — reserved | 🟡 | `seo.title`, `seo.description` and `seo.keywords` are empty on every post and are for the later SEO phase. Do not pre-fill with keyword variations. |
 
 ---
 
@@ -184,7 +189,8 @@ below must come from the client or the provider; none may be assumed.
 | --- | --- | --- | --- |
 | 11.1 | Google Analytics / GA4 ID | 🟡 | Affects the privacy policy and the cookie position. |
 | 11.2 | Cookie consent requirement | 🟠 | Depends on analytics and on the IDX provider's tracking. |
-| 11.3 | Mortgage calculator assumptions | 🟠 | Default rate, term, tax and insurance rates — must be presented as estimates with a clear disclaimer, never as a lending offer. |
+| 11.3 | **Mortgage calculator — confirm the defaults it does NOT have** | 🟡 | The calculator is live at `/mortgage-calculator/` and is mathematically correct (standard amortisation, unit-tested, `npm run test:unit`). **The interest rate starts empty and nothing is calculated until it is entered** — the site holds no market rate and fetches none. Property tax, insurance and HOA also start blank, because a Florida insurance default would be a guess presented as a starting point. If you want any of these pre-filled, they need a source we can cite and a date. |
+| 11.3a | **A live rate provider, if ever wanted** | 🟡 | Nothing on the site fetches a rate today, and nothing should until a verified provider is integrated with terms permitting display. Until then the visitor's own lender quote is the only rate used. |
 | 11.4 | Map provider | 🟡 | For property and community maps, if wanted. |
 | 11.5 | Live chat / scheduling tool | 🟡 | |
 
@@ -221,6 +227,10 @@ Every placeholder shipped today, so none can be forgotten:
 | "Areas of focus" section absent from both profile pages | `src/components/people/PersonSpecialties.astro` | 8.5 confirmed |
 | Joint-photograph placeholder in the `/about/` hero | `src/pages/about/index.astro` | 8.3a supplied |
 | Testimonials empty state on `/about/`, `/testimonials/` and the homepage | `src/components/testimonials/TestimonialEmptyState.astro` | 10.1 verified quotes supplied |
+| Two dev-only sample journal posts, badged "Sample — not an article" | `src/content/blog/sample-*.md` | 10.9 first real article published (delete the files) |
+| Empty journal on `/blog/` and the homepage insights band | `src/lib/blog/posts.ts` | 10.9 first real article published |
+| "Being reviewed by Martin and MaryEllen" caveat under every FAQ answer | `src/components/faq/FaqAccordion.astro`, `/faq/` | 10.2 — set `reviewed: true` per answer |
+| Blank interest rate, tax, insurance and HOA on the calculator | `src/pages/mortgage-calculator.astro` | 11.3 — only with a citable source |
 
 No placeholder above is phrased as a factual claim about the client, and none
 uses lorem ipsum.

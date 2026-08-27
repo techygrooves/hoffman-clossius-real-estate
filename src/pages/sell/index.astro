@@ -24,6 +24,7 @@ import TestimonialsSection from '@components/home/TestimonialsSection.astro';
 import { getProfessional, professionals } from '@config/site';
 import { resolveTestimonials } from '@lib/content';
 import { faqs } from '@data/faqs';
+import FaqAccordion from '@components/faq/FaqAccordion.astro';
 
 const martin = getProfessional('martin-hoffman');
 const maryellen = getProfessional('maryellen-closius');
@@ -368,27 +369,12 @@ const CLOSING = [
 
     {
       sellingFaqs.length > 0 ? (
-        <div class="mt-12 flex max-w-4xl flex-col gap-3">
-          {sellingFaqs.map((faq) => (
-            <details
-              name="seller-faq"
-              class="group rounded-xs border border-line bg-white px-6 py-5"
-            >
-              <summary class="flex cursor-pointer items-center justify-between gap-4 font-serif text-lg text-evergreen-800 marker:content-none">
-                {faq.question}
-                <span
-                  class="shrink-0 text-gold-700 transition-transform duration-300 group-open:rotate-45"
-                  aria-hidden="true"
-                >
-                  +
-                </span>
-              </summary>
-              <p class="mt-4 max-w-prose text-sm leading-relaxed text-ink-muted">
-                {faq.answer}
-              </p>
-            </details>
-          ))}
-        </div>
+        /*
+          Shared with /faq/, so the two cannot drift — and so the "still being
+          reviewed" caveat travels with the answers rather than living on only
+          one of the pages that publishes them.
+        */
+        <FaqAccordion faqs={sellingFaqs} group="seller-faq" class="mt-12" />
       ) : (
         <ul class="mt-12 grid gap-px overflow-hidden rounded-xs border border-line bg-line sm:grid-cols-2">
           {OPEN_QUESTIONS.map((question) => (

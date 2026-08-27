@@ -6,17 +6,23 @@
  * client; none are generated, so with an empty collection this renders an
  * honest empty state rather than filler.
  */
-import { getCollection } from 'astro:content';
 import Section from '@components/ui/Section.astro';
 import SectionHeader from '@components/ui/SectionHeader.astro';
 import Button from '@components/ui/Button.astro';
 import MediaSlot from '@components/ui/MediaSlot.astro';
+import DemoNotice from '@components/ui/DemoNotice.astro';
 import { formatDate, toISODate } from '@lib/format';
 import { getProfessional } from '@config/site';
+import { publishedPosts, categoryLabel, isSample } from '@lib/blog/posts';
 
-const posts = (await getCollection('blog', ({ data }) => data.draft !== true))
-  .sort((a, b) => b.data.publishedAt.getTime() - a.data.publishedAt.getTime())
-  .slice(0, 3);
+/*
+ * Goes through `publishedPosts()` rather than reading the collection directly,
+ * so the draft and sample rules are applied in exactly one place. A sample post
+ * is dev-only and badged; it must never reach the homepage of a live site
+ * looking like an article.
+ */
+const posts = (await publishedPosts()).slice(0, 3);
+const anySamples = posts.some(isSample);
 ---
 
 <Section tone="warm" labelledby="insights-heading">
@@ -30,6 +36,8 @@ const posts = (await getCollection('blog', ({ data }) => data.draft !== true))
       <Button href="/blog/" variant="secondary" withArrow>View All Insights</Button>
     </div>
   </div>
+
+  {anySamples && <DemoNotice class="mt-8" />}
 
   {
     posts.length > 0 ? (
@@ -57,12 +65,17 @@ const posts = (await getCollection('blog', ({ data }) => data.draft !== true))
                   />
                 </a>
 
-                <p class="mt-5 flex flex-wrap items-center gap-x-3 text-[0.625rem] uppercase tracking-eyebrow text-evergreen-600">
-                  <span>{post.data.category}</span>
+                <p class="mt-5 flex flex-wrap items-center gap-x-3 gap-y-2 text-[0.625rem] uppercase tracking-eyebrow text-evergreen-600">
+                  <span>{categoryLabel(post.data.category)}</span>
                   <span aria-hidden="true" class="text-ink-subtle">·</span>
                   <time datetime={toISODate(post.data.publishedAt)} class="text-ink-subtle">
                     {formatDate(post.data.publishedAt)}
                   </time>
+                  {isSample(post) && (
+                    <span class="inline-flex items-center rounded-xs border border-dashed border-gold-600/60 bg-gold-100/60 px-2 py-0.5 tracking-wide-sm text-charcoal-600">
+                      Sample — not an article
+                    </span>
+                  )}
                 </p>
 
                 <h3 class="mt-3 font-serif text-2xl leading-snug text-evergreen-800">
@@ -72,7 +85,7 @@ const posts = (await getCollection('blog', ({ data }) => data.draft !== true))
                 </h3>
 
                 <p class="mt-3 flex-1 text-sm leading-relaxed text-ink-muted">
-                  {post.data.description}
+                  {post.data.excerpt}
                 </p>
 
                 {author && (

@@ -1,12 +1,174 @@
 ---
-import StubPage from '@layouts/StubPage.astro';
+/**
+ * Frequently asked questions.
+ *
+ * ── What these answers are ────────────────────────────────────────────────
+ * General practice — what an inspection period is for, where listing data
+ * comes from, why insurance matters earlier here than elsewhere. Background a
+ * visitor could check anywhere, written plainly.
+ *
+ * ── What they are not ─────────────────────────────────────────────────────
+ * Not firm policy, not a fee schedule, not a timescale, not a guarantee, and
+ * not legal or tax advice. No answer states a figure or a rule specific to
+ * Hoffman & Closius, because none has been supplied.
+ *
+ * Every answer carries `reviewed: false` until Martin or MaryEllen has read
+ * it. The page says so in public rather than hiding it — an FAQ about
+ * somebody's transaction is exactly the wrong place to imply more certainty
+ * than we have (CONTENT_PENDING.md 10.2).
+ */
+import BaseLayout from '@layouts/BaseLayout.astro';
+import PageHero from '@components/ui/PageHero.astro';
+import Section from '@components/ui/Section.astro';
+import SectionHeader from '@components/ui/SectionHeader.astro';
+import Button from '@components/ui/Button.astro';
+import AgentCard from '@components/ui/AgentCard.astro';
+import FaqAccordion from '@components/faq/FaqAccordion.astro';
+import { FAQ_CATEGORIES, faqsByCategory, hasUnreviewedFaqs } from '@data/faqs';
+import { getProfessional } from '@config/site';
+
+const groups = FAQ_CATEGORIES.map((category) => ({
+  ...category,
+  items: faqsByCategory(category.id),
+})).filter((group) => group.items.length > 0);
+
+const unreviewed = hasUnreviewedFaqs();
+
+const martin = getProfessional('martin-hoffman');
+const maryellen = getProfessional('maryellen-closius');
 ---
 
-<StubPage
-  title={'Frequently Asked Questions'}
-  heading={'Frequently asked questions'}
-  eyebrow={'FAQ'}
-  description={'Answers to common questions about buying, selling and relocating in South Florida.'}
-  breadcrumbs={[{ label: 'FAQ' }]}
-  note={'Questions touching on process, fees and Florida practice are answered only after the client has reviewed them.'}
-/>
+<BaseLayout
+  title="Frequently Asked Questions"
+  description="Common questions about buying, selling, listings, relocating and using this site — answered plainly by Hoffman & Closius."
+>
+  <PageHero
+    eyebrow="FAQ"
+    title="Frequently asked questions"
+    lead="How things generally work, in plain terms. What applies to your property depends on your property — so treat this as background, then ask."
+    breadcrumbs={[{ label: 'FAQ' }]}
+  />
+
+  {/* Jump links. Plain anchors to sections that genuinely exist below. */}
+  <Section tone="white" space="tight" labelledby="faq-nav-heading">
+    <h2 id="faq-nav-heading" class="sr-only">Jump to a topic</h2>
+    <nav aria-label="Jump to a topic">
+      <ul class="flex flex-wrap gap-2">
+        {
+          groups.map((group) => (
+            <li>
+              <a
+                href={`#faq-${group.id}`}
+                class="inline-flex items-center gap-2 rounded-xs border border-line-control px-4 py-2.5 text-sm text-ink-muted transition-colors hover:border-evergreen-700"
+              >
+                {group.label}
+                <span class="text-xs text-ink-subtle">{group.items.length}</span>
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+
+    {
+      unreviewed && (
+        <p class="mt-8 max-w-prose rounded-xs border border-dashed border-line-strong bg-cream-50 px-5 py-4 text-sm leading-relaxed text-ink-muted">
+          <span class="font-medium text-evergreen-800">
+            About the answers on this page.
+          </span>{' '}
+          They describe how things usually work in South Florida, not a policy
+          or a promise. They are being reviewed by Martin and MaryEllen, and
+          none of them is legal, tax or financial advice. Where an answer would
+          have needed a fee, a timescale or a guarantee to be useful, it says to
+          ask instead — because the real answer depends on the property.
+        </p>
+      )
+    }
+  </Section>
+
+  {/* One section per category */}
+  {
+    groups.map((group, index) => (
+      <Section
+        id={`faq-${group.id}`}
+        tone={index % 2 === 0 ? 'warm' : 'white'}
+        labelledby={`faq-${group.id}-heading`}
+      >
+        <SectionHeader
+          id={`faq-${group.id}-heading`}
+          eyebrow={`${index + 1} of ${groups.length}`}
+          title={group.label}
+          lead={group.description}
+        />
+        {/*
+          The caveat is carried once at the top of the page rather than under
+          every group — repeated six times it stops being read.
+        */}
+        <FaqAccordion
+          faqs={group.items}
+          group={`faq-${group.id}`}
+          showReviewNote={false}
+          class="mt-10"
+        />
+      </Section>
+    ))
+  }
+
+  {/* Anything not covered */}
+  <Section tone="deep" labelledby="faq-ask-heading">
+    <div class="grid gap-10 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center lg:gap-16">
+      <div data-reveal>
+        <p class="eyebrow text-gold-300">
+          <span class="rule-gold" aria-hidden="true"></span>
+          Not covered here
+        </p>
+        <h2 id="faq-ask-heading" class="mt-5 text-display-sm text-white">
+          Ask the one you actually came with
+        </h2>
+        <p class="mt-5 max-w-xl leading-relaxed text-white/75">
+          Most useful questions are specific — this building, this street, this
+          timeline, this offer. Those cannot be answered on a page like this,
+          and they are the ones worth asking a person.
+        </p>
+      </div>
+
+      <div class="flex flex-col gap-3 sm:flex-row lg:shrink-0 lg:flex-col" data-reveal>
+        <Button href="/contact/" variant="gold" withArrow>Get in touch</Button>
+        <Button href="/resources/buying-guide/" variant="inverse">
+          The buying guide
+        </Button>
+      </div>
+    </div>
+  </Section>
+
+  {/* Contact */}
+  <Section tone="white" labelledby="faq-contact-heading">
+    <SectionHeader
+      id="faq-contact-heading"
+      eyebrow="Talk to us"
+      title="Both numbers are direct lines"
+      lead="No call centre and no assistant in between. Whichever of them you reach, the other is there."
+      align="center"
+    />
+
+    <div class="mt-14 grid gap-12 md:grid-cols-2 md:gap-10 lg:gap-16">
+      {
+        [martin, maryellen].map(
+          (person, index) =>
+            person && (
+              <AgentCard
+                person={person}
+                intro={
+                  person.slug === 'martin-hoffman'
+                    ? 'Martin holds a Broker-Associate licence and represents buyers and sellers across South Florida.'
+                    : 'MaryEllen is a Realtor Associate and Relocation Specialist, working with buyers, sellers and families moving to South Florida.'
+                }
+                ctaLabel={`Meet ${person.firstName}`}
+                seed={index + 6}
+              />
+            ),
+        )
+      }
+    </div>
+  </Section>
+</BaseLayout>

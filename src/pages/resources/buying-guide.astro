@@ -1,12 +1,286 @@
 ---
-import StubPage from '@layouts/StubPage.astro';
+/**
+ * The buying guide.
+ *
+ * Goes deeper than /buy/, which carries the overview. This is the reference
+ * you send someone who has decided to buy and wants to know what actually
+ * happens, in order.
+ *
+ * ── What it will not do ───────────────────────────────────────────────────
+ * No timescale ("closing takes 30 days"), no fee, no rate, no guarantee, and
+ * no statement of Florida law as settled fact. A guide that promises a
+ * timeline is promising on behalf of a lender, an appraiser, a title company
+ * and a seller, none of whom have agreed to it — and the reader is the one
+ * left holding it.
+ *
+ * Nothing here is legal, tax or financial advice, and the page says so.
+ */
+import BaseLayout from '@layouts/BaseLayout.astro';
+import PageHero from '@components/ui/PageHero.astro';
+import Section from '@components/ui/Section.astro';
+import SectionHeader from '@components/ui/SectionHeader.astro';
+import Button from '@components/ui/Button.astro';
+import GuideSteps, { type GuideStep } from '@components/resources/GuideSteps.astro';
+import { professionals } from '@config/site';
+
+const STEPS: GuideStep[] = [
+  {
+    id: 'preparing',
+    title: 'Preparing to buy',
+    summary: 'The work that happens before you look at a single property.',
+    body: [
+      'Most of what determines how a purchase goes is settled before the first viewing. That means understanding what you can borrow, what you are comfortable spending monthly — which is not the same number — and what you have available for a deposit and the costs on top of it.',
+      'Credit matters here in a specific way: lenders look at it when you apply, and again before closing. Anything that changes it in between — a new card, a car loan, a large deposit from a source you cannot document — can affect the outcome at the worst possible moment.',
+    ],
+    points: [
+      'Speak to a lender who actually lends in Florida.',
+      'Ask what the monthly figure looks like including taxes and insurance, not just principal and interest.',
+      'Find out what you need available at closing beyond the deposit.',
+      'Leave your credit alone until you have the keys.',
+    ],
+    note: 'Insurance in Florida can change what a property costs to own rather than to buy, and it varies enormously by roof age, construction, elevation and flood zone. It is worth asking about at this stage, not at the inspection.',
+  },
+  {
+    id: 'criteria',
+    title: 'Defining what you are looking for',
+    summary: 'Separating what you need from what you would like.',
+    body: [
+      'Almost every search narrows quickly once this is done honestly. The useful exercise is not listing features — it is deciding which two or three things you would refuse to compromise on, and accepting that everything else is negotiable.',
+      'Location does more of the work than people expect. Where you buy shapes daily life more than the house does: the commute, the noise, what is walkable, whether you actually use the beach you are paying to be near.',
+    ],
+    points: [
+      'Write down the three things you will not compromise on.',
+      'Decide whether you want a project, or want to move in.',
+      'Think about the area at the time of day you would be there.',
+      'Be clear about condominium versus single-family — they behave very differently here.',
+    ],
+  },
+  {
+    id: 'search',
+    title: 'The search',
+    summary: 'What to watch, and what a portal will not show you.',
+    body: [
+      'Portals are good at what is listed today. They are less good at what is coming, what has quietly changed price, and what is being sold without ever reaching them. Watching both is the point of having someone on your side of the transaction.',
+      'A shortlist is more useful than a long one. Ruling properties out on paper — wrong layout, wrong floor, association rules that do not suit you — protects the weekends for the ones worth seeing.',
+    ],
+    points: [
+      'Set up alerts for the areas and price band you have settled on.',
+      'Tell us what you are after so you hear about matches directly.',
+      'Read the association documents before you get attached to a condominium.',
+    ],
+  },
+  {
+    id: 'financing',
+    title: 'Financing',
+    summary: 'Pre-approval, and what changes between it and full approval.',
+    body: [
+      'A pre-approval is a lender’s assessment based on what you have told them and what they have verified so far. It is what a seller expects to see alongside an offer. Full approval comes later, after the property is appraised and the file is underwritten.',
+      'Different loan types suit different situations, and the right one depends on your circumstances rather than on which is generally cheapest. That is a conversation with a lender, not a decision to make from a comparison table.',
+    ],
+    points: [
+      'Get the pre-approval before you view seriously, not after.',
+      'Ask what the rate is contingent on, and for how long it holds.',
+      'Ask what happens if the appraisal comes in below the agreed price.',
+    ],
+    note: 'This site does not publish an interest rate and does not fetch one. The mortgage calculator uses the rate you enter, which should come from your lender.',
+  },
+  {
+    id: 'viewing',
+    title: 'Viewing properties',
+    summary: 'What a viewing is actually for.',
+    body: [
+      'Photographs tell you about the layout and the finish. A viewing is for everything they cannot: noise, light at the wrong time of day, what the neighbours are like, how well the building is run, whether the smell in the hallway is a one-off.',
+      'Going back a second time, at a different hour, is worth more than seeing three more properties. So is walking the street rather than driving to the door.',
+    ],
+    points: [
+      'Visit at a different time of day before deciding.',
+      'Look at the building, not only the unit — corridors, garage, roof line.',
+      'Ask what the association has planned and what it has spent recently.',
+      'Notice what has been recently repainted, and ask why.',
+    ],
+  },
+  {
+    id: 'offers',
+    title: 'Making an offer',
+    summary: 'Price is one term among several.',
+    body: [
+      'What to offer depends on what comparable homes actually sold for, how long this one has been available, and how motivated the seller is. Those are researchable; the number that "feels right" usually is not.',
+      'The rest of the offer matters as much as the price in a competitive situation: the deposit, the financing contingency, the inspection window, the closing date, and what you are asking the seller to leave behind. A cleaner offer at the same price often wins.',
+    ],
+    points: [
+      'Look at what sold, not at what is asking.',
+      'Understand every contingency you are agreeing to before you sign.',
+      'Decide your ceiling before you start, and write it down.',
+    ],
+  },
+  {
+    id: 'due-diligence',
+    title: 'Inspections and due diligence',
+    summary: 'The window where most value is won or lost.',
+    body: [
+      'Florida contracts typically give a buyer a defined period to inspect and to decide whether to proceed. You arrange the inspections; what they find is often negotiable. The exact length of that window and what it entitles you to are contract terms and vary from deal to deal.',
+      'Beyond the general inspection, there are usually property-specific things worth checking — a roof’s age, a four-point inspection for insurance, a wind mitigation report, a survey, and for a condominium the association’s finances and any assessment being discussed.',
+    ],
+    points: [
+      'Use the full window rather than the first available appointment.',
+      'Attend the inspection if you can, and ask the inspector questions.',
+      'Get insurance quotes while you can still walk away.',
+      'Read the association documents properly, including the minutes.',
+    ],
+    note: 'What comes back from an inspection is usually worked through item by item rather than met with a single number. That is where having someone experienced on your side of the table is worth the most.',
+  },
+  {
+    id: 'closing',
+    title: 'Closing',
+    summary: 'Title, the final walkthrough, and the day itself.',
+    body: [
+      'Between the accepted offer and the keys sits title work, the lender’s conditions, insurance being bound, and a final walkthrough to confirm the property is in the condition agreed. Most of this is other people’s work being chased on your behalf.',
+      'Closing costs are separate from the deposit and are itemised in advance. Ask for the estimate early rather than being surprised by it, and make sure you know how the funds have to be sent — wire fraud in real estate is real, and instructions should always be confirmed by phone on a number you already had.',
+    ],
+    points: [
+      'Do the final walkthrough, even if everything has gone smoothly.',
+      'Confirm wiring instructions by phone, using a number you looked up yourself.',
+      'Keep every document — several become relevant at tax time.',
+    ],
+  },
+  {
+    id: 'next-steps',
+    title: 'After you close',
+    summary: 'The handful of things worth doing in the first weeks.',
+    body: [
+      'Utilities, address changes and — for anyone making the property their permanent residence — looking into Florida’s homestead exemption, which affects property tax and has its own deadlines and eligibility rules. Confirm the detail with the county property appraiser rather than with a website.',
+      'Keep the closing package somewhere findable. It matters when you refinance, when you sell, and at the first tax return after the purchase.',
+    ],
+    points: [
+      'Change the locks.',
+      'Check the deadlines and rules for any exemption you may qualify for.',
+      'Keep receipts for improvements — they matter when you eventually sell.',
+    ],
+  },
+];
 ---
 
-<StubPage
-  title={'Buying Guide'}
-  heading={'The buying guide'}
-  eyebrow={'Resources'}
-  description={'A step-by-step walkthrough of buying a home in South Florida, from financing through to closing.'}
-  breadcrumbs={[{ label: 'Resources' }, { label: 'Buying Guide' }]}
-  note={'The guide is written with the client so that every step reflects how they actually work and current Florida practice.'}
-/>
+<BaseLayout
+  title="Buying Guide"
+  description="A step-by-step guide to buying a home in South Florida — preparing, searching, financing, offers, inspections and closing. General information, not legal or financial advice."
+>
+  <PageHero
+    eyebrow="Resources"
+    title="The buying guide"
+    lead="What actually happens, in the order it happens. General information rather than advice — your situation is specific, and the useful answers come from a conversation."
+    breadcrumbs={[{ label: 'Resources' }, { label: 'Buying Guide' }]}
+  >
+    <div class="mt-2 flex flex-wrap gap-3">
+      <Button href="/properties/search/" size="lg" withArrow>Search properties</Button>
+      <Button href="/buy/dream-home-finder/" size="lg" variant="secondary">
+        Dream Home Finder
+      </Button>
+    </div>
+  </PageHero>
+
+  <GuideSteps
+    steps={STEPS}
+    contentsTitle="What this guide covers"
+    contentsId="buying-guide-contents"
+  />
+
+  {/* Disclaimer */}
+  <Section tone="white" labelledby="buying-guide-disclaimer-heading">
+    <div class="rounded-xs border border-line bg-cream-50 p-8 sm:p-10" data-reveal>
+      <h2
+        id="buying-guide-disclaimer-heading"
+        class="font-serif text-2xl text-evergreen-800"
+      >
+        What this guide is, and is not
+      </h2>
+      <div class="mt-5 flex max-w-prose flex-col gap-4 text-sm leading-relaxed text-ink-muted">
+        <p>
+          It describes how a purchase generally runs in South Florida. It is not
+          legal, tax, lending or financial advice, and it is not a statement of
+          Florida law — contract terms, disclosure obligations and the tax
+          consequences of a purchase are matters for your attorney, your lender
+          and your accountant.
+        </p>
+        <p>
+          No timescale is promised anywhere in it. How long a purchase takes
+          depends on a lender, an appraiser, a title company, an inspector and a
+          seller — and a guide that gave you a number would be promising on
+          their behalf.
+        </p>
+        <p>
+          Everything here is general. What applies to your purchase depends on
+          your purchase, and that is worth a conversation.
+        </p>
+      </div>
+    </div>
+  </Section>
+
+  {/* Next */}
+  <Section tone="warm" labelledby="buying-guide-next-heading">
+    <SectionHeader
+      id="buying-guide-next-heading"
+      eyebrow="Next"
+      title="Where to go from here"
+    />
+
+    <ul class="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+      {
+        [
+          {
+            title: 'Search properties',
+            body: 'Filter by area, price, size and features.',
+            href: '/properties/search/',
+          },
+          {
+            title: 'Estimate a payment',
+            body: 'Principal, interest, taxes, insurance and association fees.',
+            href: '/mortgage-calculator/',
+          },
+          {
+            title: 'Explore communities',
+            body: 'Guides to the areas across Broward and Miami-Dade.',
+            href: '/communities/',
+          },
+          {
+            title: 'Common questions',
+            body: 'Buying, selling, listings, relocating and this site.',
+            href: '/faq/',
+          },
+        ].map((item, index) => (
+          <li>
+            <a
+              href={item.href}
+              class="group flex h-full flex-col rounded-xs border border-line bg-white p-6 transition-shadow duration-500 hover:shadow-card"
+              data-reveal
+              style={`--reveal-delay:${index * 60}ms`}
+            >
+              <h3 class="font-serif text-xl text-evergreen-800">{item.title}</h3>
+              <p class="mt-3 flex-1 text-sm leading-relaxed text-ink-muted">{item.body}</p>
+              <span class="mt-5 inline-flex items-center gap-2 text-xs uppercase tracking-eyebrow text-evergreen-700">
+                Open
+                <svg
+                  class="h-3 w-3 transition-transform duration-300 ease-[var(--ease-editorial)] motion-safe:group-hover:translate-x-1"
+                  viewBox="0 0 16 16" fill="none" stroke="currentColor"
+                  stroke-width="1.5" stroke-linecap="square" aria-hidden="true"
+                >
+                  <path d="M1 8h13M9 3l5 5-5 5" />
+                </svg>
+              </span>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+
+    <div class="mt-12 flex flex-wrap gap-3" data-reveal>
+      <Button href="/contact/" withArrow>Ask us a question</Button>
+      {
+        professionals.map((person) => (
+          <Button href={person.phone.href} variant="secondary">
+            Call {person.firstName}
+          </Button>
+        ))
+      }
+    </div>
+  </Section>
+</BaseLayout>

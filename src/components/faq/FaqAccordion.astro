@@ -1,0 +1,73 @@
+---
+/**
+ * FaqAccordion — a group of questions and answers.
+ *
+ * Native `<details>` with a shared `name`, so one opens at a time, the whole
+ * thing works with JavaScript off, and the browser handles the keyboard and
+ * the expanded state for us. No script.
+ *
+ * ── The caveat ────────────────────────────────────────────────────────────
+ * Any answer with `reviewed: false` is drafted from general practice and has
+ * NOT yet been confirmed by Martin or MaryEllen. That is said in public, once
+ * per group, rather than hidden — an answer about somebody's transaction is
+ * exactly the wrong place to imply more certainty than we have.
+ *
+ * Passing `showReviewNote={false}` is for a page that carries the caveat once
+ * for several groups. It never means "hide it".
+ */
+import type { Faq } from '@data/faqs';
+import { cn } from '@lib/cn';
+
+interface Props {
+  faqs: readonly Faq[];
+  /** Shared `name` so only one item in this group is open at a time. */
+  group: string;
+  showReviewNote?: boolean;
+  class?: string;
+}
+
+const { faqs, group, showReviewNote = true, class: className } = Astro.props;
+const anyUnreviewed = faqs.some((faq) => !faq.reviewed);
+---
+
+{
+  faqs.length > 0 && (
+    <div class={cn('flex flex-col', className)}>
+      <div class="flex max-w-4xl flex-col gap-3">
+        {faqs.map((faq) => (
+          <details
+            name={group}
+            class="group rounded-xs border border-line bg-white px-6 py-5"
+          >
+            <summary class="flex cursor-pointer items-center justify-between gap-4 font-serif text-lg text-evergreen-800 marker:content-none">
+              {faq.question}
+              <span
+                class="shrink-0 text-gold-700 transition-transform duration-300 group-open:rotate-45"
+                aria-hidden="true"
+              >
+                +
+              </span>
+            </summary>
+            <p class="mt-4 max-w-prose text-sm leading-relaxed text-ink-muted">
+              {faq.answer}
+            </p>
+          </details>
+        ))}
+      </div>
+
+      {showReviewNote && anyUnreviewed && (
+        <p
+          data-faq-review-note
+          class="mt-6 max-w-prose rounded-xs border border-dashed border-line-strong bg-cream-50 px-5 py-4 text-xs leading-relaxed text-ink-muted"
+        >
+          <span class="font-medium text-evergreen-800">General information.</span>{' '}
+          These answers describe how things usually work, not a policy or a
+          promise, and they are still being reviewed by Martin and MaryEllen.
+          Nothing here is legal, tax or financial advice — and what applies to
+          your property depends on your property. Ask, and you will get an
+          answer about yours.
+        </p>
+      )}
+    </div>
+  )
+}

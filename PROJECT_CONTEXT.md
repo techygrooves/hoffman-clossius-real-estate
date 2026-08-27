@@ -384,6 +384,43 @@ for all of them.
   marking up an unsourced answer puts it in a search result, stated as fact,
   above the page that qualifies it.
 
+**The journal.** Articles live in the `blog` content collection, one Markdown
+file each. Reading them goes through `src/lib/blog/posts.ts` so the index, the
+article routes, related reading and the sitemap can never disagree about what
+is publishable.
+
+- **Articles are written, never generated.** Every post carries a named byline,
+  which makes a fabricated article worse than fabricated listing data: it puts
+  words in someone's mouth, on a subject their clients act on.
+- `draft: true` hides a post in every mode. `sample: true` marks a **structural
+  placeholder** — dev-only, badged on every card, `noindex`, excluded from the
+  sitemap, and only ever related to other samples. Delete the samples once a
+  real article exists, and never set the flag on a real one.
+- `seo` is reserved for the later SEO phase and is empty. Do not pre-fill it.
+
+**The mortgage calculator.** All arithmetic lives in
+`src/lib/mortgage/calculate.ts` — pure functions, no DOM, no formatting —
+and is unit-tested in `tests/mortgage.test.mjs`, which **runs as part of
+`npm run build`**. Both the property-detail estimate and the full calculator
+import it: two copies of an amortisation formula would eventually disagree, and
+only one of them would be under test.
+
+- It is arithmetic, not artificial intelligence, and the page says so.
+- **No rate is stored or fetched.** The field starts empty, nothing is
+  calculated until a visitor supplies a rate, and pre-filling a plausible one
+  would be the site asserting a market figure it has no source for. Taxes,
+  insurance and HOA start blank for the same reason.
+- Output is labelled an estimate, and the page states plainly that it is not a
+  lending quote, a pre-approval or an offer of credit — above the results, not
+  only inside them.
+
+**FAQ answers.** `src/data/faqs.ts` answers describe **general practice**. They
+must never state a fee, a commission, a timescale, a guarantee, a firm policy,
+or a legal requirement as settled law. Every entry carries `reviewed`, false
+until the client has read it, and the pages that publish them say so in public
+through the shared `FaqAccordion` — so the caveat cannot be left behind on one
+page and not another.
+
 **`src/config/navigation.ts` must stay importable by plain Node.**
 `scripts/verify-links.mjs` imports it directly to cross-check every declared
 href, and that runs outside Vite, where `@`-aliases do not resolve. Use a

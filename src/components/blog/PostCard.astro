@@ -1,0 +1,101 @@
+---
+/**
+ * PostCard — one article on the index or in a related-reading list.
+ *
+ * A sample post is badged here, not just in a page-level notice, because a
+ * card is the thing that gets screenshotted and shared. It must be impossible
+ * to mistake scaffolding for an article at a glance.
+ *
+ * Carries a compact JSON payload so the index filter can show and hide it
+ * without re-rendering any markup.
+ */
+import MediaSlot from '@components/ui/MediaSlot.astro';
+import { categoryLabel, isSample, type Post } from '@lib/blog/posts';
+import { getProfessional } from '@config/site';
+import { formatDate, toISODate } from '@lib/format';
+import { cn } from '@lib/cn';
+
+interface Props {
+  post: Post;
+  seed?: number;
+  variant?: 'default' | 'feature';
+  class?: string;
+}
+
+const { post, seed = 0, variant = 'default', class: className } = Astro.props;
+const { data } = post;
+const isFeature = variant === 'feature';
+const author = getProfessional(data.author);
+const sample = isSample(post);
+
+/** Only the fields the client filter reads. */
+const payload = JSON.stringify({
+  id: post.id,
+  title: data.title,
+  excerpt: data.excerpt,
+  category: data.category,
+  categoryLabel: categoryLabel(data.category),
+  tags: data.tags,
+});
+---
+
+<li data-post={payload} class={cn('min-w-0', className)}>
+  <article
+    class={cn(
+      'group flex h-full flex-col overflow-hidden rounded-xs border border-line bg-white',
+      isFeature && 'lg:flex-row',
+    )}
+  >
+    <a
+      href={`/blog/${post.id}/`}
+      class={cn('block shrink-0 overflow-hidden', isFeature && 'lg:w-1/2')}
+      tabindex="-1"
+      aria-hidden="true"
+    >
+      <MediaSlot
+        src={data.heroImage?.src ?? null}
+        alt=""
+        width={1200}
+        height={800}
+        ratio={isFeature ? '3/2' : '16/10'}
+        seed={seed}
+        marker={false}
+        sizes={isFeature ? '(min-width: 1024px) 50vw, 100vw' : '(min-width: 1024px) 33vw, 100vw'}
+        class={cn('h-full w-full', isFeature && 'lg:h-full')}
+        imgClass="transition-transform duration-700 ease-[var(--ease-editorial)] motion-safe:group-hover:scale-[1.03]"
+      />
+    </a>
+
+    <div class={cn('flex flex-1 flex-col p-6 sm:p-7', isFeature && 'sm:p-10')}>
+      <div class="flex flex-wrap items-center gap-x-3 gap-y-2">
+        <span class="text-xs uppercase tracking-eyebrow text-evergreen-600">
+          {categoryLabel(data.category)}
+        </span>
+        {
+          sample && (
+            <span class="inline-flex items-center rounded-xs border border-dashed border-gold-600/60 bg-gold-100/60 px-2 py-0.5 text-[0.6875rem] uppercase tracking-wide-sm text-charcoal-600">
+              Sample — not an article
+            </span>
+          )
+        }
+      </div>
+
+      <h3
+        class={cn(
+          'mt-3 font-serif text-evergreen-800',
+          isFeature ? 'text-3xl sm:text-4xl' : 'text-2xl',
+        )}
+      >
+        <a href={`/blog/${post.id}/`} class="link-underline">{data.title}</a>
+      </h3>
+
+      <p class="mt-3 flex-1 text-sm leading-relaxed text-ink-muted">{data.excerpt}</p>
+
+      <p class="mt-6 flex flex-wrap items-center gap-x-2 gap-y-1 border-t border-line pt-5 text-xs text-ink-subtle">
+        {author && <span>{author.name}</span>}
+        {author && <span aria-hidden="true">·</span>}
+        <time datetime={toISODate(data.publishedAt)}>{formatDate(data.publishedAt)}</time>
+      </p>
+    </div>
+  </article>
+</li>
