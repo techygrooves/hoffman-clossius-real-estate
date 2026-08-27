@@ -3,7 +3,7 @@
 Living record of what exists, what is broken and what comes next.
 **Update this file at the end of every session.**
 
-Last updated: **2026-08-27** — Session 9 (resources system)
+Last updated: **2026-08-27** — Session 10 (contact, accounts & legal pages)
 
 ---
 
@@ -11,20 +11,22 @@ Last updated: **2026-08-27** — Session 9 (resources system)
 
 Foundation, global chrome, homepage, the property/listing system, the
 developments subsystem, the buyer and seller conversion pages, the people and
-testimonial pages, the communities architecture and **the resources system**
-are built. Listings, developments, valuation data, biographies, portraits,
-testimonials, community guide copy and journal articles are all still
+testimonial pages, the communities architecture, the resources system and
+**the contact, account and legal pages** are built. Listings, developments,
+valuation data, biographies, portraits, testimonials, community guide copy,
+journal articles, approved legal text and an account provider are all still
 unsupplied, and in every case the architecture makes that a supply step rather
 than a rewrite.
 
-**Only `/contact/` and the three legal pages remain unbuilt.**
+**Only `/accessibility/` remains unbuilt**, and it is blocked on 4.9 — who
+receives accessibility reports, and by what channel.
 
 | Metric | Value |
 | --- | --- |
 | Build | ✅ passing — `astro check`: 0 errors, 0 warnings, 0 hints |
 | Pages | 45 in production · 65 with demo content on |
 | Internal links | ✅ all resolve, both modes |
-| Tests | ✅ **811 checks passing** — see below |
+| Tests | ✅ **1,335 checks passing** — see below |
 | Contrast | ✅ every rendered text node on all 64 pages × 2 widths clears WCAG 2.2 AA |
 | JavaScript | ~22 KB total across the site, inlined, no dependencies |
 | Third-party runtime requests | none |
@@ -32,6 +34,7 @@ than a rewrite.
 | Suite | Checks |
 | --- | --- |
 | Mortgage maths — unit tests, in the build | 17 |
+| Contact, accounts & legal — structure, contrast ×2 widths, forms, no-JS, targets | 524 |
 | Mortgage calculator — browser, validation, reset, honesty | 52 |
 | Resources — blog, FAQ, guides (production) | 57 |
 | Resources — blog, FAQ, guides, article template (demo) | 83 |
@@ -54,6 +57,106 @@ than a rewrite.
 | Listings — mobile + no-JavaScript | 8 |
 | Homepage | 15 |
 | Navigation | 21 |
+
+---
+
+## ✅ Completed — Session 10 (2026-08-27) · Contact, accounts & legal pages
+
+Five routes, an account seam, and a legal-content architecture. `StubPage` now
+survives on exactly one route.
+
+### Contact — `/contact/`
+- [x] Both professionals with title, direct line and email, presented before
+      the form — a phone number is a faster way to reach someone than a form,
+      so it comes first.
+- [x] Every specified field: name, email, phone, "I am interested in"
+      (Buying · Selling · Renting · Relocating · New Development · Other),
+      message, preferred contact method.
+- [x] Routed through the existing `LeadForm` service, so it inherits the
+      validation, the error summary, the busy state and the honesty rule
+      without reimplementing any of them.
+- [x] Privacy policy linked under the submit button, as on every other form.
+
+**No office address, no office hours, no shared number** — none is confirmed
+(`CONTENT_PENDING.md` 2.1–2.3). The page presents what *is* confirmed rather
+than explaining what is missing, which reads as a design decision rather than
+a gap.
+
+### Accounts — `/login/` and `/register/`
+
+**No page on this site renders an `input[type=password]`, in any build mode.**
+Verified in production, with demo content on, and with an account provider
+configured. This is the session's central decision and it is structural, not
+stylistic: the site is statically generated and has no backend, so a sign-in
+form here could only be decorative or homemade. A decorative password field is
+not harmless — browsers offer to save what is typed into it, password managers
+fill it, and people reuse credentials.
+
+So the credential step belongs to the provider, on the provider's origin. That
+is also the standing project rule (`CONTENT_PENDING.md` 5.10).
+
+- [x] `src/lib/auth/` — the provider seam, selected exactly as listings and
+      developments are. `AuthProvider` deliberately has **no method that
+      accepts a credential**: an interface decides what gets built against it.
+- [x] Connecting a provider is two environment variables and a rebuild. A
+      half-configured environment falls back rather than shipping a link that
+      404s — verified.
+- [x] `/login/` states plainly that accounts are not available, and explains
+      where the properties someone has already saved actually live (this
+      browser, this device, gone with site data).
+- [x] `/register/` is not a dead end: it collects the four specified fields —
+      name, email, phone, ZIP/area — and sends them as a `property-alerts`
+      enquiry for Martin and MaryEllen to action by hand. It says it is not an
+      account, in the hero, above the form and in the heading.
+- [x] `AUTH_INTEGRATION.md` documents all of it, including what must never be
+      built here.
+
+**There is no demo account mode, and there must never be one.** A fake
+signed-in state is not a placeholder — it is a claim that an account exists,
+and the worst outcome available is someone believing they registered for
+alerts nobody will send.
+
+### Legal — `/privacy-policy/` and `/terms/`
+
+No approved text exists, so none was written. `src/data/legal.ts` gates
+publication on `approved: true` — the same shape as `verified` on developments
+and `reviewed` on FAQ answers — and `LegalDocument.astro` renders either the
+approved document (contents list, dated, anchored) or a clearly marked empty
+slot. Supplying text is a change to one data file.
+
+What the pages *do* publish is carefully bounded:
+
+- `/privacy-policy/` carries a factual description of how the site behaves —
+  no analytics, no cookies set by us, no third-party requests, and the two
+  per-device values in the browser — **each line verified against the code**,
+  and labelled on the page as not being the policy.
+- `/terms/` carries **no** acceptance wording, limitation of liability,
+  warranty disclaimer, indemnity, governing-law clause or IP assertion. Those
+  are a contract, and a plausible draft of a contract is not a placeholder —
+  it is an unreviewed contract that happens to be published.
+
+### Fixed while testing
+- **Standalone link targets were under the 24px floor.** The aside CTAs and
+  the legal "Related" lists rendered 20px tall at 390px — below WCAG 2.2
+  SC 2.5.8. Padded to 28px; no visible change.
+- **"Terms of Use is being prepared."** The pending heading interpolated the
+  document title into a fixed sentence, which reads correctly for a policy and
+  wrongly for plural terms. The heading is now supplied per page.
+- **"…not the privacy policyand it is not…"** Astro collapsed the newline after
+  a `</strong>`, welding two words together. Fixed with the `{' '}` pattern
+  `LeadForm` already uses. Invisible in the markup; obvious in a screenshot.
+- **14px headings came out in the display serif.** `h1`–`h4` take the serif
+  family from the base layer, which is right at 20px and wrong for a small
+  label. Set `font-sans` explicitly, as `Footer.astro` does for the same
+  reason. **A small `<h3>` on this site needs `font-sans` stating outright.**
+
+### Found, not fixed — and why
+A **site-wide** target-size gap predating this session: breadcrumb links render
+37×16 and the stacked phone/email lists 20px tall, on every page built so far.
+Verified against untouched pages from earlier sessions. Both come from shared
+components whose call sites span all 45 pages, so fixing them is a deliberate
+pass, not a side effect of this task (`PROJECT_CONTEXT.md` §10.5). Recorded as
+problem 22.
 
 ---
 
@@ -809,7 +912,7 @@ twelve homepage sections in `src/components/home/`.
 | Component | Path | Status |
 | --- | --- | --- |
 | `BaseLayout` | `src/layouts/BaseLayout.astro` | ✅ stable |
-| `StubPage` | `src/layouts/StubPage.astro` | ⚠️ temporary — delete when the last page is built |
+| `StubPage` | `src/layouts/StubPage.astro` | ⚠️ temporary — **one route left** (`/accessibility/`); delete with it |
 | `Header` | `src/components/layout/Header.astro` | ✅ stable — rebuilt in session 2 |
 | `Footer` | `src/components/layout/Footer.astro` | ✅ stable — rebuilt in session 2 |
 | `MobileActionBar` | `src/components/layout/MobileActionBar.astro` | ✅ stable — new in session 2 |
@@ -851,6 +954,9 @@ twelve homepage sections in `src/components/home/`.
 | `PostAuthorCard` | `src/components/blog/PostAuthorCard.astro` | ✅ stable — no biography until 8.1 / 8.2 |
 | `FaqAccordion` | `src/components/faq/FaqAccordion.astro` | ✅ stable — carries the review caveat with the answers |
 | `GuideSteps` | `src/components/resources/GuideSteps.astro` | ✅ stable — shared by both guides |
+| `AccountHandoff` | `src/components/auth/AccountHandoff.astro` | ✅ stable — renders nothing until a provider is configured |
+| `AccountBenefits` | `src/components/auth/AccountBenefits.astro` | ✅ stable — shared by both account pages |
+| `LegalDocument` | `src/components/legal/LegalDocument.astro` | ⚠️ pending state is the shipping state until 4.7 / 4.8 |
 | Homepage sections | `src/components/home/*.astro` | ✅ stable — twelve sections |
 | `InPreparation` | `src/components/sections/InPreparation.astro` | ⚠️ temporary |
 
@@ -888,6 +994,9 @@ primitive rather than adding a near-duplicate.
 | 17 | Community locational lines are ours, not the client's | 🟠 med | Written from geography alone. The four Hollywood-area subareas need the closest review — neighbourhood boundaries are locally understood and vary. Sheridan Lakes deliberately has no parent municipality recorded. `CONTENT_PENDING.md` 10.5a, 10.5b. |
 | 18 | Coordinates are unverified and unplotted | 🟢 low | Approximate centroids on the eleven municipalities, none on the subareas. `CommunityMap` states the location in words and plots nothing, so nothing incorrect ships — but they must be verified before a map provider goes in. `CONTENT_PENDING.md` 10.5c. |
 | 15 | Per-agent listings untestable against real data | 🟢 low | `agentProfilePath` matches `listingAgent.profilePath`, which the demo provider sets from `professionals[].href`. A real IDX feed must map its own agent identity onto the same paths in `idxProvider.ts`, or both profile pages will show the honest "nothing on the open market" state forever. Noted in `IDX_INTEGRATION.md`. |
+| 22 | Site-wide target sizes under WCAG 2.2 SC 2.5.8 | 🟠 med | **Predates session 10 and affects all 45 pages.** Breadcrumb links render 37×16 at 390px and the stacked phone/email lists 20px tall — both below the 24×24 floor, and well below this project's own 44px aim (`PROJECT_CONTEXT.md` §7). Verified against untouched pages from earlier sessions, so it is not a regression. Both come from shared components (`Breadcrumbs`, the contact-detail lists repeated across asides), so fixing it is a deliberate pass with every call site checked — not a side effect of another task. Session 10's own standalone links were brought to 28px. |
+| 23 | No account provider connected | 🟠 med | `/login/` says accounts are not available; `/register/` collects alert details for Martin and MaryEllen to action by hand. Resolves with two environment variables — `CONTENT_PENDING.md` 5.10a, `AUTH_INTEGRATION.md`. **No page renders a password field in any build mode, and that does not change when a provider is connected** — the credential step is the provider's, on its own origin. |
+| 24 | No approved legal text | 🔴 high | `/privacy-policy/` and `/terms/` are built and render a clearly marked "awaiting legal review" slot. Both documents bind the client and neither may be drafted by us. Resolves by pasting approved text into `src/data/legal.ts` and setting `approved: true` — `CONTENT_PENDING.md` 4.7, 4.7a, 4.8. The privacy policy is additionally blocked on 6.1/6.7 (where submissions go and how long they are kept) and 11.1 (analytics), because it must describe what the site actually does. |
 | 12 | No median home values published | 🟠 med | `/sell/median-home-values/` shows no figure for any of the six cities, because none carries a source and a date. Resolves via a `medianHomeValue` on a community record, or a live `ValuationProvider`. `CONTENT_PENDING.md` 10.7. |
 
 ---
@@ -895,15 +1004,17 @@ primitive rather than adding a near-duplicate.
 ## Next tasks
 
 ### Immediate — next session
-1. **`/contact/`.** `LeadForm` and its field components are now built, so this
-   is mostly assembly: a `kind="contact"` form plus the two direct lines. The
-   office address (`CONTENT_PENDING.md` 2.1) is the only blocker, and the page
-   can ship without it.
+1. **`/accessibility/`** — the last route on `StubPage`, and the last page in
+   the site. Blocked only on `CONTENT_PENDING.md` 4.9: who receives
+   accessibility reports, and by what channel. The statement itself describes
+   the standard the site is built toward (WCAG 2.2 AA) and how to report a
+   barrier; **it will not claim any certification**. Building it retires
+   `StubPage.astro` and `InPreparation.astro` for good.
 
 ### Then, roughly in order
-2. `/accessibility/`, `/privacy-policy/`, `/terms/` — the last unbuilt routes.
-   Blocked on legal wording. The privacy policy also needs 6.7 (where form
-   submissions are stored, and for how long).
+2. **Approved privacy policy and terms text** — both pages are built and
+   waiting on one data file (`CONTENT_PENDING.md` 4.7, 4.7a, 4.8). The privacy
+   policy is the more urgent of the two: every form on the site links to it.
 3. **Client review of the FAQ answers** — 24 are live and every one is flagged
    unreviewed in public. This is the cheapest quality win outstanding.
 4. Community guide copy — the template is built; a sourced `medianHomeValue`
@@ -1186,6 +1297,57 @@ the subarea section and the FAQ all render nothing rather than generic cards.
 That was a deliberate choice, not an omission — a "Lifestyle" band containing
 Dining, Beaches and Schools would look finished and say nothing, and would make
 it much less likely that anyone ever writes the real thing.
+
+### Session 10 — 2026-08-27 · Contact, accounts & legal pages
+Five routes, and two of them turned on questions about what a page is allowed
+to *appear* to do.
+
+**A password field with nothing behind it is not a placeholder.** The brief
+listed email and password for `/login/`, and the same brief said not to
+implement fake authentication or store passwords. Those pull in opposite
+directions only until you notice what a decorative password field actually
+does: browsers offer to save it, password managers fill it, and people type a
+credential they use elsewhere into a page with no backend to protect it. So no
+page on this site renders one, in any build mode — the credential step belongs
+to the provider, on the provider's origin, which is also what
+`CONTENT_PENDING.md` 5.10 already required.
+
+The enforcement is in the shape of the contract rather than a comment:
+`AuthProvider` has no method that accepts a credential. An interface is an
+invitation, and a `signIn(email, password)` parameter eventually gets accepted.
+
+**Honest does not have to mean empty.** `/register/` could have been a
+statement that accounts do not exist. Instead it collects the four fields the
+brief specified and sends them as a `property-alerts` enquiry for Martin and
+MaryEllen to action by hand — a real service, using the existing lead
+transport, with no password and no claim to have created anything. The page
+says so in the hero, above the form, and in the heading, because someone who
+clicked "create account" should learn within a sentence that they are not
+creating one.
+
+**A plausible legal draft is worse than an empty slot.** Neither the privacy
+policy nor the terms could be written, so neither was. What could be written is
+a *factual* description of the software — no analytics, no cookies, no
+third-party requests, two per-device values in the browser — every line of it
+verified against the code and labelled on the page as not being the policy.
+That distinction is the whole point: describing what the software does is
+engineering, and promising what an organisation will do with personal data is
+not. `/terms/` got the stricter treatment and carries no contractual language
+at all.
+
+**Testing found the smaller things.** Standalone link targets were 20px tall at
+390px, under SC 2.5.8's 24px floor; the pending heading read "Terms of Use is
+being prepared". It also surfaced a site-wide target-size gap on breadcrumbs
+and contact lists that predates this session and touches all 45 pages —
+recorded as problem 22 rather than fixed in passing, because shared components
+with 45 call sites are not a side quest.
+
+**Two of the three "failures" in the first test run were the test being
+wrong**, in a way worth remembering: it flagged the page for containing "has
+been sent" (the fallback's honest line is "nothing has been sent") and for
+containing "disclaim" (a reference to MLS wording that is still pending). An
+assertion that matches on a substring will eventually accuse the correct
+behaviour.
 
 ### Session 9 — 2026-08-27 · Resources system
 Six routes, a content collection, a tested calculator, and unit tests wired

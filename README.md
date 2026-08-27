@@ -46,6 +46,9 @@ change needs a rebuild.
 | --- | --- |
 | `PUBLIC_LEAD_FORM_ENDPOINT` | Where enquiry forms send submissions. **Unset today.** |
 | `PUBLIC_DEMO_CONTENT` | Forces the sample listings/developments on or off. |
+| `PUBLIC_AUTH_SIGN_IN_URL` | The account provider's own sign-in page. **Unset today.** |
+| `PUBLIC_AUTH_REGISTER_URL` | The account provider's own registration page. **Unset today.** |
+| `PUBLIC_AUTH_ACCOUNT_URL` | Optional — where a signed-in visitor manages saved searches. |
 
 **Until `PUBLIC_LEAD_FORM_ENDPOINT` is set, no form claims to have sent
 anything.** Submitting shows the visitor their own answers with a prefilled
@@ -53,7 +56,13 @@ email link to Martin and MaryEllen and both direct numbers — so their effort i
 not lost and nobody waits for a reply that was never coming. Setting the
 variable and rebuilding switches every form over; there is no code to change.
 
-Both variables are `PUBLIC_`, meaning they are compiled into the pages and
+Setting both `PUBLIC_AUTH_*` URLs switches `/login/` and `/register/` from
+"accounts are not available yet" to handing off to the provider. **This site
+never collects a password** — there is no backend here to verify one, so the
+credential step belongs to the provider, on the provider's own origin. See
+[`AUTH_INTEGRATION.md`](./AUTH_INTEGRATION.md).
+
+Every variable here is `PUBLIC_`, meaning it is compiled into the pages and
 visible to anyone. That is correct for a browser-submitted form endpoint, but
 it means the endpoint URL must never itself be a credential. A provider that
 needs an API key needs a server-side relay instead.
@@ -117,9 +126,12 @@ Netlify, Vercel, Cloudflare Pages and S3 serve `dist/` as-is.
 public/brand/    Keyes logo assets — see docs/keyes-logo.md
 public/fonts/    Self-hosted woff2 (latin subset)
 src/config/      site.ts · navigation.ts — the only place client data lives
-src/components/  layout/ · sections/ · ui/
+src/components/  layout/ · sections/ · ui/ · forms/ · auth/ · legal/
 src/layouts/     BaseLayout · StubPage
-src/data/        Typed data modules — intentionally empty until sources are confirmed
+src/data/        Typed data modules — intentionally empty until sources are
+                 confirmed. legal.ts holds the privacy/terms text, gated on
+                 `approved`.
+src/lib/auth/    Account provider seam — see AUTH_INTEGRATION.md
 src/pages/       Routes
 src/styles/      tokens.css · fonts.css · global.css
 scripts/         make-portable.mjs

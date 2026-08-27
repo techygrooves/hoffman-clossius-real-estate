@@ -20,6 +20,14 @@ export type LeadKind =
   | 'dream-home-finder'
   | 'home-evaluation'
   | 'contact'
+  /**
+   * A request to have property alerts set up by hand. NOT an account: this
+   * site has no account system (src/lib/auth/), so /register/ collects the
+   * same details a saved search needs and sends them to Martin and MaryEllen
+   * as an ordinary enquiry. No password is involved, because none is asked
+   * for.
+   */
+  | 'property-alerts'
   | 'relocation'
   | 'development-enquiry'
   | 'property-enquiry';

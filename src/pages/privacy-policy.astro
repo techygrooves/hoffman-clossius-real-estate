@@ -1,12 +1,170 @@
 ---
-import StubPage from '@layouts/StubPage.astro';
+/**
+ * Privacy policy.
+ *
+ * No approved policy text exists (CONTENT_PENDING.md 4.7), so the page renders
+ * the shared legal architecture's pending state: a clearly marked, obviously
+ * empty content slot. Supplying the text is a change to `src/data/legal.ts`
+ * and nothing else.
+ *
+ * ── What this page does publish, and why that is not the same thing ───────
+ * Alongside the empty slot it publishes a factual description of how the
+ * website is built — no analytics, no cookies set by us, no third-party
+ * requests, and the two per-device values stored in the browser. Every line of
+ * it was verified against the code, and every line is checkable by anyone with
+ * developer tools open.
+ *
+ * That is a description of software, not a policy: it makes no promise about
+ * what the client will do with personal data in future, which is the part only
+ * a lawyer can write. The panel says so in as many words, so the distinction
+ * is on the page and not just in this comment.
+ */
+import BaseLayout from '@layouts/BaseLayout.astro';
+import PageHero from '@components/ui/PageHero.astro';
+import Section from '@components/ui/Section.astro';
+import LegalDocument from '@components/legal/LegalDocument.astro';
+import { getLegalDocument } from '@data/legal';
+import { hasLeadDestination } from '@lib/forms/transport';
+
+const document = getLegalDocument('privacy-policy');
+
+/**
+ * Verified against the code, not asserted. If any of these stops being true,
+ * the line comes out — a privacy claim that has quietly gone stale is the
+ * worst kind.
+ */
+const FACTS = [
+  {
+    title: 'No analytics, and no tracking scripts',
+    body: 'This website includes no analytics, no tag manager, no advertising pixel and no session recorder. Nothing measures your visit, so nothing has a record of it.',
+  },
+  {
+    title: 'No cookies are set by this website',
+    body: 'The site sets no cookies of its own — not for preferences, not for measurement, not for anything. There is no cookie banner because there is nothing to consent to.',
+  },
+  {
+    title: 'No third-party requests when a page loads',
+    body: 'Typefaces are served from this site rather than a font network, and no page pulls in a script, a stylesheet, an image or an embed from another company. Loading a page contacts this website and nothing else.',
+  },
+  {
+    title: 'Two things are kept in your own browser',
+    body: 'Properties you save, and the last few properties you opened. Both are stored by your browser on this device only, under the names hc:saved-properties and hc:recently-viewed. They are never sent to us or to anyone else, they do not follow you to another device, and clearing your browsing data removes them.',
+  },
+];
 ---
 
-<StubPage
-  title={'Privacy Policy'}
-  heading={'Privacy policy'}
-  eyebrow={'Legal'}
-  description={'How Hoffman & Closius handle the information you share through this website.'}
-  breadcrumbs={[{ label: 'Privacy Policy' }]}
-  note={'The policy is drafted once the form destination, analytics and any third-party embeds are confirmed, so that it describes what the site actually does.'}
-/>
+<BaseLayout
+  title="Privacy Policy"
+  description="How the Hoffman & Closius website handles information — what it stores, what it does not collect, and the status of the formal privacy policy."
+>
+  <PageHero
+    eyebrow="Legal"
+    title="Privacy policy"
+    lead="The formal policy is with legal review. What this page can tell you now is exactly how the website itself behaves."
+    breadcrumbs={[{ label: 'Privacy Policy' }]}
+  />
+
+  <Section tone="white">
+    <LegalDocument
+      document={document}
+      pendingHeading="This policy is being prepared"
+      pendingNote="The finished policy will set out what personal information Hoffman & Closius collect, what it is used for, who it is shared with, how long it is kept, and the choices you have about it. It is written once the form destination, any analytics and any third-party services are settled, so that it describes what the site actually does rather than what a template assumes."
+    >
+      {/* ---------------------------------------------------------------- */}
+      {/* Factual, verifiable, and explicitly not the policy.               */}
+      {/* ---------------------------------------------------------------- */}
+      <div class="mt-14" data-reveal>
+        <h2 class="font-serif text-2xl text-evergreen-800">
+          How this website behaves today
+        </h2>
+        <p class="mt-3 max-w-prose text-sm leading-relaxed text-ink-muted">
+          This is a description of how the site is built, and you can verify
+          every line of it yourself with your browser's developer tools open. It
+          is <strong class="font-medium text-ink">not the privacy policy</strong>{' '}
+          and it is not a commitment about the future — it is simply what is
+          true of the software as it stands.
+        </p>
+
+        <ul class="mt-8 flex flex-col gap-7 border-t border-line pt-8">
+          {
+            FACTS.map((fact) => (
+              <li class="flex gap-4">
+                <span
+                  class="mt-2.5 h-1 w-1 shrink-0 rounded-full bg-gold-600"
+                  aria-hidden="true"
+                />
+                <div>
+                  <h3 class="font-sans text-sm font-medium text-evergreen-800">
+                    {fact.title}
+                  </h3>
+                  <p class="mt-1.5 max-w-prose text-sm leading-relaxed text-ink-muted">
+                    {fact.body}
+                  </p>
+                </div>
+              </li>
+            ))
+          }
+
+          {/*
+            The forms are the one place personal information is involved at
+            all, so their state is stated exactly — including that today a
+            submission is not transmitted anywhere.
+          */}
+          <li class="flex gap-4">
+            <span
+              class="mt-2.5 h-1 w-1 shrink-0 rounded-full bg-gold-600"
+              aria-hidden="true"
+            />
+            <div>
+              <h3 class="font-sans text-sm font-medium text-evergreen-800">
+                What happens to a form you fill in
+              </h3>
+              {
+                hasLeadDestination ? (
+                  <p class="mt-1.5 max-w-prose text-sm leading-relaxed text-ink-muted">
+                    Submitting a form sends what you entered from your browser
+                    directly to the service that handles enquiries for Hoffman
+                    &amp; Closius, and from there to Martin and MaryEllen. Which
+                    service that is, and how long it keeps an enquiry, will be
+                    named in the policy above.
+                  </p>
+                ) : (
+                  <p class="mt-1.5 max-w-prose text-sm leading-relaxed text-ink-muted">
+                    Online submission is not connected yet, so filling in a form
+                    on this site currently transmits nothing anywhere. Pressing
+                    send shows your own answers back to you with an email link
+                    and both direct phone numbers — the message reaches Martin
+                    and MaryEllen only if you choose to send it yourself.
+                  </p>
+                )
+              }
+            </div>
+          </li>
+        </ul>
+      </div>
+
+      <aside slot="aside" class="flex flex-col gap-8">
+        <div class="rounded-xs border border-line bg-cream-50 p-6 sm:p-8" data-reveal>
+          <h2 class="font-serif text-xl text-evergreen-800">Related</h2>
+          <ul class="mt-4 flex flex-col gap-3 border-t border-line pt-4 text-sm">
+            <li>
+              <a href="/terms/" class="link-underline inline-block py-1 text-evergreen-800">
+                Terms of use
+              </a>
+            </li>
+            <li>
+              <a href="/accessibility/" class="link-underline inline-block py-1 text-evergreen-800">
+                Accessibility
+              </a>
+            </li>
+            <li>
+              <a href="/contact/" class="link-underline inline-block py-1 text-evergreen-800">
+                Contact
+              </a>
+            </li>
+          </ul>
+        </div>
+      </aside>
+    </LegalDocument>
+  </Section>
+</BaseLayout>

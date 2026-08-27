@@ -1,0 +1,156 @@
+---
+/**
+ * LegalDocument — the shared architecture for every legal page.
+ *
+ * Two states, one component, so `/privacy-policy/` and `/terms/` can never
+ * drift apart in how they present approved text or how they present its
+ * absence:
+ *
+ *   approved   contents list, dated, headings anchored, long-form typography
+ *   pending    a clearly marked, obviously empty slot — plus whatever factual,
+ *              non-legal content the page passes in through the default slot
+ *
+ * The gate is `publishableSections()` in src/data/legal.ts, and it is the only
+ * way text reaches this component. A page cannot opt out of it.
+ *
+ * The pending state is deliberately not decorated to look finished. It reads
+ * as an empty slot because that is what it is, and a placeholder that looks
+ * like a document is the thing that never gets replaced.
+ */
+import { formatDate, toISODate } from '@lib/format';
+import { publishableSections, type LegalDocumentRecord } from '@data/legal';
+import { professionals } from '@config/site';
+
+interface Props {
+  document: LegalDocumentRecord | undefined;
+  /** Plain-language line describing what the finished document will cover. */
+  pendingNote: string;
+  /**
+   * Heading for the pending state. Supplied per page because the documents
+   * differ in number — a policy "is" being prepared, terms "are" — and
+   * interpolating a title into a fixed sentence produces "Terms of Use is
+   * being prepared".
+   */
+  pendingHeading?: string;
+}
+
+const { document, pendingNote, pendingHeading } = Astro.props;
+
+const sections = publishableSections(document);
+const heading = pendingHeading ?? `${document?.title ?? 'This document'} is being prepared`;
+---
+
+{
+  sections ? (
+    <div class="grid gap-12 lg:grid-cols-12 lg:gap-16">
+      {/* Contents. A legal document is referred to by section, not read straight through. */}
+      <nav aria-labelledby="legal-contents" class="lg:col-span-4 xl:col-span-3">
+        <div class="lg:sticky lg:top-32">
+          <h2
+            id="legal-contents"
+            class="text-xs uppercase tracking-wide-sm text-ink-subtle"
+          >
+            Contents
+          </h2>
+          <ol class="mt-4 flex flex-col gap-2.5 border-t border-line pt-4 text-sm">
+            {sections.map((section, index) => (
+              <li class="flex gap-3">
+                <span class="font-serif text-gold-700" aria-hidden="true">
+                  {String(index + 1).padStart(2, '0')}
+                </span>
+                <a href={`#${section.id}`} class="link-underline text-evergreen-800">
+                  {section.heading}
+                </a>
+              </li>
+            ))}
+          </ol>
+        </div>
+      </nav>
+
+      <div class="lg:col-span-8 xl:col-span-9">
+        {document?.effectiveDate && (
+          <p class="text-sm text-ink-subtle">
+            In effect from{' '}
+            <time datetime={toISODate(document.effectiveDate)}>
+              {formatDate(document.effectiveDate)}
+            </time>
+            {document.approvedBy && <>. Reviewed by {document.approvedBy}.</>}
+          </p>
+        )}
+
+        <div class="article-prose mt-8">
+          {sections.map((section) => (
+            <>
+              <h2 id={section.id}>{section.heading}</h2>
+              {section.body.map((paragraph) => (
+                <p>{paragraph}</p>
+              ))}
+            </>
+          ))}
+        </div>
+      </div>
+    </div>
+  ) : (
+    <div class="grid gap-12 lg:grid-cols-12 lg:gap-16">
+      <div class="lg:col-span-8">
+        {/*
+          The content slot. Dashed, undecorated and headed with what it is —
+          it must be unmistakable to a reader, not only to whoever maintains
+          the file. PROJECT_CONTEXT.md §9.
+        */}
+        <div
+          class="rounded-xs border border-dashed border-gold-600/60 bg-gold-100/40 p-7 sm:p-9"
+          data-legal-status="awaiting-approved-text"
+          data-reveal
+        >
+          <p class="eyebrow text-charcoal-600">
+            <span class="rule-gold" aria-hidden="true" />
+            Awaiting legal review
+          </p>
+
+          <h2 class="mt-4 font-serif text-2xl text-evergreen-800">
+            {heading}
+          </h2>
+
+          <p class="mt-4 max-w-prose text-sm leading-relaxed text-charcoal-600">
+            {pendingNote}
+          </p>
+
+          <p class="mt-4 max-w-prose text-sm leading-relaxed text-charcoal-600">
+            There is no text here yet because none has been approved yet. We
+            will not publish a version written to fill the space: a document
+            like this one binds Hoffman &amp; Closius, and wording that merely
+            reads convincingly is worse than an empty page, because nobody
+            checks it afterwards.
+          </p>
+
+          <div class="mt-7 border-t border-gold-600/30 pt-6">
+            <p class="text-sm leading-relaxed text-charcoal-600">
+              If you need to know how something on this website works before
+              then, ask either of us directly and you will get a straight
+              answer.
+            </p>
+            <ul class="mt-4 flex flex-col gap-2 text-sm sm:flex-row sm:gap-6">
+              {professionals.map((person) => (
+                <li>
+                  <a href={person.email.href} class="link-underline text-evergreen-800">
+                    {person.firstName} — {person.email.value}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+
+        {/* Factual, non-legal content the page supplies. Pending state only. */}
+        <slot />
+      </div>
+
+      <aside class="lg:col-span-4">
+        <div class="lg:sticky lg:top-32">
+          <slot name="aside" />
+        </div>
+      </aside>
+    </div>
+  )
+}

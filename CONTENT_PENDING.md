@@ -57,8 +57,9 @@ Status key: 🔴 blocking · 🟠 needed soon · 🟡 needed before launch
 | 4.4 | **Fair Housing / Equal Housing Opportunity** | 🟠 | Confirm whether the Fair Housing statement and/or the Equal Housing Opportunity and REALTOR® marks must appear in the footer, and supply the approved wording and artwork. The footer renders them automatically once `pending.legal` is populated — nothing is invented meanwhile. |
 | 4.5 | MLS attribution + IDX disclaimer wording | 🔴 | Mandated by the MLS; exact text comes from the IDX provider. |
 | 4.6 | DMCA notice text | 🟡 | |
-| 4.7 | Privacy policy source text | 🟠 | Drafted only once forms, analytics and embeds are known — the policy must describe what the site actually does. |
-| 4.8 | Terms of use source text | 🟠 | |
+| 4.7 | **Privacy policy source text** | 🔴 | **The page is built and live; the policy is not.** `/privacy-policy/` renders a clearly marked "awaiting legal review" slot, plus a factual, verified description of how the site behaves (no analytics, no cookies, no third-party requests, two per-device values in the browser) that is explicitly labelled as *not* the policy. Paste the approved text into `src/data/legal.ts` as `sections`, set `effectiveDate` and `approvedBy`, and set `approved: true` — the placeholder disappears on its own. Drafted only once forms (6.1, 6.7), analytics (11.1) and any embeds are settled, so the policy describes what the site actually does. |
+| 4.7a | **Who reviews and approves the legal text** | 🔴 | Both documents bind Hoffman & Closius, so both need a qualified reviewer — the client's attorney or the brokerage's legal team. `approved: true` in `src/data/legal.ts` means *that named person has read that exact text and confirmed it may be published*, and `approvedBy` records who. It is not "it looks finished". **Neither document may be drafted, adapted from another site or generated to fill the space** — the empty slot is the state that gets fixed; a plausible draft is the state that ships forever. |
+| 4.8 | **Terms of use source text** | 🔴 | Same architecture, same gate, same file. `/terms/` carries **no** acceptance wording, limitation of liability, warranty disclaimer, indemnity, governing-law clause or IP assertion — none may be written by us. What it does publish is a factual account of what the site is and where its information comes from, headed as not being a contract. Drafted alongside 4.1, 4.2 and the MLS wording in 4.5. |
 | 4.9 | Accessibility statement contact route | 🟠 | Who receives accessibility reports, and by what channel. **The statement will not claim ADA certification.** |
 
 ---
@@ -80,7 +81,10 @@ below must come from the client or the provider; none may be assumed.
 | 5.7 | **Refresh and cache requirements** | 🔴 | How often data must be refreshed, the maximum permitted staleness, whether records may be cached or must be fetched live, and how quickly a withdrawn listing must disappear. **This decides whether a build-time fetch is permitted at all**, or whether the site needs a runtime proxy. |
 | 5.8 | Photo usage and caching rules | 🟠 | May images be downloaded and re-served, or must they be hot-linked from the provider? Any watermark or attribution requirement? |
 | 5.9 | Search URL structure | 🟠 | Whether the provider owns `/properties/search/` or is embedded within it. |
-| 5.10 | Saved-search / account behaviour | 🟠 | `/login/` and `/register/` are provider-hosted. This site must never collect credentials directly. The current "save property" button is a per-device placeholder only. |
+| 5.10 | **Saved-search / account behaviour** | 🟠 | `/login/` and `/register/` are built and **provider-hosted by design. This site must never collect credentials directly**, and renders no `input[type=password]` in any build mode — there is no backend here to verify one, so a password field could only be decorative or homemade authentication. The seam is `src/lib/auth/`; full detail in `AUTH_INTEGRATION.md`. The current "save property" button is a per-device placeholder only. |
+| 5.10a | **Account provider sign-in and registration URLs** | 🟠 | The two values that switch the account pages on: `PUBLIC_AUTH_SIGN_IN_URL` and `PUBLIC_AUTH_REGISTER_URL`, set in the host's build environment. Both or neither — a half-configured environment falls back to the "not available yet" state rather than shipping a link that 404s. Ideally the same platform as 5.1, or its alerts will not match the inventory `/properties/` shows. |
+| 5.10b | **What the account provider stores, and whether it sets cookies** | 🟠 | Needed before the privacy policy can be finished (4.7) and to settle the cookie-consent question (11.2). A third party that receives a visitor's name and email has to be named in the policy. |
+| 5.10c | Whether the by-hand alerts route stays | 🟡 | With no provider connected, `/register/` collects name, email, phone and ZIP/area and sends them as an ordinary `property-alerts` enquiry for Martin and MaryEllen to action by hand. Decide whether that route is retired or kept once real registration exists. |
 | 5.11 | Expected feed size | 🟡 | Dozens, hundreds or thousands? Decides whether the browser can keep filtering client-side or the provider must paginate — see `IDX_INTEGRATION.md` §7. |
 
 > Until 5.1–5.7 are supplied, `idxProvider.ts` stays unimplemented, the site
@@ -93,8 +97,8 @@ below must come from the client or the provider; none may be assumed.
 | --- | --- | --- | --- |
 | 6.1 | **Form destination — `PUBLIC_LEAD_FORM_ENDPOINT`** | 🔴 | **This is the one item that switches every form on.** A URL that accepts a `POST` of JSON: Formspree, Netlify Forms, a CRM webhook, a Zapier/Make hook, or the IDX provider's lead capture. Set it in `.env` (and in the host's build environment) as `PUBLIC_LEAD_FORM_ENDPOINT=https://…` and rebuild — no code change. Wired to `src/lib/forms/transport.ts`. **Until it is set, no form claims to have sent anything**: submitting shows the visitor their own answers with a prefilled email link to Martin and MaryEllen and both direct numbers. Affects `/contact/`, `/buy/dream-home-finder/`, `/sell/home-evaluation/`. |
 | 6.1a | Confirm the endpoint carries no secret | 🟠 | `PUBLIC_` means the value is compiled into the page and visible to anyone — that is correct for a browser-submitted form, but the URL itself must not be a credential. A provider that needs an API key needs a server-side relay instead. |
-| 6.2 | Which fields are required | 🟠 | Currently required — Dream Home Finder: name, email, preferred contact method. Home evaluation: address, city, ZIP, property type, name, email. Everything else is explicitly marked "(optional)". Confirm or change. |
-| 6.3 | **Lead routing** | 🟠 | Do enquiries go to Martin, MaryEllen, or both? Also governs the mobile action bar's **Call** button: with no confirmed shared number and no routing rule, it opens a chooser listing both direct lines rather than silently picking an agent. Confirm a single number and it can dial directly. |
+| 6.2 | Which fields are required | 🟠 | Currently required — Dream Home Finder: name, email, preferred contact method. Home evaluation: address, city, ZIP, property type, name, email. **Contact: name, email, preferred contact method, what it is about, message** (phone optional, with a hint that it is needed for a call or text back). **Property alerts (`/register/`): name, email, ZIP or area** (phone optional). Everything else is explicitly marked "(optional)". Confirm or change. |
+| 6.3 | **Lead routing** | 🟠 | Do enquiries go to Martin, MaryEllen, or both? Now affects five forms, including `/contact/` (which tells visitors it "reaches both of us") and the property-alerts request on `/register/`. Also governs the mobile action bar's **Call** button: with no confirmed shared number and no routing rule, it opens a chooser listing both direct lines rather than silently picking an agent. Confirm a single number and it can dial directly. |
 | 6.4 | Spam protection | 🟠 | Honeypot, hCaptcha, provider-side — affects whether third-party script is added. Choose alongside 6.1: most form services include it. |
 | 6.5 | Consent / opt-in wording | 🟠 | Required text under the submit button. Today it says only that details are used to reply and links the privacy policy. **Nothing is pre-ticked and there is no marketing opt-in** — if one is wanted it must be an unticked checkbox, never a default. |
 | 6.6 | Confirmation behaviour | 🟡 | Inline message (current) or a thank-you page. Also: should a copy of each enquiry be emailed to the sender? |
@@ -204,7 +208,7 @@ Every placeholder shipped today, so none can be forgotten:
 | --- | --- | --- |
 | Neutral dashed image-glyph box in the header, drawer and footer | `src/components/layout/KeyesLogo.astro` | 1.1 / 1.2 supplied |
 | `site.url = 'https://hoffmanclosius.com'`, `urlConfirmed: false` | `src/config/site.ts` | 3.1 confirmed |
-| "Content for this page is on the way" band | `src/components/sections/InPreparation.astro`, on every stub route | Each page is built out |
+| "Content for this page is on the way" band | `src/components/sections/InPreparation.astro` — **now only on `/accessibility/`**, the last stub route | `/accessibility/` is built out (4.9); then delete this component and `StubPage` |
 | Empty data modules | `src/data/*.ts` | The matching source is confirmed |
 | Fifteen community pages carrying only a locational one-liner, with a visible "guide is being written" note | `src/components/communities/CommunityIntro.astro` | 10.5 supplied |
 | "Living in …" lifestyle section absent from every community page | `src/components/communities/CommunityHighlights.astro` | 10.5d supplied |
@@ -231,6 +235,9 @@ Every placeholder shipped today, so none can be forgotten:
 | Empty journal on `/blog/` and the homepage insights band | `src/lib/blog/posts.ts` | 10.9 first real article published |
 | "Being reviewed by Martin and MaryEllen" caveat under every FAQ answer | `src/components/faq/FaqAccordion.astro`, `/faq/` | 10.2 — set `reviewed: true` per answer |
 | Blank interest rate, tax, insurance and HOA on the calculator | `src/pages/mortgage-calculator.astro` | 11.3 — only with a citable source |
+| "Awaiting legal review" content slot on `/privacy-policy/` and `/terms/` | `src/components/legal/LegalDocument.astro`, driven by `src/data/legal.ts` | 4.7 / 4.8 approved text supplied and `approved: true` set |
+| "Accounts are not available yet" panel on `/login/` | `src/pages/login.astro` | 5.10a — account provider URLs configured |
+| `/register/` collects property-alert details instead of creating an account | `src/pages/register.astro` | 5.10a — real registration replaces it (see 5.10c) |
 
 No placeholder above is phrased as a factual claim about the client, and none
 uses lorem ipsum.

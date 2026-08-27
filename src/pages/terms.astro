@@ -1,12 +1,159 @@
 ---
-import StubPage from '@layouts/StubPage.astro';
+/**
+ * Terms of use.
+ *
+ * No approved terms exist (CONTENT_PENDING.md 4.8), so this page renders the
+ * shared legal architecture's pending state. Supplying the text is a change to
+ * `src/data/legal.ts` and nothing else.
+ *
+ * ── What is deliberately absent ───────────────────────────────────────────
+ * Terms of use are a contract offered to every visitor. So this page contains
+ * no acceptance wording ("by using this site you agree…"), no limitation of
+ * liability, no warranty disclaimer, no indemnity, no governing-law clause and
+ * no intellectual-property assertion. Not one of those may be written by us,
+ * and a plausible-looking draft of them is not a placeholder — it is an
+ * unreviewed contract that happens to be published.
+ *
+ * What the page does carry is a factual account of what the website is and
+ * where its information comes from, which is a description rather than a term,
+ * and which points at the pages that already state their own limits.
+ */
+import BaseLayout from '@layouts/BaseLayout.astro';
+import PageHero from '@components/ui/PageHero.astro';
+import Section from '@components/ui/Section.astro';
+import LegalDocument from '@components/legal/LegalDocument.astro';
+import { getLegalDocument } from '@data/legal';
+
+const document = getLegalDocument('terms');
+
+/**
+ * Statements of fact about how the site is built and sourced. Each is
+ * checkable against the site itself. None is a contractual term, and the
+ * heading above them says so.
+ */
+const FACTS = [
+  {
+    title: 'What this website is',
+    body: 'An information website for Martin Hoffman P.A. and MaryEllen Closius P.A., two licensed real estate professionals working across Broward, Palm Beach and Miami-Dade counties. Contacting either of them through this site does not by itself create a representation agreement — that is something you would sign.',
+  },
+  {
+    title: 'Where property information will come from',
+    body: 'No property data is connected yet. When it is, listings come from a licensed MLS/IDX feed and are published with the attribution and disclaimer wording that the MLS itself requires, verbatim. Details of a new development come from what its developer has published.',
+  },
+  {
+    title: 'What this website does not calculate',
+    body: 'It produces no home valuation of any kind, and no estimate of what a property is worth. An opinion of value is prepared by Martin or MaryEllen, and an opinion of value is not a formal appraisal.',
+  },
+  {
+    title: 'The mortgage calculator is arithmetic',
+    body: 'It works only on figures you type in, holds no interest rate of its own and fetches none. Its output is an estimate of a monthly payment, not a lending quote, a pre-approval or an offer of credit.',
+  },
+];
+
+const QUALIFIED_PAGES = [
+  { label: 'Mortgage calculator', href: '/mortgage-calculator/' },
+  { label: 'Home evaluation', href: '/sell/home-evaluation/' },
+  { label: 'Median home values', href: '/sell/median-home-values/' },
+  { label: 'Frequently asked questions', href: '/faq/' },
+];
 ---
 
-<StubPage
-  title={'Terms of Use'}
-  heading={'Terms of use'}
-  eyebrow={'Legal'}
-  description={'The terms that apply to your use of the Hoffman & Closius website.'}
-  breadcrumbs={[{ label: 'Terms of Use' }]}
-  note={'Terms are drafted alongside the brokerage’s required wording, which has not yet been supplied.'}
-/>
+<BaseLayout
+  title="Terms of Use"
+  description="The terms that apply to your use of the Hoffman & Closius website, and the status of that document."
+>
+  <PageHero
+    eyebrow="Legal"
+    title="Terms of use"
+    lead="The formal terms are with legal review. What this page can set out now is what the website is and where its information comes from."
+    breadcrumbs={[{ label: 'Terms of Use' }]}
+  />
+
+  <Section tone="white">
+    <LegalDocument
+      document={document}
+      pendingHeading="These terms are being prepared"
+      pendingNote="The finished terms will set out the conditions on which this website is offered, the rights in its content, the limits of what the information on it can be relied on for, and the law that governs it. They are drafted alongside the brokerage's own required wording and the disclaimer text the MLS mandates, neither of which has been supplied."
+    >
+      <div class="mt-14" data-reveal>
+        <h2 class="font-serif text-2xl text-evergreen-800">
+          What can be said in the meantime
+        </h2>
+        <p class="mt-3 max-w-prose text-sm leading-relaxed text-ink-muted">
+          The following is a plain description of what this website is and how
+          it works. It is
+          <strong class="font-medium text-ink">not a contract</strong>, it is
+          not the terms of use, and nothing in it is offered in their place —
+          it is here because you should not have to wait for a legal document
+          to find out where the information on a page came from.
+        </p>
+
+        <ul class="mt-8 flex flex-col gap-7 border-t border-line pt-8">
+          {
+            FACTS.map((fact) => (
+              <li class="flex gap-4">
+                <span
+                  class="mt-2.5 h-1 w-1 shrink-0 rounded-full bg-gold-600"
+                  aria-hidden="true"
+                />
+                <div>
+                  <h3 class="font-sans text-sm font-medium text-evergreen-800">
+                    {fact.title}
+                  </h3>
+                  <p class="mt-1.5 max-w-prose text-sm leading-relaxed text-ink-muted">
+                    {fact.body}
+                  </p>
+                </div>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+
+      <div class="mt-12 rounded-xs border border-line bg-cream-50 p-6 sm:p-8" data-reveal>
+        <h2 class="font-serif text-xl text-evergreen-800">
+          Pages that state their own limits
+        </h2>
+        <p class="mt-3 max-w-prose text-sm leading-relaxed text-ink-muted">
+          Where a page could be read as advice or as a figure to act on, it
+          says on the page itself what it is and what it is not. Those
+          statements are not waiting on anything.
+        </p>
+        <ul class="mt-5 flex flex-col gap-2.5 border-t border-line pt-5 text-sm sm:flex-row sm:flex-wrap sm:gap-x-8">
+          {
+            QUALIFIED_PAGES.map((page) => (
+              <li>
+                <a href={page.href} class="link-underline inline-block py-1 text-evergreen-800">
+                  {page.label}
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+
+      <aside slot="aside" class="flex flex-col gap-8">
+        <div class="rounded-xs border border-line bg-cream-50 p-6 sm:p-8" data-reveal>
+          <h2 class="font-serif text-xl text-evergreen-800">Related</h2>
+          <ul class="mt-4 flex flex-col gap-3 border-t border-line pt-4 text-sm">
+            <li>
+              <a href="/privacy-policy/" class="link-underline inline-block py-1 text-evergreen-800">
+                Privacy policy
+              </a>
+            </li>
+            <li>
+              <a href="/accessibility/" class="link-underline inline-block py-1 text-evergreen-800">
+                Accessibility
+              </a>
+            </li>
+            <li>
+              <a href="/contact/" class="link-underline inline-block py-1 text-evergreen-800">
+                Contact
+              </a>
+            </li>
+          </ul>
+        </div>
+      </aside>
+    </LegalDocument>
+  </Section>
+</BaseLayout>
