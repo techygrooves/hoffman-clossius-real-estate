@@ -30,7 +30,8 @@ const { person, seed = 1, class: className } = Astro.props;
   <p class="text-xs uppercase tracking-wide-sm text-ink-muted">Written by</p>
 
   <div class="mt-5 flex flex-col gap-5 sm:flex-row sm:items-start">
-    <a href={person.href} class="block w-28 shrink-0 overflow-hidden rounded-xs">
+    {/* Redundant with the named link beside it — see AgentCard. */}
+    <a href={person.href} class="block w-28 shrink-0 overflow-hidden rounded-xs" aria-hidden="true" tabindex="-1">
       <MediaSlot
         src={person.portrait}
         alt={person.portrait ? `${person.name}, ${person.title}` : ''}

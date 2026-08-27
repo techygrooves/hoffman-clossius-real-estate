@@ -93,8 +93,15 @@ const showResults = hasListingData && scope.listings.length > 0;
     breadcrumbs={breadcrumbs}
   />
 
-  <section class="bg-cream-100 section-space" aria-label="Property results">
+  {/*
+    Labelled by a real heading rather than an aria-label. The cards inside are
+    <h3>, so without an <h2> here the outline jumped h1 → h3; and a heading is
+    navigable by screen reader users in a way an aria-label is not. Visually
+    hidden because the page hero already says this in larger type.
+  */}
+  <section class="bg-cream-100 section-space" aria-labelledby="listing-results-heading">
     <Container>
+      <h2 id="listing-results-heading" class="sr-only">Property results</h2>
       {listingProvider.isDemo && <DemoNotice class="mb-6" what="properties" />}
 
       <ListingFilters query={query} action={path} showStatus={showStatus} />

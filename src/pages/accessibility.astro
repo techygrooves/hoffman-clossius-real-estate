@@ -1,12 +1,380 @@
 ---
-import StubPage from '@layouts/StubPage.astro';
+/**
+ * Accessibility statement.
+ *
+ * ── What this page may and may not say ────────────────────────────────────
+ * It describes the standard the site is **built toward** and what has actually
+ * been done and tested. It does not claim conformance, certification or legal
+ * compliance, because none of those has been independently established —
+ * and in the case of the ADA, no certification exists to hold
+ * (`PROJECT_CONTEXT.md` §7).
+ *
+ * The footer link is worded "Accessibility / ADA Compliance" at the client's
+ * request. Naming the topic is fine; claiming conformance is not, so this page
+ * names the topic and then states plainly what is and is not true.
+ *
+ * Every item under "What has been done" is a claim about our own engineering,
+ * verified by the audit recorded in ACCESSIBILITY_AUDIT.md. If one stops being
+ * true, it comes off this page — an accessibility statement that has quietly
+ * gone stale is worse than none, because it tells someone not to bother
+ * reporting a barrier we have actually reintroduced.
+ */
+import BaseLayout from '@layouts/BaseLayout.astro';
+import PageHero from '@components/ui/PageHero.astro';
+import Section from '@components/ui/Section.astro';
+import { getProfessional, professionals } from '@config/site';
+import { formatDate, toISODate } from '@lib/format';
+
+/** The date the audit behind this statement was carried out. */
+const LAST_REVIEWED = '2026-08-27';
+
+/*
+ * The client has confirmed Martin's direct line may be published as the
+ * accessibility contact route. There is no separate accessibility inbox and
+ * none is invented — CONTENT_PENDING.md 4.9.
+ */
+const martin = getProfessional('martin-hoffman');
+
+const DONE = [
+  {
+    title: 'Structure a screen reader can navigate',
+    body: 'Every page uses real landmarks — header, navigation, main and footer — with one first-level heading and headings that descend in order. Navigation regions are individually named, so moving between them announces where you have arrived.',
+  },
+  {
+    title: 'Everything works from the keyboard',
+    body: 'Every link, button, menu, form control and disclosure can be reached and operated with a keyboard alone, in an order that follows the page. The desktop menus open on keyboard focus as well as hover, Escape closes them, and focus returns to the control that opened them.',
+  },
+  {
+    title: 'Nothing depends on hovering',
+    body: 'No menu, panel or piece of information appears only on hover. The header menus work on focus, and on a touch screen, and with JavaScript switched off.',
+  },
+  {
+    title: 'A focus indicator you can actually see',
+    body: 'Every interactive element shows a visible outline when focused. Its colour changes on dark backgrounds so that it stays visible against them rather than disappearing into the green.',
+  },
+  {
+    title: 'Text contrast is measured, not estimated',
+    body: 'Body text, headings, labels and links are checked against the surface behind them by rendering the colour and reading the pixel back, on every page and at phone and desktop widths. Gold is used for rules and ornament, never for body text on a light background, because it does not carry enough contrast to be read.',
+  },
+  {
+    title: 'Colour is never the only signal',
+    body: 'Where something is required, selected, current or in error, it is said in words or marked with a symbol as well as coloured. A form error is announced, not just outlined in red.',
+  },
+  {
+    title: 'Forms are labelled and their errors are announced',
+    body: 'Every field has a real label rather than a placeholder standing in for one, optional fields say so, hints are associated with the field they describe, and when a submission fails, a summary lists every problem, takes focus and links to each field.',
+  },
+  {
+    title: 'Motion respects your settings',
+    body: 'If your device is set to reduce motion, the site stops animating. Nothing moves, fades or slides on its own, there is no carousel that rotates by itself, and nothing flashes.',
+  },
+  {
+    title: 'The page reflows instead of clipping',
+    body: 'Zooming to 200% does not cut text off or force you to scroll sideways to read a line. Pinch-zoom is not disabled on phones.',
+  },
+  {
+    title: 'A skip link, on every page',
+    body: 'The first thing the keyboard reaches is a link that jumps past the navigation to the page content.',
+  },
+];
+
+const LIMITS = [
+  {
+    title: 'It has not been independently audited',
+    body: 'The testing behind this page was carried out by the team that built the site, using automated tools and manual keyboard checks. That finds a great deal, and it does not replace an audit by an accessibility specialist or testing with people who use assistive technology daily. Neither has happened yet.',
+  },
+  {
+    title: 'Some filtering needs JavaScript',
+    body: 'Property, community and journal filtering runs in your browser. With JavaScript switched off those pages still list everything and remain readable — you simply cannot narrow them down.',
+  },
+  {
+    title: 'Sending a form needs JavaScript',
+    body: 'Submission is handled in the browser. With JavaScript off, the send button is replaced by direct phone numbers and email addresses rather than a button that would do nothing.',
+  },
+  {
+    title: 'Property search is not connected yet',
+    body: 'Live property data will come from an outside provider. When it is connected we will assess what it contributes to these pages, because we do not control how a third party builds its own interface — and we would rather say that now than discover it later.',
+  },
+];
+
+const REPORT_WITH = [
+  'The address of the page you were on.',
+  'What you were trying to do.',
+  'What happened instead, in your own words — a description is plenty; you do not need technical detail.',
+  'If it is easy to say: the browser, device or assistive technology you were using.',
+];
 ---
 
-<StubPage
-  title={'Accessibility'}
-  heading={'Accessibility'}
-  eyebrow={'Accessibility'}
-  description={'Our approach to making this website usable by as many people as possible, and how to tell us when something does not work.'}
-  breadcrumbs={[{ label: 'Accessibility' }]}
-  note={'This statement will describe the standard the site is built against (WCAG 2.2 AA), what has been tested, and how to report a barrier. It will not claim any certification.'}
-/>
+<BaseLayout
+  title="Accessibility"
+  description="How the Hoffman & Closius website is built for accessibility, the WCAG 2.2 Level AA standard it is built toward, what has been tested, its known limitations, and how to report a barrier."
+>
+  <PageHero
+    eyebrow="Accessibility"
+    title="Accessibility"
+    lead="This site is built toward WCAG 2.2 Level AA. Here is what that means in practice, what has been tested, where it still falls short, and how to tell us when something does not work."
+    breadcrumbs={[{ label: 'Accessibility' }]}
+  />
+
+  {/* ═══════════════════════════════════ commitment + the honest disclaimer ══ */}
+  <Section tone="white" labelledby="commitment-heading">
+    <div class="grid gap-12 lg:grid-cols-12 lg:gap-16">
+      <div class="lg:col-span-7">
+        <h2 id="commitment-heading" class="text-display-sm text-evergreen-800">
+          Our commitment
+        </h2>
+        <div class="mt-6 flex max-w-prose flex-col gap-4 text-lg leading-relaxed text-ink-muted">
+          <p>
+            Finding somewhere to live is difficult enough without a website
+            getting in the way. We want this one to be usable whether you
+            navigate with a mouse, a keyboard, a screen reader, voice control or
+            a magnifier, and whether you are on a phone on a bus or a desktop
+            with the text turned right up.
+          </p>
+          <p>
+            Accessibility is not a feature that gets finished. It is something
+            that has to survive every change made to a site afterwards, which is
+            why the checks behind this page are written down and repeatable
+            rather than done once and declared complete.
+          </p>
+        </div>
+      </div>
+
+      {/*
+        The disclaimer sits beside the commitment rather than at the bottom of
+        the page. Someone deciding whether to trust a claim should meet its
+        limits at the same time as the claim, not four screens later.
+      */}
+      <aside class="lg:col-span-5">
+        <div class="rounded-xs border border-evergreen-800/25 bg-evergreen-100 p-6 sm:p-8">
+          <h2 class="font-serif text-xl text-evergreen-900">
+            What we do not claim
+          </h2>
+          <div class="mt-4 flex flex-col gap-3 text-sm leading-relaxed text-evergreen-900/85">
+            <p>
+              We do not describe this site as “ADA certified” or “ADA
+              compliant”, and we do not claim it conforms to WCAG. There is no
+              certification to hold under the ADA, and conformance is not
+              something a site can award itself.
+            </p>
+            <p>
+              <strong class="font-medium">WCAG 2.2 Level AA is our engineering
+              target</strong>, and this site has not been independently
+              audited against it. What follows is a description of the work
+              done and the testing carried out — not a legal statement, and not
+              a guarantee.
+            </p>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </Section>
+
+  {/* ══════════════════════════════════════════════════ what has been done ══ */}
+  <Section tone="warm" labelledby="done-heading">
+    <header class="max-w-3xl" data-reveal>
+      <p class="eyebrow text-evergreen-600">
+        <span class="rule-gold" aria-hidden="true"></span>
+        In practice
+      </p>
+      <h2 id="done-heading" class="mt-4 text-display-sm text-evergreen-800">
+        What has been done
+      </h2>
+      <p class="mt-4 text-lg leading-relaxed text-ink-muted">
+        Each of these was checked across every page of the site, at phone and
+        desktop widths.
+      </p>
+    </header>
+
+    <ul class="mt-12 grid gap-x-10 gap-y-9 sm:grid-cols-2">
+      {
+        DONE.map((item) => (
+          <li class="flex gap-4" data-reveal>
+            <span
+              class="mt-2.5 h-1 w-1 shrink-0 rounded-full bg-gold-600"
+              aria-hidden="true"
+            />
+            <div>
+              <h3 class="font-sans text-sm font-medium text-evergreen-800">
+                {item.title}
+              </h3>
+              <p class="mt-1.5 max-w-prose text-sm leading-relaxed text-ink-muted">
+                {item.body}
+              </p>
+            </div>
+          </li>
+        ))
+      }
+    </ul>
+  </Section>
+
+  {/* ═══════════════════════════════════════════════ known limitations ══ */}
+  <Section tone="white" labelledby="limits-heading">
+    <header class="max-w-3xl" data-reveal>
+      <p class="eyebrow text-evergreen-600">
+        <span class="rule-gold" aria-hidden="true"></span>
+        Being straight about it
+      </p>
+      <h2 id="limits-heading" class="mt-4 text-display-sm text-evergreen-800">
+        Where it falls short
+      </h2>
+      <p class="mt-4 text-lg leading-relaxed text-ink-muted">
+        A statement that lists only strengths is not worth reading. These are
+        the gaps we know about.
+      </p>
+    </header>
+
+    <ul class="mt-12 grid gap-x-10 gap-y-9 sm:grid-cols-2">
+      {
+        LIMITS.map((item) => (
+          <li class="flex gap-4" data-reveal>
+            <span
+              class="mt-2.5 h-1 w-1 shrink-0 rounded-full bg-gold-600"
+              aria-hidden="true"
+            />
+            <div>
+              <h3 class="font-sans text-sm font-medium text-evergreen-800">
+                {item.title}
+              </h3>
+              <p class="mt-1.5 max-w-prose text-sm leading-relaxed text-ink-muted">
+                {item.body}
+              </p>
+            </div>
+          </li>
+        ))
+      }
+    </ul>
+  </Section>
+
+  {/* ═══════════════════════════════════════════════ reporting a barrier ══ */}
+  <Section tone="sage" labelledby="report-heading" id="report">
+    <div class="grid gap-12 lg:grid-cols-12 lg:gap-16">
+      <div class="lg:col-span-7">
+        <h2 id="report-heading" class="text-display-sm text-evergreen-900">
+          If something does not work
+        </h2>
+        <div class="mt-6 flex max-w-prose flex-col gap-4 text-lg leading-relaxed text-evergreen-900/85">
+          <p>
+            Please tell us. A barrier you hit is one other people are hitting
+            too, and we would far rather hear about it than not.
+          </p>
+          <p>
+            You do not need to know what caused it or what to call it. “I could
+            not get past the menu with my keyboard” is a perfectly good report.
+          </p>
+        </div>
+
+        <h3 class="mt-10 font-serif text-xl text-evergreen-900">
+          What helps us fix it faster
+        </h3>
+        <ul class="mt-5 flex max-w-prose flex-col gap-3">
+          {
+            REPORT_WITH.map((item) => (
+              <li class="flex gap-3 text-sm leading-relaxed text-evergreen-900/85">
+                <span
+                  class="mt-2 h-1 w-1 shrink-0 rounded-full bg-gold-600"
+                  aria-hidden="true"
+                />
+                <span>{item}</span>
+              </li>
+            ))
+          }
+        </ul>
+
+        <h3 class="mt-10 font-serif text-xl text-evergreen-900">
+          What happens next
+        </h3>
+        <p class="mt-4 max-w-prose text-sm leading-relaxed text-evergreen-900/85">
+          A person reads it — one of the two of us, not a ticketing system. We
+          will come back to you, tell you what we have found, and put it right
+          where we can. If something will take longer, we will say so and offer
+          you the information another way in the meantime: over the phone, by
+          email, or in whatever format is useful to you.
+        </p>
+      </div>
+
+      <aside class="lg:col-span-5">
+        <div class="rounded-xs border border-evergreen-800/25 bg-white p-6 sm:p-8 lg:sticky lg:top-32">
+          <span class="rule-gold" aria-hidden="true"></span>
+          <h2 class="mt-4 font-serif text-2xl text-evergreen-800">
+            Report a barrier
+          </h2>
+
+          {
+            martin && (
+              <div class="mt-6 border-t border-line pt-6">
+                <p class="text-xs uppercase tracking-wide-sm text-ink-subtle">
+                  By phone
+                </p>
+                <p class="mt-1.5">
+                  <a
+                    href={martin.phone.href}
+                    class="link-underline font-serif text-2xl text-evergreen-800"
+                  >
+                    <span class="sr-only">Call {martin.name} on </span>
+                    {martin.phone.value}
+                  </a>
+                </p>
+                <p class="mt-1.5 text-xs text-ink-subtle">
+                  {martin.name} — {martin.title}
+                </p>
+              </div>
+            )
+          }
+
+          <div class="mt-6 border-t border-line pt-6">
+            <p class="text-xs uppercase tracking-wide-sm text-ink-subtle">
+              By email
+            </p>
+            <ul class="mt-2 flex flex-col gap-2">
+              {
+                professionals.map((person) => (
+                  <li class="break-all">
+                    <a
+                      href={`${person.email.href}?subject=${encodeURIComponent('Website accessibility')}`}
+                      class="link-underline inline-block py-1 text-sm text-evergreen-800"
+                    >
+                      <span class="sr-only">Email {person.name} at </span>
+                      {person.email.value}
+                    </a>
+                  </li>
+                ))
+              }
+            </ul>
+          </div>
+
+          <div class="mt-6 border-t border-line pt-6">
+            <p class="text-sm leading-relaxed text-ink-muted">
+              You can also use the{' '}
+              <a href="/contact/" class="link-underline text-evergreen-800">
+                contact form
+              </a>{' '}
+              and choose “Other”. If a form is the thing that is not working
+              for you, please call instead.
+            </p>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </Section>
+
+  {/* ═════════════════════════════════════════════════════ maintenance ══ */}
+  <Section tone="white" space="tight" labelledby="review-heading">
+    <div class="max-w-3xl border-t border-line pt-10" data-reveal>
+      <h2 id="review-heading" class="font-serif text-xl text-evergreen-800">
+        How this statement is kept honest
+      </h2>
+      <p class="mt-4 text-sm leading-relaxed text-ink-muted">
+        The checks described above are re-run against the whole site when pages
+        change, and this page is corrected when a claim on it stops being true.
+        It was last reviewed on{' '}
+        <time datetime={toISODate(LAST_REVIEWED)}>{formatDate(LAST_REVIEWED)}</time>.
+      </p>
+      <p class="mt-4 text-sm leading-relaxed text-ink-muted">
+        Independent auditing and testing with people who use assistive
+        technology are still to come. When they happen, what they find will be
+        reflected here — including anything they find that we missed.
+      </p>
+    </div>
+  </Section>
+</BaseLayout>

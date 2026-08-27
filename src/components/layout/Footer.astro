@@ -164,19 +164,24 @@ const hasLegalCopy =
     <div class="flex flex-col gap-4 text-xs text-white/60 md:flex-row md:items-center md:justify-between">
       <p>&copy; {year} {site.name}. All rights reserved.</p>
 
-      <nav aria-label="Legal">
-        <ul class="flex flex-wrap items-center gap-x-6 gap-y-2">
-          {
-            legalNav.map((link) => (
-              <li>
-                <a href={link.href} class="link-underline transition-colors hover:text-white">
-                  {link.label}
-                </a>
-              </li>
-            ))
-          }
-        </ul>
-      </nav>
+      {/*
+        Deliberately NOT a <nav> landmark. These three links repeat the "Legal"
+        column above verbatim, and wrapping them in a second landmark produced
+        two navigation regions both named "Legal" — indistinguishable to anyone
+        navigating by landmark, and no help to anyone else. A short small-print
+        list does not need a landmark of its own.
+      */}
+      <ul class="flex flex-wrap items-center gap-x-6 gap-y-2">
+        {
+          legalNav.map((link) => (
+            <li>
+              <a href={link.href} class="link-underline transition-colors hover:text-white">
+                {link.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
     </div>
   </Container>
 </footer>
