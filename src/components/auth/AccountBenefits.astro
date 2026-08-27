@@ -1,0 +1,53 @@
+---
+/**
+ * AccountBenefits — what an account is actually for.
+ *
+ * Every line describes a capability of the account system that will be
+ * connected, stated as what it *will* do rather than what it does. No count,
+ * no frequency, no "instant" and no "be first" — none of those has been
+ * agreed with a provider, and an alert cadence is the provider's to state.
+ */
+interface Props {
+  heading?: string;
+  class?: string;
+}
+
+const { heading = 'What an account is for', class: className } = Astro.props;
+
+const BENEFITS = [
+  {
+    title: 'Save a search',
+    body: 'Keep the filters you actually use — area, price, size, features — instead of rebuilding them each visit.',
+  },
+  {
+    title: 'Property alerts',
+    body: 'Be told when something matching a saved search comes to market, so a property you would have wanted does not pass unnoticed.',
+  },
+  {
+    title: 'Save properties',
+    body: 'Keep a shortlist in one place, on every device you sign in on, rather than in a folder of browser tabs.',
+  },
+];
+---
+
+<div class={className}>
+  <h2 class="font-serif text-2xl text-evergreen-800">{heading}</h2>
+  <ul class="mt-6 flex flex-col gap-6">
+    {
+      BENEFITS.map((benefit) => (
+        <li class="flex gap-4">
+          <span
+            class="mt-2.5 h-1 w-1 shrink-0 rounded-full bg-gold-600"
+            aria-hidden="true"
+          />
+          <div>
+            <p class="text-sm font-medium text-evergreen-800">{benefit.title}</p>
+            <p class="mt-1.5 text-sm leading-relaxed text-ink-muted">
+              {benefit.body}
+            </p>
+          </div>
+        </li>
+      ))
+    }
+  </ul>
+</div>

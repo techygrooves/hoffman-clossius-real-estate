@@ -1,0 +1,64 @@
+---
+/**
+ * AccountHandoff — the panel shown once a real account provider is connected.
+ *
+ * It is a link, not a form. The visitor continues on the provider's own page,
+ * enters their credentials there, and comes back signed in. **No credential
+ * field is rendered on this site**, by either account page, in any build. See
+ * src/lib/auth/types.ts for why that is structural rather than a preference.
+ *
+ * Renders nothing when no provider is configured — the pages handle that state
+ * themselves, because "sign in" and "register" need different answers to it.
+ */
+import Button from '@components/ui/Button.astro';
+import { authProvider } from '@lib/auth/provider';
+
+interface Props {
+  intent: 'sign-in' | 'register';
+}
+
+const { intent } = Astro.props;
+
+const destinations = authProvider.destinations;
+const href =
+  intent === 'sign-in' ? (destinations?.signIn ?? null) : (destinations?.register ?? null);
+
+const copy =
+  intent === 'sign-in'
+    ? {
+        title: 'Sign in to your account',
+        body: 'Your saved searches and saved properties live with the property search platform. Continue there to sign in — this website never asks for your password.',
+        cta: 'Continue to sign in',
+      }
+    : {
+        title: 'Create your account',
+        body: 'Accounts are held by the property search platform, so registration happens there. This website never asks for or stores a password.',
+        cta: 'Continue to register',
+      };
+---
+
+{
+  href && (
+    <div class="rounded-xs border border-evergreen-800/25 bg-cream-50 p-7 sm:p-9" data-reveal>
+      <span class="rule-gold" aria-hidden="true" />
+      <h2 class="mt-5 font-serif text-2xl text-evergreen-800">{copy.title}</h2>
+      <p class="mt-3 max-w-prose text-sm leading-relaxed text-ink-muted">
+        {copy.body}
+      </p>
+
+      {/*
+        rel="noopener" on an external destination. Same tab deliberately: this
+        is a continuation of one task, and a new window loses the back button
+        someone will reach for if they change their mind.
+      */}
+      <Button href={href} rel="noopener" class="mt-7" withArrow>
+        {copy.cta}
+      </Button>
+
+      <p class="mt-5 text-xs leading-relaxed text-ink-subtle">
+        You will finish on {authProvider.name.toLowerCase()}, which handles the
+        account and its security.
+      </p>
+    </div>
+  )
+}

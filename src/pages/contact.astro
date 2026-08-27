@@ -1,12 +1,318 @@
 ---
-import StubPage from '@layouts/StubPage.astro';
+/**
+ * Contact.
+ *
+ * Two people, two direct lines, two email addresses — and nothing else stated
+ * as fact. There is no confirmed office address, shared office number or set
+ * of opening hours (CONTENT_PENDING.md 2.1–2.3), so none appears here and none
+ * is implied. The page presents what is confirmed rather than explaining what
+ * is missing.
+ *
+ * The form goes through the shared lead service like every other enquiry form
+ * on the site, which means it inherits the rule that matters most: with no
+ * destination configured it does NOT claim to have sent anything. It shows the
+ * visitor their own answers with a one-tap email to either professional and
+ * both direct numbers. See src/lib/forms/.
+ */
+import BaseLayout from '@layouts/BaseLayout.astro';
+import PageHero from '@components/ui/PageHero.astro';
+import Section from '@components/ui/Section.astro';
+import LeadForm from '@components/forms/LeadForm.astro';
+import FormSection from '@components/forms/FormSection.astro';
+import FormField from '@components/forms/FormField.astro';
+import FormChoiceGroup from '@components/forms/FormChoiceGroup.astro';
+import { professionals, serviceArea } from '@config/site';
+
+/**
+ * The six interests the brief specifies. Values are the labels themselves:
+ * whatever receives this form is read by a person, and "New Development" is
+ * more use in an inbox than "new-development".
+ */
+const interestOptions = [
+  'Buying',
+  'Selling',
+  'Renting',
+  'Relocating',
+  'New Development',
+  'Other',
+].map((label) => ({ value: label, label }));
+
+/** Same three options as the Dream Home Finder, so the site asks once, one way. */
+const contactOptions = ['Email', 'Phone call', 'Text message'].map((label) => ({
+  value: label,
+  label,
+}));
+
+/** Where an enquiry can go instead, when a form is not what someone wants. */
+const ROUTES = [
+  {
+    title: 'Looking for a property',
+    body: 'Search what is on the market, or tell us what you are after and we will watch for it.',
+    href: '/buy/dream-home-finder/',
+    cta: 'Dream Home Finder',
+  },
+  {
+    title: 'Thinking of selling',
+    body: 'Request an opinion of value on your property, prepared by Martin or MaryEllen.',
+    href: '/sell/home-evaluation/',
+    cta: 'Request a home evaluation',
+  },
+  {
+    title: 'Moving to South Florida',
+    body: 'What an out-of-state move actually involves, and where MaryEllen comes in.',
+    href: '/relocation/',
+    cta: 'Relocation',
+  },
+];
 ---
 
-<StubPage
-  title={'Contact'}
-  heading={'Get in touch'}
-  eyebrow={'Contact'}
-  description={'Contact Martin Hoffman P.A. at 954-605-4823 or MaryEllen Closius P.A. at 954-471-4626.'}
-  breadcrumbs={[{ label: 'Contact' }]}
-  note={'Direct phone and email are live below. The contact form and office details are added once the form destination and office address are confirmed.'}
-/>
+<BaseLayout
+  title="Contact"
+  description="Contact Hoffman & Closius. Martin Hoffman P.A. on 954-605-4823 and MaryEllen Closius P.A. on 954-471-4626 — direct lines, answered by them."
+>
+  <PageHero
+    eyebrow="Contact"
+    title="Get in touch"
+    lead="Both numbers below are direct lines. Send the form and it reaches both of us, or call whichever of us you would rather speak to."
+    breadcrumbs={[{ label: 'Contact' }]}
+  />
+
+  {/* ------------------------------------------------------------------ */}
+  {/* The two people, first. A form is a slower way to reach someone than */}
+  {/* a phone number, so the numbers come before the form, not after it.  */}
+  {/* ------------------------------------------------------------------ */}
+  <Section tone="white" labelledby="people-heading">
+    <h2 id="people-heading" class="sr-only">Contact details</h2>
+
+    <ul class="grid gap-6 sm:grid-cols-2 lg:gap-8">
+      {
+        professionals.map((person, index) => (
+          <li
+            class="flex flex-col rounded-xs border border-line bg-cream-50 p-7 sm:p-9"
+            data-reveal
+            style={`--reveal-delay: ${index * 90}ms`}
+          >
+            <span class="rule-gold" aria-hidden="true" />
+
+            <h3 class="mt-5 font-serif text-3xl text-evergreen-800">
+              {person.name}
+            </h3>
+            <p class="mt-1.5 text-sm text-ink-muted">
+              {person.specialty
+                ? `${person.title} | ${person.specialty}`
+                : person.title}
+            </p>
+
+            <dl class="mt-7 flex flex-col gap-5 border-t border-line pt-6">
+              <div>
+                <dt class="text-xs uppercase tracking-wide-sm text-ink-subtle">
+                  Direct line
+                </dt>
+                <dd class="mt-1.5">
+                  <a
+                    href={person.phone.href}
+                    class="link-underline font-serif text-2xl text-evergreen-800"
+                  >
+                    <span class="sr-only">Call {person.name} on </span>
+                    {person.phone.value}
+                  </a>
+                </dd>
+              </div>
+              <div>
+                <dt class="text-xs uppercase tracking-wide-sm text-ink-subtle">
+                  Email
+                </dt>
+                <dd class="mt-1.5 break-all">
+                  <a
+                    href={person.email.href}
+                    class="link-underline text-sm text-evergreen-800"
+                  >
+                    <span class="sr-only">Email {person.name} at </span>
+                    {person.email.value}
+                  </a>
+                </dd>
+              </div>
+            </dl>
+
+            {/*
+              A 44px-minimum target on a phone, where "call" is what most
+              people arriving on this page actually want to do.
+            */}
+            <a
+              href={person.phone.href}
+              class="mt-7 inline-flex h-12 min-h-12 items-center justify-center rounded-xs border border-evergreen-800 bg-evergreen-800 px-6 text-sm font-medium tracking-wide-sm text-white transition-colors duration-300 ease-[var(--ease-editorial)] hover:bg-evergreen-900 sm:mt-auto sm:self-start"
+            >
+              Call {person.firstName}
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+
+    <p class="mt-8 max-w-2xl text-sm leading-relaxed text-ink-muted" data-reveal>
+      Working across {serviceArea.counties.slice(0, -1).join(', ')} and{' '}
+      {serviceArea.counties.at(-1)}.
+    </p>
+  </Section>
+
+  {/* ------------------------------------------------------------------ */}
+  {/* The form.                                                           */}
+  {/* ------------------------------------------------------------------ */}
+  <Section tone="warm" labelledby="message-heading">
+    <div class="grid gap-12 lg:grid-cols-12 lg:gap-16">
+      <div class="lg:col-span-7 xl:col-span-8">
+        <header class="flex flex-col gap-4" data-reveal>
+          <p class="eyebrow text-evergreen-600">
+            <span class="rule-gold" aria-hidden="true"></span>
+            Send a message
+          </p>
+          <h2 id="message-heading" class="text-display-sm text-evergreen-800">
+            Tell us what you need
+          </h2>
+          <p class="max-w-2xl text-lg leading-relaxed text-ink-muted">
+            It reaches both of us. Whichever of us is better placed to help will
+            come back to you.
+          </p>
+        </header>
+
+        <LeadForm
+          kind="contact"
+          submitLabel="Send Message"
+          emailSubject="Website enquiry"
+          class="mt-12"
+        >
+          <FormSection
+            step={1}
+            title="How to reach you"
+            description="Enough to reply. Nothing more is asked for."
+          >
+            <FormField
+              name="name"
+              label="Name"
+              required
+              autocomplete="name"
+              span={6}
+            />
+            <FormField
+              name="email"
+              label="Email"
+              type="email"
+              required
+              autocomplete="email"
+              inputmode="email"
+              span={6}
+            />
+            <FormField
+              name="phone"
+              label="Phone"
+              type="tel"
+              autocomplete="tel"
+              inputmode="tel"
+              hint="Needed if you would like a call or a text back."
+              span={6}
+            />
+            <FormChoiceGroup
+              name="contactMethod"
+              legend="Preferred contact method"
+              options={contactOptions}
+              required
+              span={12}
+            />
+          </FormSection>
+
+          <FormSection
+            step={2}
+            title="What it is about"
+            description="So the right one of us picks it up."
+          >
+            <FormChoiceGroup
+              name="interest"
+              legend="I am interested in"
+              options={interestOptions}
+              required
+              span={12}
+            />
+            <FormField
+              name="message"
+              label="Message"
+              type="textarea"
+              rows={6}
+              required
+              placeholder="An address, an area, a timescale, a question — whatever is useful. There is no wrong amount of detail."
+              span={12}
+            />
+          </FormSection>
+        </LeadForm>
+      </div>
+
+      <aside class="lg:col-span-5 xl:col-span-4">
+        <div class="flex flex-col gap-8 lg:sticky lg:top-32">
+          <div class="rounded-xs border border-line bg-white p-6 sm:p-8" data-reveal>
+            <h2 class="font-serif text-xl text-evergreen-800">
+              Would rather not use a form?
+            </h2>
+            <p class="mt-3 text-sm leading-relaxed text-ink-muted">
+              Call or email either of us directly. Both numbers are answered by
+              the person whose name is on them.
+            </p>
+            <ul class="mt-6 flex flex-col gap-5 border-t border-line pt-5">
+              {
+                professionals.map((person) => (
+                  <li>
+                    <p class="text-sm font-medium text-evergreen-800">
+                      {person.name}
+                    </p>
+                    <div class="mt-2 flex flex-col gap-1 text-sm">
+                      <a
+                        href={person.phone.href}
+                        class="link-underline w-fit text-evergreen-800"
+                      >
+                        {person.phone.value}
+                      </a>
+                      <a
+                        href={person.email.href}
+                        class="link-underline w-fit break-all text-evergreen-800"
+                      >
+                        {person.email.value}
+                      </a>
+                    </div>
+                  </li>
+                ))
+              }
+            </ul>
+          </div>
+
+          <div class="rounded-xs border border-line bg-white p-6 sm:p-8" data-reveal>
+            <h2 class="font-serif text-xl text-evergreen-800">
+              Somewhere more specific
+            </h2>
+            <p class="mt-3 text-sm leading-relaxed text-ink-muted">
+              If you already know what you need, these ask the right questions
+              up front.
+            </p>
+            <ul class="mt-6 flex flex-col gap-6 border-t border-line pt-5">
+              {
+                ROUTES.map((route) => (
+                  <li>
+                    <p class="text-sm font-medium text-evergreen-800">
+                      {route.title}
+                    </p>
+                    <p class="mt-1.5 text-sm leading-relaxed text-ink-muted">
+                      {route.body}
+                    </p>
+                    <a
+                      href={route.href}
+                      class="link-underline mt-2 inline-block py-1 text-sm text-evergreen-800"
+                    >
+                      {route.cta}
+                    </a>
+                  </li>
+                ))
+              }
+            </ul>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </Section>
+</BaseLayout>
