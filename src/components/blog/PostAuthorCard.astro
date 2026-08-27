@@ -1,0 +1,70 @@
+---
+/**
+ * PostAuthorCard — who wrote it.
+ *
+ * Says only what has been confirmed: name, title, and the two direct lines. No
+ * biography, because none has been supplied and one invented here would carry
+ * the same weight as one on the profile page (CONTENT_PENDING.md 8.1–8.2).
+ *
+ * When a biography does arrive it belongs in `professionals[].bio` and renders
+ * on the profile page; this card links there rather than duplicating it.
+ */
+import MediaSlot from '@components/ui/MediaSlot.astro';
+import Button from '@components/ui/Button.astro';
+import type { Professional } from '@config/site';
+import { cn } from '@lib/cn';
+
+interface Props {
+  person: Professional;
+  seed?: number;
+  class?: string;
+}
+
+const { person, seed = 1, class: className } = Astro.props;
+---
+
+<aside
+  class={cn('rounded-xs border border-line bg-cream-50 p-6 sm:p-8', className)}
+  aria-labelledby="post-author-heading"
+>
+  <p class="text-xs uppercase tracking-wide-sm text-ink-muted">Written by</p>
+
+  <div class="mt-5 flex flex-col gap-5 sm:flex-row sm:items-start">
+    <a href={person.href} class="block w-28 shrink-0 overflow-hidden rounded-xs">
+      <MediaSlot
+        src={person.portrait}
+        alt={person.portrait ? `${person.name}, ${person.title}` : ''}
+        width={320}
+        height={400}
+        ratio="4/5"
+        seed={seed}
+        marker={false}
+        sizes="112px"
+      />
+    </a>
+
+    <div class="min-w-0">
+      <h2 id="post-author-heading" class="font-serif text-2xl text-evergreen-800">
+        <a href={person.href} class="link-underline">{person.name}</a>
+      </h2>
+      <p class="mt-1 text-xs uppercase tracking-wide-sm text-evergreen-600">
+        {person.specialty ? `${person.title} · ${person.specialty}` : person.title}
+      </p>
+
+      <div class="mt-4 flex flex-wrap gap-x-5 gap-y-1 text-sm">
+        <a href={person.phone.href} class="link-underline text-evergreen-800">
+          <span class="sr-only">Call {person.name} on </span>{person.phone.value}
+        </a>
+        <a href={person.email.href} class="link-underline text-ink-muted">
+          <span class="sr-only">Email {person.name} at </span>{person.email.value}
+        </a>
+      </div>
+
+      <div class="mt-6">
+        <Button href={person.href} variant="secondary" withArrow>
+          Meet {person.firstName}
+        </Button>
+      </div>
+    </div>
+  </div>
+</aside>

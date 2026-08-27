@@ -1,10 +1,18 @@
 /**
- * Monthly principal-and-interest estimate.
+ * Monthly principal-and-interest estimate on a property detail page.
  *
  * Nothing is shown until the visitor enters a rate — the site does not hold a
  * market rate and will not imply one. Taxes, insurance and association fees
  * are excluded, and the UI says so.
+ *
+ * The arithmetic is NOT here: it comes from `@lib/mortgage/calculate`, which
+ * is pure and unit-tested, and is the same module the full calculator at
+ * /mortgage-calculator/ uses. Two copies of an amortisation formula is one
+ * copy too many — they would eventually disagree, and only one of them would
+ * be under test.
  */
+import { monthlyPrincipalAndInterest } from '@lib/mortgage/calculate';
+
 const usd = new Intl.NumberFormat('en-US', {
   style: 'currency',
   currency: 'USD',
@@ -26,7 +34,7 @@ export function initMortgageEstimate(): void {
   const result = root.querySelector<HTMLElement>('[data-mortgage-result]');
   if (!priceInput || !downSelect || !rateInput || !result) return;
 
-  const TERM_MONTHS = 30 * 12;
+  const TERM_YEARS = 30;
 
   const update = () => {
     const price = digits(priceInput.value);
@@ -38,18 +46,14 @@ export function initMortgageEstimate(): void {
       return;
     }
 
-    const principal = price * (1 - downPct / 100);
-    const monthlyRate = rate / 100 / 12;
+    const payment = monthlyPrincipalAndInterest(
+      price * (1 - downPct / 100),
+      rate,
+      TERM_YEARS,
+    );
 
-    // Interest-free is a legitimate input; avoid dividing by zero.
-    const payment =
-      monthlyRate === 0
-        ? principal / TERM_MONTHS
-        : (principal * monthlyRate) / (1 - Math.pow(1 + monthlyRate, -TERM_MONTHS));
-
-    result.textContent = Number.isFinite(payment) && payment > 0
-      ? `${usd.format(payment)} / month`
-      : 'Enter a rate to estimate';
+    result.textContent =
+      payment > 0 ? `${usd.format(payment)} / month` : 'Enter a rate to estimate';
   };
 
   [priceInput, rateInput].forEach((input) =>

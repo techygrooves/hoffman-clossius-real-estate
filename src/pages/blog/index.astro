@@ -1,12 +1,328 @@
 ---
-import StubPage from '@layouts/StubPage.astro';
+/**
+ * Journal index.
+ *
+ * Articles come from the `blog` content collection. Nothing is generated: a
+ * post carries a named byline, and a fabricated article is worse than
+ * fabricated listing data because it puts words in a real person's mouth
+ * (PROJECT_CONTEXT.md §9).
+ *
+ * With no real posts, the page shows an honest empty state. In development the
+ * sample posts render so the template can be reviewed — badged on every card
+ * and behind a page-level notice, and gone from a production build.
+ *
+ * Filtering follows the pattern the other indexes use: server-render every
+ * card once, show and hide in the browser, full list without JavaScript.
+ */
+import BaseLayout from '@layouts/BaseLayout.astro';
+import Container from '@components/ui/Container.astro';
+import Breadcrumbs from '@components/ui/Breadcrumbs.astro';
+import Section from '@components/ui/Section.astro';
+import SectionHeader from '@components/ui/SectionHeader.astro';
+import Button from '@components/ui/Button.astro';
+import MediaSlot from '@components/ui/MediaSlot.astro';
+import DemoNotice from '@components/ui/DemoNotice.astro';
+import PostCard from '@components/blog/PostCard.astro';
+import CommunityCard from '@components/communities/CommunityCard.astro';
+import {
+  publishedPosts,
+  categoryCounts,
+  categoryLabel,
+  isSample,
+} from '@lib/blog/posts';
+import { featuredCommunities, getCommunity, communities } from '@data/communities';
+import { professionals } from '@config/site';
+
+const posts = await publishedPosts();
+const [featured] = posts;
+const categories = categoryCounts(posts);
+const anySamples = posts.some(isSample);
+
+const featuredCommunityList = featuredCommunities().slice(0, 3);
+const parentNames: Record<string, string | null> = Object.fromEntries(
+  communities.map((c) => [c.slug, c.parent ? (getCommunity(c.parent)?.name ?? null) : null]),
+);
+
+const chip =
+  'block cursor-pointer rounded-xs border border-line-control px-4 py-2.5 text-sm text-ink-muted transition-colors ' +
+  'hover:border-evergreen-700 peer-checked:border-evergreen-800 peer-checked:bg-evergreen-800 peer-checked:text-white ' +
+  'peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-[var(--focus-ring)]';
 ---
 
-<StubPage
-  title={'Journal'}
-  heading={'Journal'}
-  eyebrow={'Writing'}
-  description={'Market notes and neighbourhood writing from Martin Hoffman P.A. and MaryEllen Closius P.A.'}
-  breadcrumbs={[{ label: 'Journal' }]}
-  note={'Articles are written with the client. The index appears as soon as the first post is published.'}
-/>
+<BaseLayout
+  title="Journal"
+  description="Writing on buying, selling and moving in South Florida from Martin Hoffman P.A. and MaryEllen Closius P.A."
+>
+  {/* Hero */}
+  <section class="relative isolate overflow-hidden bg-cream-100 text-ink">
+    <Container>
+      <div class="section-space">
+        <Breadcrumbs items={[{ label: 'Journal' }]} class="mb-10" />
+
+        <div class="grid gap-12 lg:grid-cols-12 lg:items-end lg:gap-16">
+          <div class="lg:col-span-6" data-reveal>
+            <p class="eyebrow text-evergreen-600">
+              <span class="rule-gold" aria-hidden="true"></span>
+              Journal
+            </p>
+            <h1 class="mt-5 text-display text-evergreen-800">
+              Written when there is something worth saying
+            </h1>
+            <p class="mt-7 max-w-xl text-lg leading-relaxed text-ink-muted">
+              Not a content schedule. Martin and MaryEllen write when a question
+              comes up often enough to be worth answering properly — so it can
+              be sent to the next person who asks it.
+            </p>
+          </div>
+
+          <div class="lg:col-span-6" data-reveal style="--reveal-delay:100ms">
+            <MediaSlot
+              src={null}
+              alt=""
+              width={1200}
+              height={900}
+              ratio="4/3"
+              seed={11}
+              sizes="(min-width: 1024px) 50vw, 100vw"
+              class="max-h-[24rem] rounded-xs"
+            />
+          </div>
+        </div>
+      </div>
+    </Container>
+  </section>
+
+  {
+    posts.length === 0 ? (
+      /* No articles yet — and that is what it says. */
+      <Section tone="white" labelledby="journal-empty-heading">
+        <h2 id="journal-empty-heading" class="sr-only">No articles yet</h2>
+        <div
+          class="mx-auto max-w-3xl rounded-xs border border-dashed border-line-strong bg-cream-50 px-8 py-16 text-center sm:px-14"
+          data-reveal
+        >
+          <p class="font-serif text-3xl text-evergreen-800">
+            Nothing published here yet.
+          </p>
+          <p class="mx-auto mt-4 max-w-md text-sm leading-relaxed text-ink-muted">
+            Articles are written by Martin and MaryEllen, not generated — so
+            this page stays empty until there is something they actually want to
+            say. In the meantime, the guides below cover the ground people ask
+            about most.
+          </p>
+          <div class="mt-10 flex flex-col justify-center gap-3 sm:flex-row">
+            <Button href="/resources/buying-guide/" variant="secondary" withArrow>
+              The buying guide
+            </Button>
+            <Button href="/resources/selling-guide/" variant="ghost">
+              The selling guide
+            </Button>
+          </div>
+        </div>
+      </Section>
+    ) : (
+      <>
+        {/* Featured article */}
+        <Section tone="white" labelledby="journal-featured-heading">
+          <SectionHeader
+            id="journal-featured-heading"
+            eyebrow="Latest"
+            title="Most recent"
+          />
+          {anySamples && <DemoNotice class="mt-8" />}
+          <ul class="mt-12">
+            <PostCard post={featured} seed={0} variant="feature" />
+          </ul>
+        </Section>
+
+        {/* Everything, with filters */}
+        <Section tone="warm" labelledby="journal-all-heading">
+          <SectionHeader
+            id="journal-all-heading"
+            eyebrow="Archive"
+            title="All writing"
+            lead="Search by word, or narrow by category."
+          />
+
+          <form
+            data-post-filters
+            action="/blog/"
+            method="get"
+            class="mt-10 rounded-xs border border-line bg-white p-6 sm:p-8"
+          >
+            <div>
+              <label
+                class="block text-xs uppercase tracking-wide-sm text-ink-muted"
+                for="post-search"
+              >
+                Search
+              </label>
+              <input
+                id="post-search"
+                name="q"
+                type="search"
+                placeholder="Title, summary or tag"
+                autocomplete="off"
+                class="mt-2 h-12 w-full rounded-xs border border-line-control bg-white px-3.5 text-sm text-ink placeholder:text-ink-subtle transition-colors hover:border-evergreen-700 focus:border-evergreen-800"
+              />
+            </div>
+
+            <fieldset class="mt-6 border-0 p-0">
+              <legend class="block text-xs uppercase tracking-wide-sm text-ink-muted">
+                Category
+              </legend>
+              <ul class="mt-3 flex flex-wrap gap-2">
+                <li>
+                  <label class="relative inline-flex">
+                    <input
+                      type="radio"
+                      name="category"
+                      id="post-category-all"
+                      value=""
+                      checked
+                      class="peer sr-only"
+                    />
+                    <span class={chip}>All</span>
+                  </label>
+                </li>
+                {categories.map((entry, index) => (
+                  <li>
+                    <label class="relative inline-flex">
+                      <input
+                        type="radio"
+                        name="category"
+                        id={`post-category-${index}`}
+                        value={entry.category}
+                        class="peer sr-only"
+                      />
+                      <span class={chip}>
+                        {categoryLabel(entry.category)}
+                        <span class="ml-1.5 text-xs opacity-70">{entry.count}</span>
+                      </span>
+                    </label>
+                  </li>
+                ))}
+              </ul>
+            </fieldset>
+
+            <div class="mt-7 flex flex-wrap items-center gap-4 border-t border-line pt-6">
+              <button
+                type="submit"
+                class="inline-flex h-12 items-center justify-center rounded-xs border border-evergreen-800 bg-evergreen-800 px-6 text-sm font-medium tracking-wide-sm text-white transition-colors hover:bg-evergreen-900"
+              >
+                Apply
+              </button>
+              <button
+                type="button"
+                data-post-reset
+                hidden
+                class="link-underline text-sm text-evergreen-800"
+              >
+                Clear
+              </button>
+              <p class="ml-auto text-sm text-ink-muted">
+                <span data-post-total class="font-medium text-evergreen-800" />
+                {' '}articles
+              </p>
+            </div>
+          </form>
+
+          <ul data-post-grid class="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {posts.map((post, index) => (
+              <PostCard post={post} seed={index + 1} />
+            ))}
+          </ul>
+
+          <div
+            data-post-empty
+            hidden
+            class="mt-10 rounded-xs border border-dashed border-line-strong bg-white px-8 py-14 text-center"
+          >
+            <p class="mx-auto max-w-xl font-serif text-2xl text-evergreen-800">
+              Nothing matches that.
+            </p>
+            <p class="mx-auto mt-4 max-w-md text-sm leading-relaxed text-ink-muted">
+              Try a different word, or ask us directly — a question worth
+              answering usually becomes the next article.
+            </p>
+            <div class="mt-8 flex justify-center">
+              <Button href="/contact/" variant="secondary" withArrow>
+                Ask us instead
+              </Button>
+            </div>
+          </div>
+        </Section>
+      </>
+    )
+  }
+
+  {/* Communities */}
+  <Section tone="white" labelledby="journal-communities-heading">
+    <div class="flex flex-col gap-8 md:flex-row md:items-end md:justify-between">
+      <SectionHeader
+        id="journal-communities-heading"
+        eyebrow="Neighbourhoods"
+        title="Guides to the areas"
+        lead="Where you buy shapes daily life more than the house does."
+      />
+      <div class="hidden shrink-0 md:block" data-reveal>
+        <Button href="/communities/" variant="secondary" withArrow>
+          All communities
+        </Button>
+      </div>
+    </div>
+
+    <ul class="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+      {
+        featuredCommunityList.map((community, index) => (
+          <CommunityCard
+            community={community}
+            parentName={parentNames[community.slug] ?? null}
+            seed={index}
+          />
+        ))
+      }
+    </ul>
+
+    <div class="mt-10 flex md:hidden" data-reveal>
+      <Button href="/communities/" variant="secondary" block withArrow>
+        All communities
+      </Button>
+    </div>
+  </Section>
+
+  {/* Contact */}
+  <Section tone="deep" labelledby="journal-contact-heading">
+    <div class="grid gap-10 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center lg:gap-16">
+      <div data-reveal>
+        <p class="eyebrow text-gold-300">
+          <span class="rule-gold" aria-hidden="true"></span>
+          Ask instead
+        </p>
+        <h2 id="journal-contact-heading" class="mt-5 text-display-sm text-white">
+          Got a question this does not answer?
+        </h2>
+        <p class="mt-5 max-w-xl leading-relaxed text-white/75">
+          Ask it directly. You will get a straight answer, and if enough people
+          ask the same thing it becomes the next piece of writing here.
+        </p>
+      </div>
+
+      <div class="flex flex-col gap-3 sm:flex-row lg:shrink-0 lg:flex-col" data-reveal>
+        <Button href="/contact/" variant="gold" withArrow>Get in touch</Button>
+        {
+          professionals.map((person) => (
+            <Button href={person.phone.href} variant="inverse">
+              Call {person.firstName}
+            </Button>
+          ))
+        }
+      </div>
+    </div>
+  </Section>
+</BaseLayout>
+
+<script>
+  import { initPostFilters } from '@lib/blog/filter-client';
+  initPostFilters();
+</script>

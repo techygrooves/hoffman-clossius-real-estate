@@ -1,12 +1,295 @@
 ---
-import StubPage from '@layouts/StubPage.astro';
+/**
+ * The selling guide.
+ *
+ * Goes deeper than /sell/, which carries the overview. This is the reference
+ * you send someone who has decided to sell.
+ *
+ * Same constraints as the buying guide: no timescale, no fee, no commission,
+ * no days-on-market or sale-to-list figure, no guarantee about price or
+ * outcome, and no statement of Florida law as settled fact. A seller choosing
+ * an agent is the last place for an invented number (PROJECT_CONTEXT.md §9).
+ */
+import BaseLayout from '@layouts/BaseLayout.astro';
+import PageHero from '@components/ui/PageHero.astro';
+import Section from '@components/ui/Section.astro';
+import SectionHeader from '@components/ui/SectionHeader.astro';
+import Button from '@components/ui/Button.astro';
+import MediaSlot from '@components/ui/MediaSlot.astro';
+import GuideSteps, { type GuideStep } from '@components/resources/GuideSteps.astro';
+import { professionals } from '@config/site';
+
+const STEPS: GuideStep[] = [
+  {
+    id: 'preparation',
+    title: 'Preparation',
+    summary: 'What to do before anything goes live.',
+    body: [
+      'A property gets one first week, and most of the attention it will ever receive arrives in it. That is the argument for doing the work before the listing goes live rather than after a reduction.',
+      'Walking the property with someone who has not lived in it is the useful starting point — the things you stopped noticing years ago are the first things a buyer sees. What is worth acting on is then a judgement about cost against the objection it removes.',
+    ],
+    points: [
+      'Gather the paperwork now: permits, warranties, insurance history, any survey.',
+      'For a condominium, get the association documents together early.',
+      'Deal with the obvious deferred maintenance rather than explaining it later.',
+      'Declutter before photography, not after.',
+    ],
+    note: 'Some work returns more than it costs and plenty does not. The aim is to spend as little as possible while removing the objections that would cost more at the negotiating table.',
+  },
+  {
+    id: 'pricing',
+    title: 'Pricing and positioning',
+    summary: 'The single decision that most affects how the sale goes.',
+    body: [
+      'Price is built from what genuinely comparable homes nearby have actually sold for — not from what they are asking, and not from what you need to clear. What is currently competing with you matters too: a buyer choosing between three similar homes is choosing on price and condition.',
+      'Priced correctly, a property draws attention while it is new. Priced too high, it spends its best week proving that something cheaper is better value, then reduces to an audience that has already moved on.',
+    ],
+    points: [
+      'Ask what the suggested price is based on, and which specific sales.',
+      'Look at what is currently on the market around you, not only at what sold.',
+      'Agree in advance what would trigger a review of the price.',
+    ],
+    note: 'An opinion of value is not an appraisal. A lender’s appraisal is carried out by a licensed appraiser and follows a defined standard; the two are different documents for different purposes.',
+  },
+  {
+    id: 'presentation',
+    title: 'Presentation',
+    summary: 'How the property is prepared to be photographed and seen.',
+    body: [
+      'Two properties on the same street at the same price will not perform the same if one is better prepared and better photographed. Most buyers decide whether to view from the pictures alone, which makes presentation the cheapest lever available.',
+      'Rooms photograph and show better with less in them. Where staging makes sense we will say so, and what it would involve — it is not right for every property.',
+    ],
+    points: [
+      'Book photography for the light the property actually shows best in.',
+      'Clear surfaces, and store rather than rearrange.',
+      'Fix the small things that read as neglect: bulbs, handles, grout, a sticking door.',
+    ],
+  },
+  {
+    id: 'marketing',
+    title: 'Marketing',
+    summary: 'How the property reaches the people likely to buy it.',
+    body: [
+      'The listing is distributed through the multiple listing service, which is what feeds the portals and the agent networks that syndicate from it. Alongside that sits the part that does not appear on a portal: agents who have buyers in your price band, and people who have already asked about something like yours.',
+      'The written listing is worth getting right. It should describe the property accurately — the wrong buyers viewing is a waste of your weekends as well as theirs.',
+    ],
+    points: [
+      'Professional photography, and video or aerial work where the property justifies it.',
+      'A floor plan, which answers what photographs cannot.',
+      'Signage and print where the location and property warrant it.',
+      'Every enquiry answered by Martin or MaryEllen, not a queue.',
+    ],
+  },
+  {
+    id: 'showings',
+    title: 'Showings',
+    summary: 'Living in a property while it is for sale.',
+    body: [
+      'This is the least comfortable part of selling. Showings are booked through us with notice, so you are not answering the door to strangers or losing an evening at short notice.',
+      'Some properties need someone there to explain them — a renovation, a view at a particular hour, a quirk of the layout. Others show better empty. Either way you get told who came, when, and what they said afterwards.',
+    ],
+    points: [
+      'Put away valuables, medication and anything with your details on it.',
+      'Agree the notice period you actually need, and hold to it.',
+      'Take repeated feedback seriously — the same comment three times means something.',
+    ],
+  },
+  {
+    id: 'offers',
+    title: 'Offers and negotiation',
+    summary: 'Price is one term. Several others change what an offer is worth.',
+    body: [
+      'Financing, deposit, inspection and appraisal windows, the closing date and what the buyer is asking you to leave behind all change what an offer is really worth. A slightly lower offer with fewer contingencies is sometimes the stronger one.',
+      'Counter, accept or wait — each is set out with what it looks like from where you are standing, and you decide. Where there are several offers, every buyer is told the same thing.',
+    ],
+    points: [
+      'Read the whole offer, not only the number at the top.',
+      'Understand what each contingency lets the buyer do, and by when.',
+      'Ask what happens if the appraisal comes in below the agreed price.',
+    ],
+    note: 'What comes back from an inspection is usually negotiable, and is worked through item by item rather than met with a single figure.',
+  },
+  {
+    id: 'closing',
+    title: 'Closing',
+    summary: 'From accepted offer to the keys changing hands.',
+    body: [
+      'Title work, the buyer’s financing, insurance, the walkthrough and the closing itself. Most of this is chasing other people, and most of it happens without you needing to be involved.',
+      'What you will be asked for is documentation — payoff figures, association estoppel, anything about permits or warranties. Having it ready is what keeps dates from slipping.',
+    ],
+    points: [
+      'Keep the property in the condition it was under contract in.',
+      'Respond quickly to document requests; they are usually on someone else’s clock.',
+      'Confirm any wiring instructions by phone, on a number you already had.',
+    ],
+  },
+];
 ---
 
-<StubPage
-  title={'Selling Guide'}
-  heading={'The selling guide'}
-  eyebrow={'Resources'}
-  description={'A step-by-step walkthrough of selling a home in South Florida, from preparation through to closing.'}
-  breadcrumbs={[{ label: 'Resources' }, { label: 'Selling Guide' }]}
-  note={'The guide is written with the client so that every step reflects how they actually work and current Florida practice.'}
-/>
+<BaseLayout
+  title="Selling Guide"
+  description="A step-by-step guide to selling a home in South Florida — preparation, pricing, presentation, marketing, showings, offers and closing. General information, not legal or financial advice."
+>
+  <PageHero
+    eyebrow="Resources"
+    title="The selling guide"
+    lead="What happens between deciding to sell and handing over the keys — what each stage is for, and what it asks of you."
+    breadcrumbs={[{ label: 'Resources' }, { label: 'Selling Guide' }]}
+  >
+    <div class="mt-2 flex flex-wrap gap-3">
+      <Button href="/sell/home-evaluation/" size="lg" withArrow>
+        Request a home evaluation
+      </Button>
+      <Button href="/sell/" size="lg" variant="secondary">How we sell</Button>
+    </div>
+  </PageHero>
+
+  <GuideSteps
+    steps={STEPS}
+    contentsTitle="What this guide covers"
+    contentsId="selling-guide-contents"
+  />
+
+  {/* Valuation CTA */}
+  <Section tone="deep" labelledby="selling-guide-valuation-heading">
+    <div class="grid gap-12 lg:grid-cols-2 lg:items-center lg:gap-20">
+      <div data-reveal>
+        <p class="eyebrow text-gold-300">
+          <span class="rule-gold" aria-hidden="true"></span>
+          Start here
+        </p>
+        <h2
+          id="selling-guide-valuation-heading"
+          class="mt-5 text-display-sm text-white"
+        >
+          What is your property worth?
+        </h2>
+        <p class="mt-5 max-w-lg leading-relaxed text-white/75">
+          An opinion of value from Martin or MaryEllen, prepared by looking at
+          your property and at what genuinely comparable homes nearby have
+          actually sold for. It is written by a person, not generated by this
+          website, and there is no cost and no obligation attached to it.
+        </p>
+        <div class="mt-9 flex flex-wrap gap-3">
+          <Button href="/sell/home-evaluation/" variant="gold" withArrow>
+            Request My Complimentary Home Evaluation
+          </Button>
+          <Button href="/sell/median-home-values/" variant="inverse">
+            About home values
+          </Button>
+        </div>
+      </div>
+
+      <div data-reveal style="--reveal-delay:100ms">
+        <MediaSlot
+          src={null}
+          width={1000}
+          height={800}
+          ratio="5/4"
+          tone="deep"
+          seed={12}
+          sizes="(min-width: 1024px) 45vw, 100vw"
+          class="max-h-[26rem] rounded-xs"
+        />
+      </div>
+    </div>
+  </Section>
+
+  {/* Disclaimer */}
+  <Section tone="white" labelledby="selling-guide-disclaimer-heading">
+    <div class="rounded-xs border border-line bg-cream-50 p-8 sm:p-10" data-reveal>
+      <h2
+        id="selling-guide-disclaimer-heading"
+        class="font-serif text-2xl text-evergreen-800"
+      >
+        What this guide is, and is not
+      </h2>
+      <div class="mt-5 flex max-w-prose flex-col gap-4 text-sm leading-relaxed text-ink-muted">
+        <p>
+          It describes how a sale generally runs in South Florida. It is not
+          legal, tax or financial advice — contract terms, disclosure
+          obligations and the tax consequences of a sale are matters for your
+          attorney and your accountant.
+        </p>
+        <p>
+          It promises nothing about price, timescale or outcome, and it quotes
+          no fee. What a property sells for and how long it takes depend on the
+          property, the market at the time and the buyer who turns up.
+        </p>
+        <p>
+          Everything here is general. What applies to your sale depends on your
+          sale, and that starts with someone looking at the property.
+        </p>
+      </div>
+    </div>
+  </Section>
+
+  {/* Next */}
+  <Section tone="warm" labelledby="selling-guide-next-heading">
+    <SectionHeader
+      id="selling-guide-next-heading"
+      eyebrow="Next"
+      title="Where to go from here"
+    />
+
+    <ul class="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+      {
+        [
+          {
+            title: 'Home evaluation',
+            body: 'An opinion of value prepared by a person. No cost, no obligation.',
+            href: '/sell/home-evaluation/',
+          },
+          {
+            title: 'How we sell',
+            body: 'Preparation, positioning, marketing and negotiation in overview.',
+            href: '/sell/',
+          },
+          {
+            title: 'About home values',
+            body: 'What a median tells you, and what it cannot.',
+            href: '/sell/median-home-values/',
+          },
+          {
+            title: 'Common questions',
+            body: 'Buying, selling, listings, relocating and this site.',
+            href: '/faq/',
+          },
+        ].map((item, index) => (
+          <li>
+            <a
+              href={item.href}
+              class="group flex h-full flex-col rounded-xs border border-line bg-white p-6 transition-shadow duration-500 hover:shadow-card"
+              data-reveal
+              style={`--reveal-delay:${index * 60}ms`}
+            >
+              <h3 class="font-serif text-xl text-evergreen-800">{item.title}</h3>
+              <p class="mt-3 flex-1 text-sm leading-relaxed text-ink-muted">{item.body}</p>
+              <span class="mt-5 inline-flex items-center gap-2 text-xs uppercase tracking-eyebrow text-evergreen-700">
+                Open
+                <svg
+                  class="h-3 w-3 transition-transform duration-300 ease-[var(--ease-editorial)] motion-safe:group-hover:translate-x-1"
+                  viewBox="0 0 16 16" fill="none" stroke="currentColor"
+                  stroke-width="1.5" stroke-linecap="square" aria-hidden="true"
+                >
+                  <path d="M1 8h13M9 3l5 5-5 5" />
+                </svg>
+              </span>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+
+    <div class="mt-12 flex flex-wrap gap-3" data-reveal>
+      <Button href="/contact/" withArrow>Ask us a question</Button>
+      {
+        professionals.map((person) => (
+          <Button href={person.phone.href} variant="secondary">
+            Call {person.firstName}
+          </Button>
+        ))
+      }
+    </div>
+  </Section>
+</BaseLayout>

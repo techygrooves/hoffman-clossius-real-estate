@@ -1,28 +1,293 @@
 ---
 /**
- * Individual journal article. Generates nothing until the first post is added
- * to src/content/blog/.
+ * Journal article.
+ *
+ * ONE template for every post. Adding an article is one Markdown file in
+ * src/content/blog/ — see docs/authoring-blog-posts.md.
+ *
+ * ── Sample posts ──────────────────────────────────────────────────────────
+ * A post with `sample: true` is scaffolding, not editorial content. It renders
+ * only when `flags.demoContent` is on (never in a production build), carries a
+ * visible notice at the top of the article, is marked `noindex`, and only ever
+ * relates to other sample posts. It exists so this template can be reviewed
+ * before the client has written anything.
+ *
+ * ── The byline is the reason for all of that ──────────────────────────────
+ * Every article carries a real person's name. A fabricated post is worse than
+ * fabricated listing data, because it puts words in someone's mouth on a
+ * subject their clients act on (PROJECT_CONTEXT.md §9).
  */
 import type { GetStaticPaths } from 'astro';
-import { getCollection } from 'astro:content';
-import StubPage from '@layouts/StubPage.astro';
+import { render } from 'astro:content';
+import BaseLayout from '@layouts/BaseLayout.astro';
+import Container from '@components/ui/Container.astro';
+import Breadcrumbs from '@components/ui/Breadcrumbs.astro';
+import Section from '@components/ui/Section.astro';
+import SectionHeader from '@components/ui/SectionHeader.astro';
+import Button from '@components/ui/Button.astro';
+import MediaSlot from '@components/ui/MediaSlot.astro';
+import PostCard from '@components/blog/PostCard.astro';
+import PostToc from '@components/blog/PostToc.astro';
+import PostAuthorCard from '@components/blog/PostAuthorCard.astro';
+import {
+  publishedPosts,
+  relatedPosts,
+  buildToc,
+  categoryLabel,
+  readingMinutes,
+  isSample,
+} from '@lib/blog/posts';
+import { getCommunity } from '@data/communities';
+import { getProfessional, professionals } from '@config/site';
+import { formatDate, toISODate } from '@lib/format';
 
 export const getStaticPaths = (async () => {
-  const posts = await getCollection('blog', ({ data }) => data.draft !== true);
-  return posts.map((post) => ({
-    params: { slug: post.id },
-    props: { post },
-  }));
+  const posts = await publishedPosts();
+  return posts.map((post) => ({ params: { slug: post.id }, props: { post } }));
 }) satisfies GetStaticPaths;
 
 const { post } = Astro.props;
+const { data } = post;
+
+const { Content, headings } = await render(post);
+const toc = buildToc(headings);
+const author = getProfessional(data.author);
+const related = await relatedPosts(post, 3);
+const sample = isSample(post);
+const minutes = readingMinutes(post.body);
+
+/** Community slugs resolved to records; unknown slugs are dropped, not guessed. */
+const relatedCommunities = data.relatedCommunities
+  .map((slug) => getCommunity(slug))
+  .filter((community): community is NonNullable<typeof community> => Boolean(community));
+
+/**
+ * `seo.title` / `seo.description` are reserved for the later SEO phase and are
+ * null on every post. Until then the article's own title and excerpt are used —
+ * which are a real description of the page rather than a keyword string.
+ */
+const pageTitle = data.seo.title ?? data.title;
+const pageDescription = data.seo.description ?? data.excerpt;
+
+const wasUpdated =
+  data.updatedAt !== undefined &&
+  data.updatedAt.getTime() > data.publishedAt.getTime();
 ---
 
-<StubPage
-  title={post.data.title}
-  heading={post.data.title}
-  eyebrow="Journal"
-  description={post.data.description}
-  breadcrumbs={[{ label: 'Journal', href: '/blog/' }, { label: post.data.title }]}
-  note="The article template — rendered Markdown, author byline and related reading — is built with the first published post."
-/>
+<BaseLayout
+  title={pageTitle}
+  description={pageDescription}
+  ogImage={data.heroImage?.src}
+  noindex={sample}
+>
+  <article>
+    {/* Masthead */}
+    <section class="relative isolate overflow-hidden bg-cream-100 text-ink">
+      <Container width="content">
+        <div class="section-space-tight">
+          <Breadcrumbs
+            items={[{ label: 'Journal', href: '/blog/' }, { label: data.title }]}
+            class="mb-10"
+          />
+
+          <p class="eyebrow text-evergreen-600">
+            <span class="rule-gold" aria-hidden="true"></span>
+            {categoryLabel(data.category)}
+          </p>
+
+          <h1 class="mt-5 text-display text-evergreen-800">{data.title}</h1>
+
+          <p class="mt-6 max-w-2xl text-lg leading-relaxed text-ink-muted">
+            {data.excerpt}
+          </p>
+
+          <div class="mt-8 flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-line pt-6 text-sm text-ink-muted">
+            {
+              author && (
+                <a href={author.href} class="link-underline text-evergreen-800">
+                  {author.name}
+                </a>
+              )
+            }
+            <span aria-hidden="true" class="text-ink-subtle">·</span>
+            <time datetime={toISODate(data.publishedAt)}>
+              {formatDate(data.publishedAt)}
+            </time>
+            {
+              wasUpdated && (
+                <>
+                  <span aria-hidden="true" class="text-ink-subtle">·</span>
+                  <span class="text-ink-subtle">
+                    Updated{' '}
+                    <time datetime={toISODate(data.updatedAt)}>
+                      {formatDate(data.updatedAt)}
+                    </time>
+                  </span>
+                </>
+              )
+            }
+            <span aria-hidden="true" class="text-ink-subtle">·</span>
+            <span class="text-ink-subtle">{minutes} min read</span>
+          </div>
+        </div>
+      </Container>
+    </section>
+
+    {/* Feature image */}
+    <div class="bg-cream-100">
+      <Container width="content">
+        <MediaSlot
+          src={data.heroImage?.src ?? null}
+          alt={data.heroImage?.alt ?? ''}
+          width={1600}
+          height={900}
+          ratio="16/9"
+          seed={3}
+          loading="eager"
+          fetchpriority="high"
+          sizes="(min-width: 1024px) 60rem, 100vw"
+          class="rounded-xs"
+        />
+      </Container>
+    </div>
+
+    {/* Body */}
+    <Section tone="white" containerWidth="content">
+      {
+        sample && (
+          <div
+            data-sample-notice
+            class="mb-12 rounded-xs border border-dashed border-gold-600/60 bg-gold-100/50 p-6"
+          >
+            <p class="font-medium text-charcoal-700">
+              This is a structural sample, not an article.
+            </p>
+            <p class="mt-2 max-w-prose text-sm leading-relaxed text-charcoal-600">
+              It exists so this template can be reviewed before anything real
+              has been written, and it makes no claim about the market. Sample
+              posts never appear in a production build, and this page is marked
+              so that search engines do not index it.
+            </p>
+          </div>
+        )
+      }
+
+      <PostToc entries={toc} class="mb-12" />
+
+      <div class="article-prose">
+        <Content />
+      </div>
+
+      {
+        data.tags.length > 0 && (
+          <ul class="mt-14 flex flex-wrap gap-2 border-t border-line pt-8">
+            {data.tags.map((tag) => (
+              <li>
+                <a
+                  href={`/blog/?q=${encodeURIComponent(tag)}`}
+                  class="inline-flex items-center rounded-xs border border-line-control px-3 py-1.5 text-xs text-ink-muted transition-colors hover:border-evergreen-700"
+                >
+                  {tag}
+                </a>
+              </li>
+            ))}
+          </ul>
+        )
+      }
+
+      {author && <PostAuthorCard person={author} class="mt-12" seed={2} />}
+    </Section>
+  </article>
+
+  {/* Related communities */}
+  {
+    relatedCommunities.length > 0 && (
+      <Section tone="warm" labelledby="post-communities-heading">
+        <SectionHeader
+          id="post-communities-heading"
+          eyebrow="Areas mentioned"
+          title="Guides to these communities"
+        />
+        <ul class="mt-10 grid gap-px overflow-hidden rounded-xs border border-line bg-line sm:grid-cols-2 lg:grid-cols-3">
+          {relatedCommunities.map((community) => (
+            <li class="bg-white">
+              <a
+                href={`/communities/${community.slug}/`}
+                class="group flex h-full flex-col p-6 transition-colors hover:bg-cream-50"
+              >
+                <span class="text-xs uppercase tracking-eyebrow text-ink-subtle">
+                  {community.county}
+                </span>
+                <span class="mt-2 font-serif text-xl text-evergreen-800">
+                  {community.name}
+                </span>
+                <span class="mt-2 flex-1 text-sm leading-relaxed text-ink-muted">
+                  {community.shortDescription}
+                </span>
+                <span class="mt-4 inline-flex items-center gap-2 text-xs uppercase tracking-eyebrow text-evergreen-700">
+                  View guide
+                  <svg
+                    class="h-3 w-3 transition-transform duration-300 ease-[var(--ease-editorial)] motion-safe:group-hover:translate-x-1"
+                    viewBox="0 0 16 16" fill="none" stroke="currentColor"
+                    stroke-width="1.5" stroke-linecap="square" aria-hidden="true"
+                  >
+                    <path d="M1 8h13M9 3l5 5-5 5" />
+                  </svg>
+                </span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </Section>
+    )
+  }
+
+  {/* Related reading */}
+  {
+    related.length > 0 && (
+      <Section tone="white" labelledby="post-related-heading">
+        <SectionHeader
+          id="post-related-heading"
+          eyebrow="Read next"
+          title="Related writing"
+        />
+        <ul class="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {related.map((item, index) => (
+            <PostCard post={item} seed={index + 4} />
+          ))}
+        </ul>
+      </Section>
+    )
+  }
+
+  {/* Contact */}
+  <Section tone="deep" labelledby="post-contact-heading">
+    <div class="grid gap-10 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center lg:gap-16">
+      <div data-reveal>
+        <p class="eyebrow text-gold-300">
+          <span class="rule-gold" aria-hidden="true"></span>
+          Talk to us
+        </p>
+        <h2 id="post-contact-heading" class="mt-5 text-display-sm text-white">
+          Questions about your own situation?
+        </h2>
+        <p class="mt-5 max-w-xl leading-relaxed text-white/75">
+          Writing can only ever be general. Yours is not — so ask, and you will
+          get an answer about your property, your timeline and your budget
+          rather than the average of everybody's.
+        </p>
+      </div>
+
+      <div class="flex flex-col gap-3 sm:flex-row lg:shrink-0 lg:flex-col" data-reveal>
+        <Button href="/contact/" variant="gold" withArrow>Get in touch</Button>
+        {
+          professionals.map((person) => (
+            <Button href={person.phone.href} variant="inverse">
+              Call {person.firstName}
+            </Button>
+          ))
+        }
+      </div>
+    </div>
+  </Section>
+</BaseLayout>

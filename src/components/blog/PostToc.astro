@@ -1,0 +1,46 @@
+---
+/**
+ * PostToc — a table of contents generated from the article's own headings.
+ *
+ * Renders nothing when `buildToc` returns an empty list, which it does for any
+ * article with fewer than two top-level sections. A contents list with one
+ * entry is furniture.
+ *
+ * Plain anchors to headings Astro has already given ids — no script, and every
+ * entry works with JavaScript off.
+ */
+import type { TocEntry } from '@lib/blog/posts';
+import { cn } from '@lib/cn';
+
+interface Props {
+  entries: readonly TocEntry[];
+  class?: string;
+}
+
+const { entries, class: className } = Astro.props;
+---
+
+{
+  entries.length > 0 && (
+    <nav
+      aria-labelledby="post-toc-heading"
+      class={cn('rounded-xs border border-line bg-cream-50 p-6', className)}
+    >
+      <h2
+        id="post-toc-heading"
+        class="text-xs uppercase tracking-wide-sm text-ink-muted"
+      >
+        On this page
+      </h2>
+      <ol class="mt-4 flex flex-col gap-2.5 text-sm">
+        {entries.map((entry) => (
+          <li class={entry.depth === 3 ? 'pl-4' : ''}>
+            <a href={`#${entry.slug}`} class="link-underline text-evergreen-800">
+              {entry.text}
+            </a>
+          </li>
+        ))}
+      </ol>
+    </nav>
+  )
+}

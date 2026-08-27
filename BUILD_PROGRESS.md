@@ -3,7 +3,7 @@
 Living record of what exists, what is broken and what comes next.
 **Update this file at the end of every session.**
 
-Last updated: **2026-08-27** — Session 8 (communities architecture)
+Last updated: **2026-08-27** — Session 9 (resources system)
 
 ---
 
@@ -11,23 +11,31 @@ Last updated: **2026-08-27** — Session 8 (communities architecture)
 
 Foundation, global chrome, homepage, the property/listing system, the
 developments subsystem, the buyer and seller conversion pages, the people and
-testimonial pages and **the communities architecture** are built. Listings,
-developments, valuation data, biographies, portraits, testimonials and
-community guide copy are all still unsupplied, and in every case the
-architecture makes that a supply step rather than a rewrite.
+testimonial pages, the communities architecture and **the resources system**
+are built. Listings, developments, valuation data, biographies, portraits,
+testimonials, community guide copy and journal articles are all still
+unsupplied, and in every case the architecture makes that a supply step rather
+than a rewrite.
+
+**Only `/contact/` and the three legal pages remain unbuilt.**
 
 | Metric | Value |
 | --- | --- |
 | Build | ✅ passing — `astro check`: 0 errors, 0 warnings, 0 hints |
-| Pages | 45 in production · 63 with demo content on |
+| Pages | 45 in production · 65 with demo content on |
 | Internal links | ✅ all resolve, both modes |
-| Tests | ✅ **576 checks passing** — see below |
-| Contrast | ✅ every rendered text node on all 62 pages × 2 widths clears WCAG 2.2 AA |
-| JavaScript | ~19 KB total across the site, inlined, no dependencies |
+| Tests | ✅ **811 checks passing** — see below |
+| Contrast | ✅ every rendered text node on all 64 pages × 2 widths clears WCAG 2.2 AA |
+| JavaScript | ~22 KB total across the site, inlined, no dependencies |
 | Third-party runtime requests | none |
 
 | Suite | Checks |
 | --- | --- |
+| Mortgage maths — unit tests, in the build | 17 |
+| Mortgage calculator — browser, validation, reset, honesty | 52 |
+| Resources — blog, FAQ, guides (production) | 57 |
+| Resources — blog, FAQ, guides, article template (demo) | 83 |
+| Resources — mobile, no-JavaScript, SC 2.5.8 targets | 32 |
 | Communities & relocation — no invented statistics | 77 |
 | Communities — mobile, no-JavaScript, SC 2.5.8 targets | 34 |
 | One-object add + client-supplied content | 22 |
@@ -46,6 +54,108 @@ architecture makes that a supply step rather than a rewrite.
 | Listings — mobile + no-JavaScript | 8 |
 | Homepage | 15 |
 | Navigation | 21 |
+
+---
+
+## ✅ Completed — Session 9 (2026-08-27) · Resources system
+
+Six routes: the journal and its article template, both guides, the FAQ, and a
+mortgage calculator with its arithmetic under unit test.
+
+### Unit tests now run in the build
+
+`npm run build` is `astro check && node --test tests/*.test.mjs && astro build
+&& node scripts/verify-links.mjs`. The mortgage maths is pure and lives in
+`src/lib/mortgage/calculate.ts`; `tests/mortgage.test.mjs` covers it with 17
+assertions whose expected values are computed independently of the
+implementation — a test that re-derives its expectation the same way the code
+does proves nothing.
+
+The property-detail estimate was refactored to import the same module. Two
+copies of an amortisation formula is one copy too many: they would eventually
+disagree, and only one of them would be under test.
+
+### Mortgage calculator — `/mortgage-calculator/`
+- [x] Every specified input: price, down payment (dollars **or** percent),
+      rate, term, annual taxes, annual insurance, monthly HOA.
+- [x] Every specified output: P&I, tax, insurance, HOA, total — plus loan
+      amount, down-payment percentage, total interest and total of payments.
+- [x] Standard amortisation formula, with the zero-rate case handled explicitly
+      rather than left to divide by zero.
+- [x] Accessible validation: native constraint validation with the bubbles
+      suppressed, messages in `role="alert"` regions the field points at.
+- [x] Reset, proportional breakdown bars, and a `<noscript>` panel offering both
+      direct lines.
+
+**No rate is stored or fetched.** The field starts empty and nothing is
+calculated until a visitor supplies one — pre-filling a plausible rate would be
+the site asserting a market figure it has no source for. Taxes, insurance and
+HOA start blank for the same reason. Verified in the browser: zero network
+requests while calculating.
+
+### Journal — `/blog/` and `/blog/[slug]/`
+- [x] Content collection extended to the full contract: title, excerpt,
+      publishedAt, updatedAt, author, category, tags, heroImage,
+      relatedCommunities, relatedProperties, draft, and a reserved `seo` object.
+- [x] `src/lib/blog/posts.ts` decides in one place what is publishable, so the
+      index, the routes, related reading and the sitemap cannot disagree.
+- [x] Index: featured article, archive grid, search and category filters,
+      community links, contact CTA. Filtering follows the established pattern —
+      server-render every card once, show and hide in the browser.
+- [x] Article: breadcrumb, h1, dates, byline, feature image, long-form
+      typography, generated table of contents, tags, author card, related
+      communities, related articles, contact CTA.
+
+**Two sample posts, and what makes them safe.** `sample: true` marks a
+structural placeholder. It renders only when `flags.demoContent` is on — never
+in a production build — is badged on every card and behind a notice at the top
+of the article, is `noindex`, is excluded from the sitemap, and only ever
+relates to other samples. Their subject is the template itself; neither says
+anything about the market.
+
+That care is because of the byline. A fabricated article is worse than
+fabricated listing data: it puts words in a named person's mouth on a subject
+their clients act on.
+
+### Guides — `/resources/buying-guide/` and `/resources/selling-guide/`
+Nine steps and seven steps, sharing one `GuideSteps` component so the two
+cannot drift. Each carries a contents list of plain anchors, per-step
+checklists, and an explicit statement of what the guide is not.
+
+**No timescale is promised anywhere in either.** A guide that says "closing
+takes 30 days" is promising on behalf of a lender, an appraiser, a title
+company and a seller, none of whom agreed to it — and the reader is the one
+left holding it. No fee, no commission, no days-on-market figure, no guarantee.
+
+### FAQ — `/faq/`
+Twenty-four answers across the five specified categories, as native `<details>`
+accordions that work with no script.
+
+Every answer carries `reviewed: false`, and the page **says so in public**: the
+answers describe general practice, not policy, and are still being reviewed.
+None quotes a fee, a commission, a timescale or a guarantee; several say "ask"
+where a specific figure would have been more useful, which is the honest
+version of not having been told. The shared `FaqAccordion` carries that caveat,
+so `/sell/` — which now publishes the selling answers automatically — cannot
+publish them without it.
+
+### Fixed while testing
+- **A shared class silently overrode a fixed width.** The calculator's `field`
+  constant carried `w-full`, and Tailwind emits `w-full` after `w-28`, so the
+  down-payment mode select went full-width and pushed the form 31px past the
+  viewport at 390px. This is problem 6 in the table below, hit again. Width is
+  no longer baked into the shared class.
+- **"Not a lending quote" was only visible after calculating.** It lived inside
+  the results panel. Someone needs to know a number is an estimate before they
+  read it, not after — it now sits beside the form, always visible.
+- **The percent affix rendered "%20".** One element that swapped its character
+  between `$` and `%` sat on the left in both modes. A currency symbol belongs
+  before the number and a percent sign after it; there are now two.
+- **Reset was a 20px text link.** Awkward to tap on a phone. Now a real target.
+- **Searching "relocation" in the journal found nothing.** The filter searched
+  title, excerpt and tags — technically consistent, practically wrong, since
+  the category is the obvious thing to type. Category and its label are now
+  searchable.
 
 ---
 
@@ -736,6 +846,11 @@ twelve homepage sections in `src/components/home/`.
 | `CommunityHighlights` | `src/components/communities/CommunityHighlights.astro` | ✅ stable — renders nothing until 10.5d confirmed |
 | `CommunityFaq` | `src/components/communities/CommunityFaq.astro` | ✅ stable — reserved for the SEO phase (10.5h) |
 | `CommunityMap` | `src/components/communities/CommunityMap.astro` | ⚠️ location in words; no pin until 10.5c + 11.4 |
+| `PostCard` | `src/components/blog/PostCard.astro` | ✅ stable — badges sample posts on the card itself |
+| `PostToc` | `src/components/blog/PostToc.astro` | ✅ stable — generated; absent under two sections |
+| `PostAuthorCard` | `src/components/blog/PostAuthorCard.astro` | ✅ stable — no biography until 8.1 / 8.2 |
+| `FaqAccordion` | `src/components/faq/FaqAccordion.astro` | ✅ stable — carries the review caveat with the answers |
+| `GuideSteps` | `src/components/resources/GuideSteps.astro` | ✅ stable — shared by both guides |
 | Homepage sections | `src/components/home/*.astro` | ✅ stable — twelve sections |
 | `InPreparation` | `src/components/sections/InPreparation.astro` | ⚠️ temporary |
 
@@ -753,7 +868,7 @@ primitive rather than adding a near-duplicate.
 | 3 | Parent paths 404 | 🟠 med | `/properties/`, `/developments/`, `/resources/` have no index page — they were not in the specified route list. Nothing links to them (verified by `verify:links`; the nav points at leaf routes) but a typed URL will 404. **Decide with the client:** add index pages, or redirect to the first child. |
 | 4 | Build logs a benign content warning | 🟢 low | `The collection "blog" does not exist or is empty` and `No files found matching …` — expected with zero posts. Disappears with the first article. |
 | 5 | `PageHero` image variant unverified | 🟢 low | Built but never rendered with a real photograph. Re-check contrast over the scrim when imagery arrives. |
-| 6 | Tailwind display-utility pitfall | 🟢 low | `.inline-flex` is emitted after `.hidden`, so `class="hidden xl:block"` passed into `Button`/`KeyesLogo` is silently ignored. Responsive visibility goes on a **wrapper element** — apply that pattern everywhere. (Alignment utilities like `self-start` are safe to pass through.) |
+| 6 | Tailwind utility-ordering pitfall | 🟠 med | **Hit twice now.** `.inline-flex` is emitted after `.hidden`, so `class="hidden xl:block"` passed into `Button`/`KeyesLogo` is silently ignored — put responsive visibility on a **wrapper**. Session 9 hit the same shape with width: a shared `field` class containing `w-full` overrode `w-28` at the call site and pushed the calculator 31px past the viewport at 390px. **Never bake a width or a display utility into a shared class string.** Both failures were invisible in code review and only showed up in a 390px browser test. |
 | 7 | Team-name spelling | 🟠 med | Site uses "Closius"; the repository is `hoffman-clossius-real-estate`. Confirm before launch (`CONTENT_PENDING.md` 2.5). |
 | 8 | No screen-reader or Lighthouse pass yet | 🟠 med | Structural checks, keyboard paths through the forms, and a **pixel-accurate** contrast sweep of every rendered text node on all 53 pages at two widths now run in the browser. (The earlier sweep parsed colour strings, which Tailwind 4's `color-mix()` → `oklab()` output silently defeated; measurements now paint the colour to a canvas and read the pixel back.) A real screen-reader pass and Lighthouse are still to come. |
 | 9a | Four homepage sections are empty in production | 🟠 med | Featured properties, developments, testimonials and insights all show empty states until their data arrives. Each carries a distinct, useful call to action, and this is the honest state — but the page is visibly lighter than it will be. `npm run build:demo` shows the populated design. |
@@ -766,6 +881,9 @@ primitive rather than adding a near-duplicate.
 | 11 | Forms need JavaScript | 🟠 med | Submission runs in the browser, so with JavaScript off the submit block is replaced by a contact panel. Honest, but a real limitation — a server-side form handler would remove it, and is worth revisiting alongside 6.1. |
 | 13 | No biographies or portraits | 🔴 high | Both profile pages carry a two-sentence neutral stand-in built only from confirmed facts, plus a visible note. `/about/` has no joint photograph. The pages are complete and correct — they are just thin, and they will stay thin until Martin and MaryEllen supply copy and photographs. `CONTENT_PENDING.md` 8.1–8.3a. |
 | 14 | No testimonials anywhere | 🟠 med | Homepage, `/about/` and `/testimonials/` all show the shared empty state. `/testimonials/` is deliberately still a substantial page — it explains the policy — but it has no quotes on it. `CONTENT_PENDING.md` 10.1. |
+| 19 | No journal articles | 🟡 low | `/blog/` shows an honest empty state in production; the homepage insights band does the same. The template is complete and two dev-only samples exercise it. One Markdown file publishes an article. `CONTENT_PENDING.md` 10.9. |
+| 20 | FAQ answers are drafted, not reviewed | 🟠 med | Twenty-four answers describing general practice, every one `reviewed: false`. Both `/faq/` and `/sell/` say so in public. They need reading and correcting, and `reviewed: true` set per answer. `CONTENT_PENDING.md` 10.2. |
+| 21 | Calculator has no default rate, tax or insurance | 🟢 low | By design — the site holds no market rate and a Florida insurance default would be a guess. Nothing is calculated until the visitor enters a rate. Pre-filling any of them needs a citable, dated source. `CONTENT_PENDING.md` 11.3. |
 | 16 | No community guide copy | 🟠 med | All fifteen pages carry one factual line and a visible "the guide is being written" note. The template is complete; the copy is not, and the lifestyle and FAQ sections are absent until it arrives. `CONTENT_PENDING.md` 10.5, 10.5d. |
 | 17 | Community locational lines are ours, not the client's | 🟠 med | Written from geography alone. The four Hollywood-area subareas need the closest review — neighbourhood boundaries are locally understood and vary. Sheridan Lakes deliberately has no parent municipality recorded. `CONTENT_PENDING.md` 10.5a, 10.5b. |
 | 18 | Coordinates are unverified and unplotted | 🟢 low | Approximate centroids on the eleven municipalities, none on the subareas. `CommunityMap` states the location in words and plots nothing, so nothing incorrect ships — but they must be verified before a map provider goes in. `CONTENT_PENDING.md` 10.5c. |
@@ -783,30 +901,23 @@ primitive rather than adding a near-duplicate.
    can ship without it.
 
 ### Then, roughly in order
-2. `/mortgage-calculator/` — buildable now; vanilla JS, estimates clearly
-   labelled, no lending claims. **Not artificial intelligence** — same rule as
-   the valuation pages.
-3. `/resources/buying-guide/` and `/selling-guide/` — blocked on copy. `/buy/`
-   and `/sell/` carry the process narrative, so the guides should go deeper
-   rather than repeat them.
-4. `/faq/` — blocked on client-reviewed answers. `/sell/` currently shows
-   "questions worth asking" in place of seller answers; that section switches
-   to real answers automatically once `src/data/faqs.ts` has entries with
-   `category: 'selling'`.
-5. `/accessibility/`, `/privacy-policy/`, `/terms/` — blocked on legal wording.
-   The privacy policy also needs 6.7 (where submissions are stored, and for how
-   long).
-6. `/blog/` index and article template — buildable ahead of the first post.
-7. Community guide copy — the template is built; a sourced `medianHomeValue`
+2. `/accessibility/`, `/privacy-policy/`, `/terms/` — the last unbuilt routes.
+   Blocked on legal wording. The privacy policy also needs 6.7 (where form
+   submissions are stored, and for how long).
+3. **Client review of the FAQ answers** — 24 are live and every one is flagged
+   unreviewed in public. This is the cheapest quality win outstanding.
+4. Community guide copy — the template is built; a sourced `medianHomeValue`
    on any record also lights up that city on `/sell/median-home-values/`.
-8. `/developments/new/` and `/existing/` — blocked on client material.
-9. **IDX integration** — `/properties/*`, `/property/[slug]/`, `/login/`,
+5. `/developments/new/` and `/existing/` — blocked on client material.
+6. The first journal article — one Markdown file. Delete the samples with it.
+7. **IDX integration** — `/properties/*`, `/property/[slug]/`, `/login/`,
    `/register/`. Fully blocked on `CONTENT_PENDING.md` §5.
 
 ### The SEO phase — deferred on purpose, and scaffolded for
 Every community record carries an empty `seo` object (`title`, `description`,
-`body`, `faqs`) and `CommunityFaq` renders from it, so the pass has somewhere
-to land. **Nothing there may be filled with keyword variations or generated
+`body`, `faqs`) and `CommunityFaq` renders from it; every journal post carries
+one too (`title`, `description`, `keywords`). So the pass has somewhere to
+land. **Nothing there may be filled with keyword variations or generated
 copy**: an FAQ written to catch a search query is still an invented answer
 about somebody's neighbourhood, and `FAQPage` structured data is deliberately
 not emitted for the same reason. `CONTENT_PENDING.md` 10.5h.
@@ -1075,3 +1186,38 @@ the subarea section and the FAQ all render nothing rather than generic cards.
 That was a deliberate choice, not an omission — a "Lifestyle" band containing
 Dining, Beaches and Schools would look finished and say nothing, and would make
 it much less likely that anyone ever writes the real thing.
+
+### Session 9 — 2026-08-27 · Resources system
+Six routes, a content collection, a tested calculator, and unit tests wired
+into the build. Five bugs found by testing; three are worth carrying forward.
+
+**The same Tailwind ordering trap, in a new disguise.** Problem 6 in the table
+above has been about display utilities since session 2: `.inline-flex` is
+emitted after `.hidden`, so passing `hidden` into a component that sets its own
+display silently does nothing. This session hit it with *width* — a shared
+`field` class carrying `w-full` overrode a `w-28` at the call site, and the
+calculator ran 31px past the viewport at 390px.
+
+The lesson generalises past the specific utilities: **never bake a width or a
+display utility into a shared class string.** Both instances were invisible in
+code review and only appeared in a 390px browser test, which is the argument
+for keeping that test cheap enough to run every time.
+
+**Put the disclaimer where it is read, not where it is convenient.** "Not a
+lending quote" was inside the results panel — technically present, invisible
+until you had already calculated and read a number. A caveat that arrives after
+the thing it qualifies is decoration. It now sits beside the form, always
+visible. Worth auditing the other disclaimers on the site for the same shape.
+
+**A filter should match what people would obviously type.** Searching
+"relocation" in the journal returned nothing, because the filter covered title,
+excerpt and tags but not the category — consistent with its own rules and
+useless to a person. The fix was one line; noticing it needed someone using the
+thing rather than reading it.
+
+Also worth recording: **unit tests now run inside `npm run build`**, for the
+same reason `verify-links` does. A check that only runs when someone remembers
+is a check that has already stopped running. The mortgage maths is the first
+thing on this site with arithmetic worth being wrong about, and its expected
+values are computed independently of the implementation — a test that
+re-derives its expectation the same way the code does proves nothing.
