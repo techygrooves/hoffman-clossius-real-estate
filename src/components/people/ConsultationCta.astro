@@ -1,0 +1,59 @@
+---
+/**
+ * ConsultationCta — the closing invitation on a profile page.
+ *
+ * Offers a conversation, and says what it costs and what it commits you to,
+ * because both answers are "nothing" and most sites leave a visitor guessing.
+ *
+ * No promise about response time: nobody has told us what Martin and MaryEllen
+ * can commit to, and "we respond within an hour" is the sort of thing a
+ * website says and a person then has to live up to.
+ */
+import Section from '@components/ui/Section.astro';
+import Button from '@components/ui/Button.astro';
+import type { Professional } from '@config/site';
+
+interface Props {
+  person: Professional;
+  id: string;
+  tone?: 'deep' | 'white' | 'warm';
+}
+
+const { person, id, tone = 'deep' } = Astro.props;
+const isDeep = tone === 'deep';
+---
+
+<Section tone={tone} labelledby={id}>
+  <div class="grid gap-10 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center lg:gap-16">
+    <div data-reveal>
+      <p class={isDeep ? 'eyebrow text-gold-300' : 'eyebrow text-evergreen-600'}>
+        <span class="rule-gold" aria-hidden="true"></span>
+        No obligation
+      </p>
+      <h2
+        id={id}
+        class={`mt-5 text-display-sm ${isDeep ? 'text-white' : 'text-evergreen-800'}`}
+      >
+        Start with a conversation
+      </h2>
+      <p
+        class={`mt-5 max-w-xl leading-relaxed ${isDeep ? 'text-white/75' : 'text-ink-muted'}`}
+      >
+        Tell {person.firstName} where you are in the process — thinking about it,
+        actively looking, or already under contract somewhere else — and you will
+        get a straight answer about what to do next. It costs nothing, there is
+        nothing to sign, and if the answer is that you should wait, that is what
+        you will be told.
+      </p>
+    </div>
+
+    <div class="flex flex-col gap-3 sm:flex-row lg:shrink-0 lg:flex-col" data-reveal>
+      <Button href={person.phone.href} variant={isDeep ? 'gold' : 'primary'} withArrow>
+        Call {person.firstName} — {person.phone.value}
+      </Button>
+      <Button href="/contact/" variant={isDeep ? 'inverse' : 'secondary'}>
+        Send a message
+      </Button>
+    </div>
+  </div>
+</Section>

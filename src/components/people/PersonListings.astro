@@ -1,0 +1,103 @@
+---
+/**
+ * PersonListings — a preview of one professional's current listings.
+ *
+ * Comes from the listing provider, filtered on `agentProfilePath`. Never from
+ * markup, and never padded out with the team's other listings to make the
+ * section look busier — a page about Martin showing MaryEllen's listings as
+ * though they were his would be a misattribution, not a design decision.
+ *
+ * With no feed connected the section renders an honest invitation rather than
+ * an empty grid. Same when the person simply has nothing on the market: that
+ * is a normal state, not a failure, and it says so.
+ */
+import Section from '@components/ui/Section.astro';
+import SectionHeader from '@components/ui/SectionHeader.astro';
+import Button from '@components/ui/Button.astro';
+import DemoNotice from '@components/ui/DemoNotice.astro';
+import ListingGrid from '@components/listings/ListingGrid.astro';
+import { listingProvider, hasListingData } from '@lib/listings/provider';
+import type { Professional } from '@config/site';
+
+interface Props {
+  person: Professional;
+  id: string;
+  limit?: number;
+  tone?: 'white' | 'warm';
+}
+
+const { person, id, limit = 3, tone = 'warm' } = Astro.props;
+
+const result = await listingProvider.search({
+  agentProfilePath: person.href,
+  status: ['for-sale', 'coming-soon', 'pending'],
+  sort: 'newest',
+  page: 1,
+  pageSize: limit,
+});
+
+const items = result.listings;
+---
+
+<Section tone={tone} labelledby={id}>
+  <div class="flex flex-col gap-8 md:flex-row md:items-end md:justify-between">
+    <SectionHeader
+      id={id}
+      eyebrow="Currently representing"
+      title={`${person.firstName}'s listings`}
+      lead={
+        items.length > 0
+          ? `Properties ${person.firstName} represents directly.`
+          : undefined
+      }
+    />
+    {
+      items.length > 0 && (
+        <div class="hidden shrink-0 md:block" data-reveal>
+          <Button href="/properties/our-listings/" variant="secondary" withArrow>
+            View all our listings
+          </Button>
+        </div>
+      )
+    }
+  </div>
+
+  {listingProvider.isDemo && items.length > 0 && <DemoNotice class="mt-8" />}
+
+  {
+    items.length > 0 ? (
+      <>
+        <ListingGrid listings={items} class="mt-12" />
+        <div class="mt-10 flex md:hidden" data-reveal>
+          <Button href="/properties/our-listings/" variant="secondary" block withArrow>
+            View all our listings
+          </Button>
+        </div>
+      </>
+    ) : (
+      <div
+        class="mt-12 rounded-xs border border-dashed border-line-strong bg-white px-8 py-12 text-center"
+        data-reveal
+      >
+        <p class="mx-auto max-w-xl font-serif text-2xl text-evergreen-800">
+          {hasListingData
+            ? `${person.firstName} has nothing on the open market this week.`
+            : 'Live property search is being configured.'}
+        </p>
+        <p class="mx-auto mt-4 max-w-md text-sm leading-relaxed text-ink-muted">
+          {hasListingData
+            ? `That changes often, and a good deal never reaches a portal at all. Call ${person.firstName} and ask what is coming.`
+            : `In the meantime, tell ${person.firstName} what you are looking for and you will hear about it directly.`}
+        </p>
+        <div class="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
+          <Button href="/buy/dream-home-finder/" variant="secondary" withArrow>
+            Tell us what you want
+          </Button>
+          <Button href={person.phone.href} variant="ghost">
+            Call {person.firstName}
+          </Button>
+        </div>
+      </div>
+    )
+  }
+</Section>

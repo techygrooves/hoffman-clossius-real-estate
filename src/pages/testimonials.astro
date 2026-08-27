@@ -1,12 +1,226 @@
 ---
-import StubPage from '@layouts/StubPage.astro';
+/**
+ * Testimonials.
+ *
+ * Renders only entries marked `verified: true` in src/data/testimonials.ts.
+ * None exist today, so the page shows its empty state — which is the honest
+ * answer, and the only acceptable one. A page of invented praise on a real
+ * estate site is a lie about people who did not say it.
+ *
+ * When quotes arrive: a feature card for the first, a grid for the rest, and
+ * source badges (Google / Zillow / Direct Client) on any entry whose origin
+ * the client has confirmed. Filtering by source appears once more than one
+ * source is actually in use — building a filter over one source would be
+ * furniture, not function.
+ *
+ * No star ratings and no review counts anywhere, in either state. We hold no
+ * such data, and a rating inferred from a quote's tone would be a fabrication.
+ */
+import BaseLayout from '@layouts/BaseLayout.astro';
+import PageHero from '@components/ui/PageHero.astro';
+import Section from '@components/ui/Section.astro';
+import SectionHeader from '@components/ui/SectionHeader.astro';
+import Button from '@components/ui/Button.astro';
+import AgentCard from '@components/ui/AgentCard.astro';
+import TestimonialCard from '@components/testimonials/TestimonialCard.astro';
+import TestimonialEmptyState from '@components/testimonials/TestimonialEmptyState.astro';
+import { SOURCE_BADGES, verifiedTestimonials, usedSources } from '@data/testimonials';
+import { getProfessional } from '@config/site';
+
+const items = verifiedTestimonials();
+const sources = usedSources();
+
+/**
+ * Grouping only earns its keep once quotes actually come from more than one
+ * place. With a single source it would be a heading over the whole list and a
+ * filter with one option — furniture, not function.
+ */
+const groupBySource = sources.length > 1;
+const anchorFor = (source: string) =>
+  `source-${source.toLowerCase().replace(/\s+/g, '-')}`;
+
+const groups = groupBySource
+  ? sources.map((source) => ({
+      source,
+      anchor: anchorFor(source),
+      items: items.filter((t) => t.source === source),
+    }))
+  : [];
+
+/** Anything the client has not attributed still belongs on the page. */
+const ungrouped = groupBySource ? items.filter((t) => t.source === null) : [];
+
+const [feature, ...rest] = items;
+
+const martin = getProfessional('martin-hoffman');
+const maryellen = getProfessional('maryellen-closius');
 ---
 
-<StubPage
-  title={'Testimonials'}
-  heading={'In their own words'}
-  eyebrow={'Testimonials'}
-  description={'What clients of Hoffman & Closius say about working with Martin and MaryEllen.'}
-  breadcrumbs={[{ label: 'Testimonials' }]}
-  note={'Only real, attributable quotes supplied or approved by the client are published here. Nothing is added until they are provided.'}
-/>
+<BaseLayout
+  title="Testimonials"
+  description="What clients of Hoffman & Closius say about working with Martin Hoffman P.A. and MaryEllen Closius P.A. across South Florida."
+>
+  <PageHero
+    eyebrow="Testimonials"
+    title="In their own words"
+    lead="Every quote on this page was said by a real client and published with their permission. Nothing is written on anyone's behalf."
+    breadcrumbs={[{ label: 'Testimonials' }]}
+  />
+
+  <Section tone="white" labelledby="testimonials-list-heading">
+    <h2 id="testimonials-list-heading" class="sr-only">Client testimonials</h2>
+
+    {
+      items.length === 0 ? (
+        <TestimonialEmptyState variant="page" />
+      ) : groupBySource ? (
+        /*
+          Grouped by where the words were published, with jump links. Plain
+          anchors to sections that genuinely exist further down the page — no
+          script, nothing hidden, and every quote reachable without it.
+        */
+        <div class="flex flex-col gap-16">
+          <nav aria-label="Jump to a source" class="flex flex-wrap gap-2">
+            {groups.map((group) => (
+              <a
+                href={`#${group.anchor}`}
+                class="inline-flex items-center gap-2 rounded-xs border border-line-control px-4 py-2 text-sm text-ink-muted transition-colors hover:border-evergreen-700"
+              >
+                {SOURCE_BADGES[group.source].label}
+                <span class="text-xs text-ink-subtle">{group.items.length}</span>
+              </a>
+            ))}
+          </nav>
+
+          {groups.map((group) => (
+            <section id={group.anchor} aria-labelledby={`${group.anchor}-heading`}>
+              <h3
+                id={`${group.anchor}-heading`}
+                class="font-serif text-2xl text-evergreen-800"
+              >
+                {SOURCE_BADGES[group.source].label}
+              </h3>
+              <p class="mt-2 text-sm text-ink-muted">
+                {SOURCE_BADGES[group.source].description}.
+              </p>
+              <ul class="mt-8 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {group.items.map((testimonial, index) => (
+                  <li data-reveal style={`--reveal-delay:${index * 60}ms`}>
+                    <TestimonialCard testimonial={testimonial} />
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ))}
+
+          {ungrouped.length > 0 && (
+            <ul class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {ungrouped.map((testimonial, index) => (
+                <li data-reveal style={`--reveal-delay:${index * 60}ms`}>
+                  <TestimonialCard testimonial={testimonial} />
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      ) : (
+        <div class="flex flex-col gap-12">
+          {feature && (
+            <div data-reveal>
+              <TestimonialCard testimonial={feature} variant="feature" />
+            </div>
+          )}
+
+          {rest.length > 0 && (
+            <ul class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {rest.map((testimonial, index) => (
+                <li data-reveal style={`--reveal-delay:${index * 60}ms`}>
+                  <TestimonialCard testimonial={testimonial} />
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )
+    }
+  </Section>
+
+  {/* How reviews are handled — the part most sites leave out. */}
+  <Section tone="warm" labelledby="testimonials-policy-heading">
+    <div class="grid gap-12 lg:grid-cols-2 lg:gap-20">
+      <div data-reveal>
+        <SectionHeader
+          id="testimonials-policy-heading"
+          eyebrow="How this page works"
+          title="What you will and will not find here"
+        />
+        <div class="mt-8 flex flex-col gap-5 leading-relaxed text-ink-muted">
+          <p>
+            Reviews are the easiest thing on a real estate website to fake, and
+            the hardest thing for you to check. So it is worth saying exactly
+            what this page does.
+          </p>
+          <p>
+            A quote appears only once the client it came from has confirmed we
+            may publish it. It is shown as it was written — not tidied, not
+            shortened to the flattering half. Where a review was left publicly
+            on Google or Zillow, the card says so and links to it where the
+            client has supplied the link, so you can read it in its original
+            place alongside everything else that was said.
+          </p>
+        </div>
+      </div>
+
+      <ul class="flex flex-col gap-4 lg:pt-16" data-reveal style="--reveal-delay:100ms">
+        {
+          [
+            'No star ratings and no review counts. We do not hold that data, and a number invented to look reassuring is worth nothing to you.',
+            'No composite or representative quotes assembled from several clients.',
+            'No quotes moved here from a competitor, a brokerage page or a portal without the reviewer knowing.',
+            'A quote is removed if the person who gave it asks us to remove it.',
+          ].map((item) => (
+            <li class="flex gap-3.5 rounded-xs border border-line bg-white p-6 text-sm leading-relaxed text-ink-muted">
+              <span class="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-gold-600" aria-hidden="true" />
+              <span>{item}</span>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </Section>
+
+  {/* Contact */}
+  <Section tone="white" labelledby="testimonials-contact-heading">
+    <SectionHeader
+      id="testimonials-contact-heading"
+      eyebrow="Talk to us"
+      title="Ask them yourself"
+      lead="A review tells you what one sale felt like. A conversation tells you how someone thinks. Call either of us — there is no obligation attached to it."
+    />
+
+    <div class="mt-14 grid gap-12 md:grid-cols-2 md:gap-10 lg:gap-16">
+      {
+        [martin, maryellen].map(
+          (person, index) =>
+            person && (
+              <AgentCard
+                person={person}
+                intro={
+                  person.slug === 'martin-hoffman'
+                    ? 'Martin holds a Broker-Associate licence and represents buyers and sellers across South Florida.'
+                    : 'MaryEllen is a Realtor Associate and Relocation Specialist, working with buyers, sellers and families moving to South Florida.'
+                }
+                ctaLabel={`Meet ${person.firstName}`}
+                seed={index + 5}
+              />
+            ),
+        )
+      }
+    </div>
+
+    <div class="mt-14 flex flex-wrap justify-center gap-3" data-reveal>
+      <Button href="/contact/" withArrow>Contact us</Button>
+      <Button href="/about/" variant="secondary">About the team</Button>
+    </div>
+  </Section>
+</BaseLayout>

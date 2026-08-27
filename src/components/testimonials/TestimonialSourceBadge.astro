@@ -1,0 +1,63 @@
+---
+/**
+ * TestimonialSourceBadge — where a quote came from.
+ *
+ * Wording only. Google's and Zillow's logos are trademarks with their own
+ * usage rules and neither has been licensed here, so the badge names the
+ * platform in text rather than reproducing a mark.
+ *
+ * There is no star rating and no review count anywhere in this component —
+ * we hold no such data, and inferring one from a quote would be inventing it.
+ */
+import { SOURCE_BADGES, type TestimonialSource } from '@data/testimonials';
+import { cn } from '@lib/cn';
+
+interface Props {
+  source: TestimonialSource;
+  /** Links to the review as published. Only ever a URL the client supplied. */
+  href?: string | null;
+  tone?: 'light' | 'dark';
+  class?: string;
+}
+
+const { source, href = null, tone = 'light', class: className } = Astro.props;
+const badge = SOURCE_BADGES[source];
+
+const base =
+  'inline-flex items-center gap-1.5 rounded-xs border px-2.5 py-1 text-[0.6875rem] uppercase tracking-wide-sm';
+const tones = {
+  light: 'border-evergreen-800/20 bg-evergreen-100/60 text-evergreen-800',
+  dark: 'border-white/30 bg-white/10 text-white/85',
+};
+---
+
+{
+  href ? (
+    <a
+      href={href}
+      rel="noopener noreferrer"
+      target="_blank"
+      title={badge.description}
+      class={cn(base, tones[tone], 'transition-colors hover:border-evergreen-700', className)}
+    >
+      {badge.label}
+      <span class="sr-only"> — {badge.description}. Opens in a new tab.</span>
+      <svg
+        class="h-2.5 w-2.5 shrink-0"
+        viewBox="0 0 16 16"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.75"
+        stroke-linecap="square"
+        aria-hidden="true"
+      >
+        <path d="M6 3h7v7M13 3 4 12" />
+      </svg>
+    </a>
+  ) : (
+    <span class={cn(base, tones[tone], className)} title={badge.description}>
+      {badge.label}
+      <span class="sr-only"> — {badge.description}</span>
+    </span>
+  )
+}

@@ -1,0 +1,77 @@
+---
+/**
+ * PersonBio — a professional's biography.
+ *
+ * Renders `professionals[].bio` verbatim when the client has supplied it, and
+ * a short, strictly factual introduction when they have not.
+ *
+ * The fallback is built ONLY from the two confirmed facts on record — the
+ * person's name and their title — plus the service area, which is confirmed
+ * team-wide. It says nothing about how long they have worked, what they have
+ * sold, who they have worked with, what they are good at or what they are
+ * like. Those are the things a real biography contains, and none of them may
+ * be guessed (PROJECT_CONTEXT.md §9).
+ *
+ * Supplying the copy is one line in `src/config/site.ts` — set `bio` to an
+ * array of paragraphs. Nothing here changes.
+ */
+import type { Professional } from '@config/site';
+import { serviceArea } from '@config/site';
+import { cn } from '@lib/cn';
+
+interface Props {
+  person: Professional;
+  class?: string;
+}
+
+const { person, class: className } = Astro.props;
+
+const counties = serviceArea.counties;
+const countyList =
+  counties.length > 1
+    ? `${counties.slice(0, -1).join(', ')} and ${counties[counties.length - 1]}`
+    : counties[0];
+
+const roleLine = person.specialty
+  ? `${person.title} and ${person.specialty}`
+  : person.title;
+
+/**
+ * Neutral stand-in. Every clause restates something already confirmed —
+ * nothing here is an assertion we would have to withdraw when the real
+ * biography arrives.
+ */
+const neutralIntro = [
+  `${person.name} is a ${roleLine} with Hoffman & Closius, working with buyers and sellers across ${countyList}.`,
+  `The best way to find out whether ${person.firstName} is the right person for what you are trying to do is to ask directly — by phone or email, both below.`,
+];
+
+const paragraphs = person.bio ?? neutralIntro;
+const isPending = person.bio === null;
+---
+
+<div class={cn('flex flex-col', className)}>
+  <div class="flex max-w-prose flex-col gap-5 leading-relaxed text-ink-muted">
+    {paragraphs.map((paragraph) => <p>{paragraph}</p>)}
+  </div>
+
+  {
+    isPending && (
+      /*
+        Visible, and phrased as a fact about the website rather than about the
+        person. A reader is told what is missing instead of being handed
+        confident-sounding filler (PROJECT_CONTEXT.md §9).
+      */
+      <p
+        data-pending-content="biography"
+        class="mt-8 max-w-prose rounded-xs border border-dashed border-line-strong bg-cream-50 px-5 py-4 text-sm leading-relaxed text-ink-muted"
+      >
+        <span class="font-medium text-evergreen-800">A fuller profile is on the way.</span>{' '}
+        It will be in {person.firstName}'s own words. We would rather leave this
+        short than fill it with the sort of thing anyone could have written
+        about anyone — so until then, the page carries only what we can stand
+        behind.
+      </p>
+    )
+  }
+</div>

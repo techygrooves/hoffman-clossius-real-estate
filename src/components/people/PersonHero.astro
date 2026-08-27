@@ -1,0 +1,90 @@
+---
+/**
+ * PersonHero — the masthead of a profile page: portrait, name, title, and the
+ * two ways to reach them.
+ *
+ * The portrait slot goes through MediaSlot like every other image on the site,
+ * so with no photograph supplied it renders the neutral abstract placeholder
+ * rather than a stock headshot of someone who is not them
+ * (CONTENT_PENDING.md 8.3). Dropping a file into `professionals[].portrait`
+ * fills it with no other change.
+ */
+import Container from '@components/ui/Container.astro';
+import Breadcrumbs from '@components/ui/Breadcrumbs.astro';
+import Button from '@components/ui/Button.astro';
+import MediaSlot from '@components/ui/MediaSlot.astro';
+import type { Crumb } from '@components/ui/Breadcrumbs.astro';
+import type { Professional } from '@config/site';
+
+interface Props {
+  person: Professional;
+  breadcrumbs?: Crumb[];
+  /** One neutral line under the title. Never a claim about experience. */
+  lead: string;
+  seed?: number;
+}
+
+const { person, breadcrumbs = [], lead, seed = 1 } = Astro.props;
+---
+
+<section class="relative isolate overflow-hidden bg-cream-100 text-ink">
+  <Container>
+    <div class="section-space-tight">
+      {breadcrumbs.length > 0 && <Breadcrumbs items={breadcrumbs} class="mb-10" />}
+
+      <div class="grid gap-12 lg:grid-cols-12 lg:items-center lg:gap-16">
+        <div class="lg:col-span-5 xl:col-span-4" data-reveal>
+          <MediaSlot
+            src={person.portrait}
+            alt={person.portrait ? `${person.name}, ${person.title}` : ''}
+            width={720}
+            height={900}
+            ratio="4/5"
+            seed={seed}
+            sizes="(min-width: 1024px) 33vw, 100vw"
+            class="max-h-[32rem] rounded-xs"
+          />
+        </div>
+
+        <div class="lg:col-span-7 xl:col-span-8" data-reveal style="--reveal-delay:80ms">
+          <p class="eyebrow text-evergreen-600">
+            <span class="rule-gold" aria-hidden="true"></span>
+            {person.specialty ? `${person.title} · ${person.specialty}` : person.title}
+          </p>
+
+          <h1 class="mt-5 text-display text-evergreen-800">{person.name}</h1>
+
+          <p class="mt-6 max-w-xl text-lg leading-relaxed text-ink-muted">{lead}</p>
+
+          <dl class="mt-8 flex flex-col gap-x-10 gap-y-4 border-t border-line pt-8 sm:flex-row">
+            <div>
+              <dt class="text-xs uppercase tracking-wide-sm text-ink-subtle">
+                Direct line
+              </dt>
+              <dd class="mt-1">
+                <a href={person.phone.href} class="link-underline text-evergreen-800">
+                  <span class="sr-only">Call {person.name} on </span>
+                  {person.phone.value}
+                </a>
+              </dd>
+            </div>
+            <div>
+              <dt class="text-xs uppercase tracking-wide-sm text-ink-subtle">Email</dt>
+              <dd class="mt-1 break-all">
+                <a href={person.email.href} class="link-underline text-evergreen-800">
+                  <span class="sr-only">Email {person.name} at </span>
+                  {person.email.value}
+                </a>
+              </dd>
+            </div>
+          </dl>
+
+          <div class="mt-9 flex flex-wrap gap-3">
+            <Button href={person.phone.href} withArrow>Call {person.firstName}</Button>
+            <Button href="/contact/" variant="secondary">Send a message</Button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </Container>
+</section>

@@ -128,6 +128,30 @@ Anything the provider supplies that has no home here either extends the type
 (and is then rendered somewhere) or is dropped. Do not stuff unmapped values
 into `description`.
 
+### `listingAgent.profilePath` — required for the profile pages
+
+`ListingAgent` carries `profilePath`, and two pages depend on it:
+
+```ts
+profilePath: '/about/martin-hoffman/'   // or '/about/maryellen-closius/'
+isOurAgent: true
+```
+
+`/about/martin-hoffman/` and `/about/maryellen-closius/` each query
+`agentProfilePath` and show only that person's listings. **The match is on the
+path, not on the agent's name** — deliberately, because a feed returns "Martin
+Hoffman", "Hoffman, Martin P.A." or a middle initial depending on the MLS, and
+a name comparison would silently show an empty section forever.
+
+So `adaptRecord()` must map the feed's own agent identity (agent ID, licence
+ID, whatever the provider keys on) onto these two paths, and set
+`isOurAgent: true` for both. A co-listing agent from another brokerage gets
+`profilePath: null` and `isOurAgent: false` — they have no page here.
+
+Get this wrong and nothing breaks visibly: both profile pages simply render
+their honest "nothing on the open market" state, which is indistinguishable
+from the truth. Check it explicitly after connecting the feed.
+
 ---
 
 ## 5. Attribution and disclaimers
@@ -181,6 +205,8 @@ change. Only where the results come from does.
 - [ ] API documentation obtained
 - [ ] Credentials issued and stored server-side, never `PUBLIC_`-prefixed
 - [ ] Agent/office IDs obtained, so `/properties/our-listings/` can filter
+- [ ] Those IDs mapped onto `listingAgent.profilePath` per §4, and **both
+      profile pages checked** — a wrong mapping fails silently
 - [ ] `adaptRecord()` implemented, with null-safety per §3
 - [ ] `fetchListings()` implemented
 - [ ] `attribution` populated with the MLS's verbatim wording
