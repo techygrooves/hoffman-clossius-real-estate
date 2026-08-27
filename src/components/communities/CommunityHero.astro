@@ -1,0 +1,122 @@
+---
+/**
+ * CommunityHero — the masthead of a community page.
+ *
+ * Photograph when the client supplies one, the neutral abstract placeholder
+ * when they have not. Never a stock beach photograph standing in for a real
+ * neighbourhood (PROJECT_CONTEXT.md §11).
+ */
+import Container from '@components/ui/Container.astro';
+import Breadcrumbs from '@components/ui/Breadcrumbs.astro';
+import Button from '@components/ui/Button.astro';
+import MediaSlot from '@components/ui/MediaSlot.astro';
+import type { Crumb } from '@components/ui/Breadcrumbs.astro';
+import type { Community } from '@data/communities';
+
+interface Props {
+  community: Community;
+  parentName?: string | null;
+  breadcrumbs: Crumb[];
+  searchHref: string;
+  seed?: number;
+}
+
+const { community, parentName = null, breadcrumbs, searchHref, seed = 0 } =
+  Astro.props;
+
+const hasImage = Boolean(community.heroImage);
+const eyebrow =
+  community.parent && parentName
+    ? `${parentName} · ${community.county}`
+    : community.county;
+---
+
+<section
+  data-surface={hasImage ? 'dark' : undefined}
+  class:list={[
+    'relative isolate overflow-hidden',
+    hasImage ? 'bg-evergreen-900 text-white' : 'bg-cream-100 text-ink',
+  ]}
+>
+  {
+    hasImage && (
+      <>
+        <span class="absolute inset-0 -z-10">
+          <MediaSlot
+            src={community.heroImage!.src}
+            alt={community.heroImage!.alt}
+            width={2000}
+            height={1000}
+            ratio="auto"
+            loading="eager"
+            fetchpriority="high"
+            sizes="100vw"
+            class="h-full w-full"
+          />
+        </span>
+        <span
+          class="absolute inset-0 -z-10 bg-gradient-to-t from-evergreen-900 via-evergreen-900/75 to-evergreen-900/45"
+          aria-hidden="true"
+        />
+      </>
+    )
+  }
+
+  <Container>
+    <div class="section-space">
+      <Breadcrumbs items={breadcrumbs} class="mb-10" tone={hasImage ? 'light' : 'dark'} />
+
+      <div class="grid gap-12 lg:grid-cols-12 lg:items-end lg:gap-16">
+        <div class="lg:col-span-7" data-reveal>
+          <p class:list={['eyebrow', hasImage ? 'text-gold-300' : 'text-evergreen-600']}>
+            <span class="rule-gold" aria-hidden="true"></span>
+            {eyebrow}
+          </p>
+          <h1
+            class:list={['mt-5 text-display', hasImage ? 'text-white' : 'text-evergreen-800']}
+          >
+            {community.name}
+          </h1>
+          <p
+            class:list={[
+              'mt-6 max-w-xl text-lg leading-relaxed',
+              hasImage ? 'text-white/80' : 'text-ink-muted',
+            ]}
+          >
+            {community.shortDescription}
+          </p>
+
+          <div class="mt-9 flex flex-wrap gap-3">
+            <Button href={searchHref} size="lg" variant={hasImage ? 'gold' : 'primary'} withArrow>
+              Homes for sale in {community.name}
+            </Button>
+            <Button
+              href="/sell/home-evaluation/"
+              size="lg"
+              variant={hasImage ? 'inverse' : 'secondary'}
+            >
+              What is my home worth?
+            </Button>
+          </div>
+        </div>
+
+        {
+          !hasImage && (
+            <div class="lg:col-span-5" data-reveal style="--reveal-delay:100ms">
+              <MediaSlot
+                src={null}
+                alt=""
+                width={1000}
+                height={750}
+                ratio="4/3"
+                seed={seed}
+                sizes="(min-width: 1024px) 40vw, 100vw"
+                class="max-h-[22rem] rounded-xs"
+              />
+            </div>
+          )
+        }
+      </div>
+    </div>
+  </Container>
+</section>

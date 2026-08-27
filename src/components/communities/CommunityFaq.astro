@@ -1,0 +1,64 @@
+---
+/**
+ * CommunityFaq — reserved for the SEO phase.
+ *
+ * Renders `seo.faqs` when the client has approved questions and answers, and
+ * NOTHING at all when the list is empty — which it is on every record today.
+ *
+ * This is the section a later SEO pass will want to fill, so the warning
+ * belongs here rather than in a document nobody opens: an FAQ written to catch
+ * a search query is still an invented answer about somebody's neighbourhood.
+ * "What are the schools like in Emerald Hills?" cannot be answered from a
+ * keyword tool. Every answer here needs the client behind it.
+ *
+ * Structured data (FAQPage) is deliberately not emitted yet either — marking
+ * up an answer we cannot source would put it in a search result, stated as
+ * fact, above the page that qualifies it.
+ */
+import Section from '@components/ui/Section.astro';
+import SectionHeader from '@components/ui/SectionHeader.astro';
+import type { Community } from '@data/communities';
+
+interface Props {
+  community: Community;
+  id: string;
+  tone?: 'white' | 'warm';
+}
+
+const { community, id, tone = 'warm' } = Astro.props;
+const faqs = community.seo.faqs;
+---
+
+{
+  faqs.length > 0 && (
+    <Section tone={tone} labelledby={id}>
+      <SectionHeader
+        id={id}
+        eyebrow="Questions"
+        title={`About ${community.name}`}
+      />
+
+      <div class="mt-12 flex max-w-4xl flex-col gap-3">
+        {faqs.map((faq) => (
+          <details
+            name="community-faq"
+            class="group rounded-xs border border-line bg-white px-6 py-5"
+          >
+            <summary class="flex cursor-pointer items-center justify-between gap-4 font-serif text-lg text-evergreen-800 marker:content-none">
+              {faq.question}
+              <span
+                class="shrink-0 text-gold-700 transition-transform duration-300 group-open:rotate-45"
+                aria-hidden="true"
+              >
+                +
+              </span>
+            </summary>
+            <p class="mt-4 max-w-prose text-sm leading-relaxed text-ink-muted">
+              {faq.answer}
+            </p>
+          </details>
+        ))}
+      </div>
+    </Section>
+  )
+}

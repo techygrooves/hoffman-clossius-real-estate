@@ -1,0 +1,48 @@
+---
+/**
+ * CommunityMap — where the community is.
+ *
+ * PLACEHOLDER, and deliberately so. No map provider has been chosen
+ * (CONTENT_PENDING.md 11.4), and the coordinates on each record are
+ * approximate centroids that nobody has verified yet (10.5c). Plotting an
+ * unverified pin would put a marker on a page that a buyer might drive to.
+ *
+ * So this states the location in words — county, and the municipality when the
+ * community is a subarea of one. When a provider is chosen and the coordinates
+ * are verified, the embed replaces the slot below and nothing else on the page
+ * changes: `latitude` and `longitude` are already carried on every record.
+ */
+import MediaSlot from '@components/ui/MediaSlot.astro';
+import type { Community } from '@data/communities';
+import { cn } from '@lib/cn';
+
+interface Props {
+  community: Community;
+  parentName?: string | null;
+  class?: string;
+}
+
+const { community, parentName = null, class: className } = Astro.props;
+
+const lines = [
+  community.name,
+  community.parent && parentName ? `${parentName}, Florida` : 'Florida',
+  community.county,
+].filter((line): line is string => Boolean(line));
+---
+
+<div class={cn('overflow-hidden rounded-xs border border-line', className)}>
+  <MediaSlot src={null} width={1200} height={600} ratio="2/1" seed={4} marker={false} />
+  <div class="border-t border-line bg-white px-6 py-5">
+    <address class="text-sm not-italic leading-relaxed text-evergreen-800">
+      {
+        lines.map((line, index) => (
+          <span class={index === 0 ? 'font-medium' : 'block text-ink-muted'}>{line}</span>
+        ))
+      }
+    </address>
+    <p class="mt-3 text-xs text-ink-subtle">
+      An interactive map is added once a map provider is chosen.
+    </p>
+  </div>
+</div>

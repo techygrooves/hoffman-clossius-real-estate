@@ -1,12 +1,223 @@
 ---
-import StubPage from '@layouts/StubPage.astro';
+/**
+ * Communities index.
+ *
+ * Driven entirely by src/data/communities.ts. Adding a community there adds a
+ * card here, a page, a navigation entry (when `featured`) and cross-links from
+ * its neighbours — no markup changes.
+ *
+ * Filtering follows the pattern the listing and development indexes use: every
+ * card is rendered once, server-side, and the browser shows and hides nodes
+ * that already exist. Without JavaScript the form submits, the full list stays
+ * visible, and nothing is broken.
+ *
+ * No card carries a price band, a "popular with" line or a rating. Each shows
+ * the name, the county, the parent municipality when it is a subarea, and one
+ * factual line — which is everything the data file holds, and everything that
+ * has been confirmed.
+ */
+import BaseLayout from '@layouts/BaseLayout.astro';
+import Container from '@components/ui/Container.astro';
+import Breadcrumbs from '@components/ui/Breadcrumbs.astro';
+import Section from '@components/ui/Section.astro';
+import SectionHeader from '@components/ui/SectionHeader.astro';
+import Button from '@components/ui/Button.astro';
+import MediaSlot from '@components/ui/MediaSlot.astro';
+import CommunityCard from '@components/communities/CommunityCard.astro';
+import CommunityFilters from '@components/communities/CommunityFilters.astro';
+import {
+  communities,
+  featuredCommunities,
+  communityCounties,
+  getCommunity,
+} from '@data/communities';
+import { serviceArea } from '@config/site';
+
+const featured = featuredCommunities();
+const counties = communityCounties();
+
+/** Parent names resolved once, so no component performs a lookup. */
+const parentNames: Record<string, string | null> = Object.fromEntries(
+  communities.map((c) => [c.slug, c.parent ? (getCommunity(c.parent)?.name ?? null) : null]),
+);
+
+const cityCount = communities.filter((c) => c.kind === 'city').length;
+const areaCount = communities.length - cityCount;
 ---
 
-<StubPage
-  title={'Communities'}
-  heading={'South Florida communities'}
-  eyebrow={'Communities'}
-  description={'Neighbourhood guides to the communities of Broward, Palm Beach and Miami-Dade counties.'}
-  breadcrumbs={[{ label: 'Communities' }]}
-  note={'Community guides are written with the client so that every detail is checkable. The index appears once the first guides are ready.'}
-/>
+<BaseLayout
+  title="Communities"
+  description="Neighbourhood guides to the South Florida communities Hoffman & Closius work across — Broward and Miami-Dade counties, from the Intracoastal to the western suburbs."
+>
+  {/* Hero */}
+  <section class="relative isolate overflow-hidden bg-cream-100 text-ink">
+    <Container>
+      <div class="section-space">
+        <Breadcrumbs items={[{ label: 'Communities' }]} class="mb-10" />
+
+        <div class="grid gap-12 lg:grid-cols-12 lg:items-end lg:gap-16">
+          <div class="lg:col-span-6" data-reveal>
+            <p class="eyebrow text-evergreen-600">
+              <span class="rule-gold" aria-hidden="true"></span>
+              Communities
+            </p>
+            <h1 class="mt-5 text-display text-evergreen-800">
+              Where you buy shapes daily life more than the house does
+            </h1>
+            <p class="mt-7 max-w-xl text-lg leading-relaxed text-ink-muted">
+              South Florida is not one market. {cityCount} cities and {areaCount}
+              {' '}neighbourhoods, across {serviceArea.counties[0]} and{' '}
+              {serviceArea.counties[2]} — each with its own buyers, its own
+              timelines and its own quirks of insurance and association rules.
+            </p>
+            <div class="mt-9 flex flex-wrap gap-3">
+              <Button href="/properties/search/" size="lg" withArrow>
+                Search all properties
+              </Button>
+              <Button href="/relocation/" size="lg" variant="secondary">
+                Moving to South Florida?
+              </Button>
+            </div>
+          </div>
+
+          <div class="lg:col-span-6" data-reveal style="--reveal-delay:100ms">
+            <MediaSlot
+              src={null}
+              alt=""
+              width={1200}
+              height={900}
+              ratio="4/3"
+              seed={5}
+              sizes="(min-width: 1024px) 50vw, 100vw"
+              class="max-h-[26rem] rounded-xs"
+            />
+          </div>
+        </div>
+      </div>
+    </Container>
+  </section>
+
+  {/* Featured */}
+  {
+    featured.length > 0 && (
+      <Section tone="white" labelledby="communities-featured-heading">
+        <SectionHeader
+          id="communities-featured-heading"
+          eyebrow="Start here"
+          title="The areas we are asked about most"
+        />
+        <ul class="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {featured.map((community, index) => (
+            <CommunityCard
+              community={community}
+              parentName={parentNames[community.slug] ?? null}
+              seed={index}
+              variant="feature"
+            />
+          ))}
+        </ul>
+      </Section>
+    )
+  }
+
+  {/* All, with filters */}
+  <Section tone="warm" labelledby="communities-all-heading">
+    <SectionHeader
+      id="communities-all-heading"
+      eyebrow="Every guide"
+      title="All communities"
+      lead="Search by name, or narrow by county. Neighbourhoods sit inside the city they belong to."
+    />
+
+    <CommunityFilters
+      query={{}}
+      action="/communities/"
+      counties={counties}
+      class="mt-10"
+    />
+
+    <ul
+      data-community-grid
+      class="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3"
+    >
+      {
+        communities.map((community, index) => (
+          <CommunityCard
+            community={community}
+            parentName={parentNames[community.slug] ?? null}
+            seed={index}
+          />
+        ))
+      }
+    </ul>
+
+    {/* Shown by the client script when a filter matches nothing. */}
+    <div
+      data-community-empty
+      hidden
+      class="mt-10 rounded-xs border border-dashed border-line-strong bg-white px-8 py-14 text-center"
+    >
+      <p class="mx-auto max-w-xl font-serif text-2xl text-evergreen-800">
+        No community matches those filters.
+      </p>
+      <p class="mx-auto mt-4 max-w-md text-sm leading-relaxed text-ink-muted">
+        We work across Broward, Palm Beach and Miami-Dade. If the area you are
+        looking at is not listed yet, ask us about it directly — a guide not
+        being written does not mean we do not work there.
+      </p>
+      <div class="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
+        <Button href="/contact/" variant="secondary" withArrow>
+          Ask about an area
+        </Button>
+        <Button href="/properties/search/" variant="ghost">Search all properties</Button>
+      </div>
+    </div>
+  </Section>
+
+  {/* Relocation CTA */}
+  <Section tone="deep" labelledby="communities-relocation-heading">
+    <div class="grid gap-12 lg:grid-cols-2 lg:items-center lg:gap-20">
+      <div data-reveal>
+        <p class="eyebrow text-gold-300">
+          <span class="rule-gold" aria-hidden="true"></span>
+          Relocation
+        </p>
+        <h2 id="communities-relocation-heading" class="mt-5 text-display-sm text-white">
+          Choosing an area you have never lived in
+        </h2>
+        <p class="mt-5 max-w-lg leading-relaxed text-white/75">
+          A commute that looks fine on a map is a different thing at 8am in
+          August, and most people moving from out of state get one or two trips
+          to decide. MaryEllen Closius P.A. is a Relocation Specialist — the
+          part of the job that starts before the searching does.
+        </p>
+        <div class="mt-9 flex flex-wrap gap-3">
+          <Button href="/relocation/" variant="gold" withArrow>
+            Relocation guide
+          </Button>
+          <Button href="/about/maryellen-closius/" variant="inverse">
+            Meet MaryEllen
+          </Button>
+        </div>
+      </div>
+
+      <div data-reveal style="--reveal-delay:100ms">
+        <MediaSlot
+          src={null}
+          width={1000}
+          height={800}
+          ratio="5/4"
+          tone="deep"
+          seed={7}
+          sizes="(min-width: 1024px) 45vw, 100vw"
+          class="max-h-[26rem] rounded-xs"
+        />
+      </div>
+    </div>
+  </Section>
+</BaseLayout>
+
+<script>
+  import { initCommunityFilters } from '@lib/communities/filter-client';
+  initCommunityFilters();
+</script>

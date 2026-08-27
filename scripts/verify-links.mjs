@@ -74,11 +74,38 @@ async function main() {
   }
 
   // Every href declared in the navigation config, even if nothing renders it.
-  const { allNavHrefs } = await import(
-    path.join(ROOT, 'src', 'config', 'navigation.ts')
-  ).catch(() => ({ allNavHrefs: null }));
+  //
+  // This import must not be allowed to fail quietly. It did once: a path alias
+  // added to navigation.ts made it unresolvable under plain Node, the catch
+  // swallowed it, and the check reported "0 from the nav config" while still
+  // exiting zero. A safety net that fails open is worse than no safety net.
+  let allNavHrefs;
+  try {
+    ({ allNavHrefs } = await import(
+      path.join(ROOT, 'src', 'config', 'navigation.ts')
+    ));
+  } catch (error) {
+    console.error(
+      'verify-links: could not import src/config/navigation.ts — the nav ' +
+        'cross-check did not run.\n' +
+        '  Usually a path alias (@data, @lib, …) in that file or something it ' +
+        'imports at runtime.\n' +
+        '  Use a relative import with an explicit .ts extension instead.\n',
+      error,
+    );
+    process.exit(1);
+  }
 
-  const navHrefs = typeof allNavHrefs === 'function' ? allNavHrefs() : [];
+  if (typeof allNavHrefs !== 'function') {
+    console.error('verify-links: navigation.ts no longer exports allNavHrefs().');
+    process.exit(1);
+  }
+
+  const navHrefs = allNavHrefs();
+  if (navHrefs.length === 0) {
+    console.error('verify-links: allNavHrefs() returned nothing. That is never right.');
+    process.exit(1);
+  }
   for (const href of navHrefs) {
     if (!refs.has(href)) refs.set(href, new Set(['(navigation config)']));
   }

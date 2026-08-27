@@ -1,0 +1,129 @@
+---
+/**
+ * CommunityFilters — search and narrow the community index.
+ *
+ * A real GET form. Without JavaScript it submits, the whole list stays
+ * visible, and nothing is broken. With JavaScript the browser filters in place
+ * and keeps the URL in step, so a filtered view is shareable.
+ *
+ * The county list comes from the data file rather than a hardcoded array, so
+ * adding a community in a new county adds the option on its own.
+ */
+import { COMMUNITY_PARAM, type CommunityQuery } from '@lib/communities/filter';
+import { cn } from '@lib/cn';
+
+interface Props {
+  query: CommunityQuery;
+  action: string;
+  counties: readonly string[];
+  class?: string;
+}
+
+const { query, action, counties, class: className } = Astro.props;
+
+const field =
+  'h-12 w-full rounded-xs border border-line-control bg-white px-3.5 text-sm text-ink placeholder:text-ink-subtle ' +
+  'transition-colors hover:border-evergreen-700 focus:border-evergreen-800';
+const label = 'block text-xs uppercase tracking-wide-sm text-ink-muted';
+const chip =
+  'block cursor-pointer rounded-xs border border-line-control px-4 py-2.5 text-sm text-ink-muted transition-colors ' +
+  'hover:border-evergreen-700 peer-checked:border-evergreen-800 peer-checked:bg-evergreen-800 peer-checked:text-white ' +
+  'peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-[var(--focus-ring)]';
+
+const KINDS = [
+  { value: '', label: 'All' },
+  { value: 'city', label: 'Cities' },
+  { value: 'neighborhood', label: 'Neighbourhoods' },
+] as const;
+---
+
+<form
+  data-community-filters
+  action={action}
+  method="get"
+  class={cn('rounded-xs border border-line bg-white p-6 sm:p-8', className)}
+>
+  <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+    <div>
+      <label class={label} for="community-search">Search communities</label>
+      <input
+        id="community-search"
+        name={COMMUNITY_PARAM.search}
+        type="search"
+        value={query.search ?? ''}
+        placeholder="City or neighbourhood"
+        autocomplete="off"
+        class={cn('mt-2', field)}
+      />
+    </div>
+
+    <div>
+      <label class={label} for="community-county">County</label>
+      <select
+        id="community-county"
+        name={COMMUNITY_PARAM.county}
+        class={cn('mt-2', field)}
+      >
+        <option value="">All counties</option>
+        {
+          counties.map((county) => (
+            <option value={county} selected={query.county === county}>
+              {county}
+            </option>
+          ))
+        }
+      </select>
+    </div>
+  </div>
+
+  <fieldset class="mt-6 border-0 p-0">
+    <legend class={label}>Type</legend>
+    <ul class="mt-3 flex flex-wrap gap-2">
+      {
+        KINDS.map((kind, index) => (
+          <li>
+            <label class="relative inline-flex">
+              <input
+                type="radio"
+                name={COMMUNITY_PARAM.kind}
+                id={`community-kind-${index}`}
+                value={kind.value}
+                checked={(query.kind ?? '') === kind.value}
+                class="peer sr-only"
+              />
+              <span class={chip}>{kind.label}</span>
+            </label>
+          </li>
+        ))
+      }
+    </ul>
+  </fieldset>
+
+  <div class="mt-7 flex flex-wrap items-center gap-4 border-t border-line pt-6">
+    {/*
+      A visible submit for the no-JavaScript path. The client script filters on
+      input, so with JavaScript this is never needed — but it must be here and
+      it must work.
+    */}
+    <button
+      type="submit"
+      class="inline-flex h-12 items-center justify-center rounded-xs border border-evergreen-800 bg-evergreen-800 px-6 text-sm font-medium tracking-wide-sm text-white transition-colors hover:bg-evergreen-900"
+    >
+      Apply
+    </button>
+
+    <button
+      type="button"
+      data-community-reset
+      hidden
+      class="link-underline text-sm text-evergreen-800"
+    >
+      Clear filters
+    </button>
+
+    <p class="ml-auto text-sm text-ink-muted">
+      <span data-community-total class="font-medium text-evergreen-800"></span>
+      {' '}communities
+    </p>
+  </div>
+</form>

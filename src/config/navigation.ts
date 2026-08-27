@@ -11,6 +11,16 @@
  * ---------------------------------------------------------------------------
  */
 
+/*
+ * Relative, with an explicit extension, and NOT the `@data` alias: this file is
+ * imported directly by scripts/verify-links.mjs, which runs in plain Node where
+ * the alias does not resolve. `communities.ts` has no runtime imports of its
+ * own (its only import is `import type`, which is erased), so the chain ends
+ * there. Keep it that way — an unresolvable import here silently disables the
+ * dead-link check.
+ */
+import { featuredCommunities } from '../data/communities.ts';
+
 export type NavLink = {
   readonly label: string;
   readonly href: string;
@@ -125,14 +135,18 @@ export const primaryNav: readonly NavEntry[] = [
     label: 'Communities',
     href: '/communities/',
     columns: 2,
+    /*
+     * Derived from the data file rather than listed here: marking a community
+     * `featured: true` in src/data/communities.ts puts it in this dropdown,
+     * and there is no second list to keep in step. The index carries every
+     * community, featured or not.
+     */
     items: [
       { label: 'Explore Communities', href: '/communities/' },
-      { label: 'Hollywood', href: '/communities/hollywood/' },
-      { label: 'Fort Lauderdale', href: '/communities/fort-lauderdale/' },
-      { label: 'Dania Beach', href: '/communities/dania-beach/' },
-      { label: 'Hallandale Beach', href: '/communities/hallandale-beach/' },
-      { label: 'Pembroke Pines', href: '/communities/pembroke-pines/' },
-      { label: 'Aventura', href: '/communities/aventura/' },
+      ...featuredCommunities().map((community) => ({
+        label: community.name,
+        href: `/communities/${community.slug}/`,
+      })),
     ],
   },
 
