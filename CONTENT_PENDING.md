@@ -32,7 +32,7 @@ Status key: 🔴 blocking · 🟠 needed soon · 🟡 needed before launch
 | 2.2 | Shared office phone | 🟠 | Only the two direct lines are confirmed. |
 | 2.3 | Office hours | 🟡 | Publish only if the client wants them shown. |
 | 2.4 | Mailing address, if different | 🟡 | |
-| 2.5 | Spelling of the team name | 🟠 | Brief and site use **"Closius"**; the git repository is named `hoffman-clossius-real-estate` (double *s*). Confirm which is correct before launch — it appears in the wordmark, page titles and the domain. |
+| 2.5 | Spelling of the team name | 🟢 | **Settled by the domain.** The client's confirmed production domain is `hoffmanandclosius.com` — single *s*, matching the "Closius" used throughout the site and the wordmark. The git repository is still named `hoffman-clossius-real-estate` (double *s*); that is cosmetic and affects nothing published, but it can be renamed on GitHub if the client wants the two to match. |
 
 ---
 
@@ -40,10 +40,11 @@ Status key: 🔴 blocking · 🟠 needed soon · 🟡 needed before launch
 
 | # | Item | Status | Notes |
 | --- | --- | --- | --- |
-| 3.1 | **Primary production domain** | 🔴 | `site.url` in `src/config/site.ts` is the placeholder `https://hoffmanclosius.com` with `urlConfirmed: false`. While that flag is false the build **suppresses `<link rel="canonical">` and `og:url`** rather than publish a wrong host. Set both once confirmed and regenerate `public/robots.txt`. |
+| 3.1 | **Primary production domain** | 🟢 | **Resolved (2026-08-27): `https://www.hoffmanandclosius.com`.** Set in `src/config/site.ts` with `urlConfirmed: true`, so canonical URLs, `og:url` and all 42 sitemap entries are now absolute on that origin, and `public/robots.txt` points at the sitemap. **`www` is the canonical host — the apex domain must 301 to it at the host**, or the two resolve as separate sites (`LEGACY_REDIRECTS.md` §2). |
 | 3.2 | Static host / deployment target | 🟠 | Netlify, Vercel, S3, cPanel…? Affects redirects and the 404 wiring. |
 | 3.3 | Redirects from the existing site | 🟠 | Old URL → new URL map, so existing search rankings survive. |
-| 3.4 | Google Search Console verification token | 🟡 | `pending.analytics.googleSiteVerification`. |
+| 3.4 | **Google Search Console verification token** | 🟠 | `pending.analytics.googleSiteVerification` in `src/config/site.ts` is wired and empty. Now more urgent than it was: the sitemap is live at `https://www.hoffmanandclosius.com/sitemap-index.xml` and wants submitting, **and a traffic baseline must be exported from the existing site before launch** — after the switch there is nothing to compare against and it is not recoverable (`SEO_PHASE_2.md` §9, `LEGACY_REDIRECTS.md` §6). |
+| 3.5 | **Complete URL inventory of the existing site** | 🔴 | Needed to build the redirect map before DNS switches. Four sources, in `LEGACY_REDIRECTS.md` §3: Search Console indexed pages with 12 months of traffic, the old sitemap, a crawl, and server logs. **Time-bound** — much of this becomes unavailable once the old site is gone, and a redirect map assembled from assumptions loses ranking silently. |
 
 ---
 

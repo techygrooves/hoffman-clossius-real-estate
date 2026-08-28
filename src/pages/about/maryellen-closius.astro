@@ -16,6 +16,7 @@
  * service nobody has told us the shape of.
  */
 import BaseLayout from '@layouts/BaseLayout.astro';
+import { personSchema } from '@lib/seo/schema';
 import Section from '@components/ui/Section.astro';
 import SectionHeader from '@components/ui/SectionHeader.astro';
 import Button from '@components/ui/Button.astro';
@@ -89,6 +90,7 @@ const ROUTES = [
 <BaseLayout
   title="MaryEllen Closius P.A."
   description="MaryEllen Closius P.A., Realtor Associate and Relocation Specialist with Hoffman & Closius, working with buyers, sellers and families moving to South Florida. Direct line 954-471-4626."
+  schema={[person ? personSchema(person) : null]}
 >
   <PersonHero
     person={person}

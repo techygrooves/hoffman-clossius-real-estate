@@ -18,13 +18,14 @@
  * than we have (CONTENT_PENDING.md 10.2).
  */
 import BaseLayout from '@layouts/BaseLayout.astro';
+import { faqPageSchema } from '@lib/seo/schema';
 import PageHero from '@components/ui/PageHero.astro';
 import Section from '@components/ui/Section.astro';
 import SectionHeader from '@components/ui/SectionHeader.astro';
 import Button from '@components/ui/Button.astro';
 import AgentCard from '@components/ui/AgentCard.astro';
 import FaqAccordion from '@components/faq/FaqAccordion.astro';
-import { FAQ_CATEGORIES, faqsByCategory, hasUnreviewedFaqs } from '@data/faqs';
+import { FAQ_CATEGORIES, faqs, faqsByCategory, hasUnreviewedFaqs } from '@data/faqs';
 import { getProfessional } from '@config/site';
 
 const groups = FAQ_CATEGORIES.map((category) => ({
@@ -41,6 +42,13 @@ const maryellen = getProfessional('maryellen-closius');
 <BaseLayout
   title="Frequently Asked Questions"
   description="Common questions about buying, selling, listings, relocating and using this site — answered plainly by Hoffman & Closius."
+  schema={[
+    /* Emits nothing while answers carry `reviewed: false` — marking up an
+       unapproved answer puts it in a search result stated as fact, above the
+       page that says it is still being reviewed. Set `reviewed: true` per
+       answer in src/data/faqs.ts and this starts emitting on its own. */
+    faqPageSchema(faqs),
+  ]}
 >
   <PageHero
     eyebrow="FAQ"

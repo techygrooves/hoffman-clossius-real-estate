@@ -20,6 +20,8 @@
 import type { GetStaticPaths } from 'astro';
 import { render } from 'astro:content';
 import BaseLayout from '@layouts/BaseLayout.astro';
+import { blogPostingSchema } from '@lib/seo/schema';
+import { absolute, canonicalPath } from '@lib/seo/meta';
 import Container from '@components/ui/Container.astro';
 import Breadcrumbs from '@components/ui/Breadcrumbs.astro';
 import Section from '@components/ui/Section.astro';
@@ -79,6 +81,24 @@ const wasUpdated =
   description={pageDescription}
   ogImage={data.heroImage?.src}
   noindex={sample}
+  ogType="article"
+  publishedTime={data.publishedAt.toISOString()}
+  modifiedTime={data.updatedAt?.toISOString() ?? null}
+  schema={[
+    /* Returns null for a sample post — a structural placeholder must never be
+       marked up as an article with a named byline. */
+    sample
+      ? null
+      : blogPostingSchema({
+          title: data.title,
+          description: data.excerpt,
+          canonical: absolute(canonicalPath(Astro.url.pathname)),
+          publishedAt: data.publishedAt,
+          updatedAt: data.updatedAt ?? null,
+          authorSlug: data.author,
+          image: data.heroImage?.src ?? null,
+        }),
+  ]}
 >
   <article>
     {/* Masthead */}
