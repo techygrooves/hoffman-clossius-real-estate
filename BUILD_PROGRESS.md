@@ -3,7 +3,7 @@
 Living record of what exists, what is broken and what comes next.
 **Update this file at the end of every session.**
 
-Last updated: **2026-08-27** — Session 13 (technical SEO foundation)
+Last updated: **2026-08-27** — Session 14 (final QA pass)
 
 ---
 
@@ -34,6 +34,7 @@ importantly — what automation could not check and still needs a person.
 | Responsive | ✅ **0 horizontal overflow, 0 image-ratio defects** across 64 routes × 8 widths (360→1920) |
 | SEO | ✅ unique title + description on every route · canonical on all 42 indexable pages · sitemap + robots live on the confirmed domain |
 | Core Web Vitals | ✅ **CLS 0** on every page measured · FCP 116–236ms · 4–6 requests/page · no third-party hosts |
+| Functional QA | ✅ **867 checks, 0 defects** — every route, link, CTA, dropdown, form, filter and control driven in a browser (`FINAL_QA_REPORT.md`) |
 | Internal links | ✅ all resolve, both modes |
 | Tests | ✅ **2,929 checks passing** — see below |
 | Contrast | ✅ every rendered text node on all 64 pages × 2 widths clears WCAG 2.2 AA |
@@ -69,6 +70,72 @@ importantly — what automation could not check and still needs a person.
 | Listings — mobile + no-JavaScript | 8 |
 | Homepage | 15 |
 | Navigation | 21 |
+
+---
+
+## ✅ Completed — Session 14 (2026-08-27) · Final QA pass
+
+A verification pass, not a build pass. **No redesign, no new features.**
+`FINAL_QA_REPORT.md` is the deliverable.
+
+### Everything was driven, not read
+867 functional checks against the built site in a real browser: all 45
+production routes and all 65 demo routes for status, `<h1>` count, duplicate
+ids, broken images, unlabelled controls and empty hrefs; every header, footer
+and in-page CTA followed to a 200; all 8 dropdowns opened by keyboard and
+closed by Escape; the mobile drawer, its focus containment and the call
+disclosure; filtering, sorting, clear-all and query-string round-trips; both
+detail routes; the FAQ accordions; all three lead forms; the account pages;
+breadcrumbs, 404, accessibility and the legal routes.
+
+**0 defects, and 0 console errors on any route.**
+
+### The two "failures" that were the tests
+Recorded because a QA report that hides its own false starts is not worth much.
+
+- The calculator appeared to return `$0.00`. The down-payment field has a
+  Percent/Dollars mode defaulting to Percent, and the test had typed `100000`
+  into it — 100,000% down. Driven correctly it returns **$2,398** P&I for
+  $500,000 at 6% over 30 years, identically from a 20% entry and a $100,000
+  entry, and exactly **$1,000** for the zero-rate case rather than dividing by
+  zero.
+- A filter test reported "no change" because it drove the wrong `<select>`.
+  Driven correctly, `beds=4` takes the demo set from 9 cards to 5 and writes
+  `?beds=4` to the URL.
+
+Both were fixed in the harness and re-run. Neither was a site defect — but
+either could have been reported as one.
+
+### Placeholder sweep — clean
+`href="#"`, `javascript:`, TODO, FIXME, XXX, HACK, lorem ipsum and fake
+telephone numbers: **zero occurrences**. The single `example.com` is in a
+validation message ("like name@example.com"), which is the RFC 2606 reserved
+domain and correct there.
+
+### Two defects found and fixed
+1. **Two modules asserting a convention nothing follows.**
+   `src/lib/listings/index.ts` and `src/lib/developments/index.ts` were barrels
+   whose own comment read "Import from here, not from files" — and nothing
+   imported them. Deleted; the build proves they were dead.
+2. **Two implementations of the same control disagreed.** The mortgage
+   calculator carries its own field class, which kept the 2px radius when the
+   shared `FormField` moved to 4px in session 12. Matched.
+
+### A correction to session 12
+Session 12 claimed to have "reconciled radii throughout". **It did not** — it
+changed 7 occurrences against 225 still at the 2px radius, so cards and buttons
+now sit at 4px inside panels at 2px. Subtle, consistent within each group, and
+closing it means touching 225 call sites, which is a redesign. Flagged in
+`FINAL_QA_REPORT.md` for a decision rather than actioned. The point is the
+correction, not the radius.
+
+### Documentation
+- **`FINAL_QA_REPORT.md`** — what is complete; what needs client assets,
+  confirmation or a third party; SEO still to do; and a launch checklist split
+  into blocking / before / launch day / first month.
+- **README quick reference** — install, dev, build, where `dist/` lands, where
+  configuration lives, where the listing provider plugs in, where content is
+  edited.
 
 ---
 
@@ -1560,6 +1627,28 @@ the subarea section and the FAQ all render nothing rather than generic cards.
 That was a deliberate choice, not an omission — a "Lifestyle" band containing
 Dining, Beaches and Schools would look finished and say nothing, and would make
 it much less likely that anyone ever writes the real thing.
+
+### Session 14 — 2026-08-27 · Final QA pass
+**Two of the first three failures were the test, not the site.** The calculator
+"returning $0.00" was a down-payment field in Percent mode being fed 100000,
+and a filter "not filtering" was the wrong `<select>` being driven. Both would
+have made confident, wrong bug reports. The tell each time was implausibility
+rather than obvious breakage — the same shape as the contrast false positives
+in session 11. **A QA pass has to be as suspicious of its own instrument as of
+the thing it measures**, and the discipline that catches it is asking "is this
+result believable?" before "what is broken?".
+
+**Unused code is not neutral when it carries instructions.** The two deleted
+barrel modules would have been harmless as dead exports, but their comment read
+"Import from here, not from files" — advice no consumer followed, sitting in
+the two directories a future IDX implementer opens first. A stale instruction
+is worse than a stale file.
+
+**A claim in a progress log is a claim.** Session 12 said radii were
+"reconciled throughout" on the strength of changing the shared primitives; the
+actual count was 7 against 225. Nobody would have caught it, which is exactly
+why it needed correcting in the same document that made the claim. The value of
+these logs depends on them being audited occasionally rather than accumulated.
 
 ### Session 13 — 2026-08-27 · Technical SEO foundation
 **One config flag was holding back the whole head.** `urlConfirmed: false` had
