@@ -104,6 +104,40 @@
     color: var(--color-evergreen-900);
   }
 
+  /*
+   * Tap targets for contact links.
+   *
+   * A phone number or an email address is always a discrete target on this
+   * site — in a card, a footer column, an aside — and never a word inside a
+   * flowing sentence. They were rendering 20px tall, which is a small thing to
+   * hit on a phone and the single most repeated control on the site (58 of
+   * them across 34 files).
+   *
+   * 20px line-height + 12px padding = 44px, the project's own aim rather than
+   * SC 2.5.8's 24px floor. Base layer, so a call site that needs a different
+   * display utility still wins — see the Tailwind ordering note in
+   * PROJECT_CONTEXT.md §6.
+   */
+  a[href^='tel:'],
+  a[href^='mailto:'] {
+    display: inline-block;
+    padding-block: 0.375rem;
+  }
+
+  /*
+   * The same for standalone link targets.
+   *
+   * A link that is a DIRECT child of a flex or grid container is a discrete
+   * target by construction — a card action, a filter reset, a footer entry —
+   * never a word inside a sentence, because a sentence is a text node and
+   * would make the link a sibling of that text rather than a lone flex item.
+   * So this can safely give them height without touching prose links, where
+   * padding on an inline-block would push the line box apart.
+   */
+  :is(.flex, .grid, .inline-flex) > a.link-underline {
+    padding-block: 0.3125rem;
+  }
+
   img,
   picture,
   video,
