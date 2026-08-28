@@ -13,6 +13,36 @@ Astro · Tailwind CSS · static output · no framework runtime.
 | [`PROJECT_CONTEXT.md`](./PROJECT_CONTEXT.md) | Permanent project rules — client identity, branding, Keyes logo rules, architecture, accessibility, and the rules against inventing facts. **Read before every task.** |
 | [`BUILD_PROGRESS.md`](./BUILD_PROGRESS.md) | What is built, what is broken, what is next. **Update after every task.** |
 | [`CONTENT_PENDING.md`](./CONTENT_PENDING.md) | Everything awaiting client confirmation. Never fill one of these in with a guess. |
+| [`FINAL_QA_REPORT.md`](./FINAL_QA_REPORT.md) | What is finished, what needs client assets, what needs confirmation, what needs a third party — and the launch checklist. |
+
+---
+
+## Quick reference
+
+Everything a new developer needs in one place. Details follow in the sections
+below.
+
+```bash
+npm install          # once
+npm run dev          # http://localhost:4321, hot reload
+npm run build        # type check → unit tests → build → dead-link check
+```
+
+`npm run build` must finish with **0 errors and 0 warnings**. It is not just a
+build: it runs `astro check`, the mortgage unit tests and the link verifier, so
+a broken type, a broken sum or a dead link fails it.
+
+| Where | What lives there |
+| --- | --- |
+| **Static output** | `dist/` — plain HTML/CSS/JS, no server needed. Upload its *contents* to the web root. |
+| **Site configuration** | `src/config/site.ts` — the single source of truth for names, phone numbers, emails, the domain and the brand. Anything unconfirmed sits in its `pending` object as `null`. `src/config/navigation.ts` owns every menu. |
+| **Listing data provider** | `src/lib/listings/` — implement `idxProvider.ts` and nothing else. Full instructions in [`IDX_INTEGRATION.md`](./IDX_INTEGRATION.md). Developments follow the same pattern in `src/lib/developments/`, accounts in `src/lib/auth/` ([`AUTH_INTEGRATION.md`](./AUTH_INTEGRATION.md)). |
+| **Content editing** | Communities: `src/data/communities.ts` · FAQ: `src/data/faqs.ts` · Testimonials: `src/data/testimonials.ts` · Legal text: `src/data/legal.ts` · Journal articles: one Markdown file each in `src/content/blog/` ([`docs/authoring-blog-posts.md`](./docs/authoring-blog-posts.md)) · Page copy: the `.astro` file for that route in `src/pages/`. |
+
+**Before changing anything, read [`PROJECT_CONTEXT.md`](./PROJECT_CONTEXT.md).**
+The rule that matters most: never invent a client fact. If it has not been
+supplied, leave it out and add it to
+[`CONTENT_PENDING.md`](./CONTENT_PENDING.md).
 
 ---
 
