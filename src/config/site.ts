@@ -80,12 +80,19 @@ export const site = {
   region: 'South Florida',
 
   /**
-   * PLACEHOLDER DOMAIN — NOT CONFIRMED BY THE CLIENT.
-   * Canonical / og:url tags stay suppressed while `urlConfirmed` is false.
-   * See CONTENT_PENDING.md → "Primary domain".
+   * Production domain, CONFIRMED by the client (2026-08-27).
+   *
+   * `www` is the canonical host: every canonical URL, `og:url` and sitemap
+   * entry is built from this exact origin, so the apex domain must 301 to
+   * `www` at the host — otherwise the two resolve as separate sites and split
+   * their own ranking signals. See LEGACY_REDIRECTS.md §2.
+   *
+   * Note the spelling: the client's own domain uses "closius", which settles
+   * the question CONTENT_PENDING.md 2.5 raised about the repository being
+   * named `hoffman-clossius-real-estate`.
    */
-  url: 'https://hoffmanclosius.com',
-  urlConfirmed: false,
+  url: 'https://www.hoffmanandclosius.com',
+  urlConfirmed: true,
 } as const;
 
 /* -------------------------------------------------------------------------- */

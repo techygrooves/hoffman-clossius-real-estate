@@ -1,0 +1,72 @@
+---
+/**
+ * SeoHead — every metadata tag the site emits, in one place.
+ *
+ * `BaseLayout` builds a `PageMeta` from what the page supplied and hands it
+ * here. Nothing else in the project writes a <title>, a canonical, a robots
+ * directive or a social tag, so there is exactly one implementation of each
+ * rule rather than one per template.
+ *
+ * Structured data arrives as already-built nodes: the generators in
+ * `@lib/seo/schema` decide what is factually emittable, and this component
+ * only serialises what survives.
+ */
+import { brand, site } from '@config/site';
+import type { PageMeta } from '@lib/seo/meta';
+import { graph, type JsonLd } from '@lib/seo/schema';
+
+interface Props {
+  meta: PageMeta;
+  /** JSON-LD nodes; nulls are dropped by `graph()`. */
+  schema?: (JsonLd | null | undefined)[];
+}
+
+const { meta, schema = [] } = Astro.props;
+const jsonLd = graph(...schema);
+const hasSchema = jsonLd.includes('"@graph":[{');
+---
+
+<title set:text={meta.title} />
+<meta name="description" content={meta.description} />
+
+{/* Canonical. Absent on a noindexed page, and absent until the domain is
+    confirmed — a canonical pointing at the wrong host is worse than none. */}
+{meta.canonical && <link rel="canonical" href={meta.canonical} />}
+{meta.robots && <meta name="robots" content={meta.robots} />}
+
+{/* ---------------------------------------------------------- Open Graph -- */}
+<meta property="og:type" content={meta.ogType} />
+<meta property="og:site_name" content={site.name} />
+<meta property="og:title" content={meta.title} />
+<meta property="og:description" content={meta.description} />
+<meta property="og:locale" content={site.locale.replace('-', '_')} />
+{meta.canonical && <meta property="og:url" content={meta.canonical} />}
+{
+  meta.ogImage && (
+    <>
+      <meta property="og:image" content={new URL(meta.ogImage, site.url).toString()} />
+      <meta property="og:image:alt" content={meta.title} />
+    </>
+  )
+}
+{meta.publishedTime && <meta property="article:published_time" content={meta.publishedTime} />}
+{meta.modifiedTime && <meta property="article:modified_time" content={meta.modifiedTime} />}
+
+{/* ------------------------------------------------------------- Twitter -- */}
+{/*
+  summary_large_image only when there IS an image. Declaring the large card
+  with nothing to put in it gets the post rendered as a bare link.
+*/}
+<meta name="twitter:card" content={meta.ogImage ? 'summary_large_image' : 'summary'} />
+<meta name="twitter:title" content={meta.title} />
+<meta name="twitter:description" content={meta.description} />
+{
+  meta.ogImage && (
+    <meta name="twitter:image" content={new URL(meta.ogImage, site.url).toString()} />
+  )
+}
+
+<meta name="theme-color" content={brand.themeColor} />
+
+{/* --------------------------------------------------------- structured -- */}
+{hasSchema && <script type="application/ld+json" is:inline set:html={jsonLd} />}

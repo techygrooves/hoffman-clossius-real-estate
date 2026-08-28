@@ -3,8 +3,8 @@
  * Breadcrumbs — accessible trail with matching BreadcrumbList structured data.
  * `items` should NOT include the home link; it is prepended automatically.
  */
-import { absoluteUrl } from '@config/site';
 import { cn } from '@lib/cn';
+import { breadcrumbSchema, graph } from '@lib/seo/schema';
 
 export type Crumb = { label: string; href?: string };
 
@@ -18,16 +18,16 @@ const { items, tone = 'dark', class: className } = Astro.props;
 
 const trail: Crumb[] = [{ label: 'Home', href: '/' }, ...items];
 
-const jsonLd = {
-  '@context': 'https://schema.org',
-  '@type': 'BreadcrumbList',
-  itemListElement: trail.map((crumb, index) => ({
-    '@type': 'ListItem',
-    position: index + 1,
-    name: crumb.label,
-    ...(crumb.href ? { item: absoluteUrl(crumb.href) } : {}),
-  })),
-};
+/*
+ * One implementation of the trail, shared with every other generator, in
+ * @lib/seo/schema. This component owns the BreadcrumbList for the whole site
+ * because it holds the trail that is actually rendered — BaseLayout
+ * deliberately does not emit one.
+ */
+/* graph() adds the @context this needs as a standalone block — the generators
+   themselves return bare nodes so they can be composed into BaseLayout's
+   @graph without repeating it. */
+const jsonLd = graph(breadcrumbSchema(trail));
 
 const isLight = tone === 'light';
 ---
@@ -77,8 +77,4 @@ const isLight = tone === 'light';
   </ol>
 </nav>
 
-<script
-  type="application/ld+json"
-  is:inline
-  set:html={JSON.stringify(jsonLd)}
-/>
+<script type="application/ld+json" is:inline set:html={jsonLd} />

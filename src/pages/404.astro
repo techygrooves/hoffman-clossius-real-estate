@@ -10,12 +10,33 @@ import Section from '@components/ui/Section.astro';
 import Button from '@components/ui/Button.astro';
 import { professionals } from '@config/site';
 
+/*
+ * The four routes a lost visitor actually wants, in the order they want them.
+ * Each carries a line of its own, because a grid of bare labels makes someone
+ * guess which one is theirs — and they are already here because something
+ * did not work.
+ */
 const destinations = [
-  { label: 'Property search', href: '/properties/search/' },
-  { label: 'Our listings', href: '/properties/our-listings/' },
-  { label: 'Communities', href: '/communities/' },
-  { label: 'About the team', href: '/about/' },
-  { label: 'Contact', href: '/contact/' },
+  {
+    label: 'Search homes',
+    href: '/properties/search/',
+    note: 'Filter by location, price, size and features across South Florida.',
+  },
+  {
+    label: 'Explore communities',
+    href: '/communities/',
+    note: 'From the Intracoastal to the western suburbs — fifteen guides.',
+  },
+  {
+    label: 'Home',
+    href: '/',
+    note: 'Back to the beginning.',
+  },
+  {
+    label: 'Contact',
+    href: '/contact/',
+    note: 'Two direct lines, answered by the people whose names are on them.',
+  },
 ];
 ---
 
@@ -30,8 +51,8 @@ const destinations = [
     lead="The link may be out of date, or the address may have been mistyped."
   >
     <div class="mt-2 flex flex-wrap gap-3">
-      <Button href="/" withArrow>Back to the homepage</Button>
-      <Button href="/contact/" variant="secondary">Contact us</Button>
+      <Button href="/properties/search/" withArrow>Search homes</Button>
+      <Button href="/communities/" variant="secondary">Explore communities</Button>
     </div>
   </PageHero>
 
@@ -40,19 +61,24 @@ const destinations = [
       Try one of these instead
     </h2>
 
-    <ul class="mt-8 grid gap-px overflow-hidden rounded-xs border border-line bg-line sm:grid-cols-2 lg:grid-cols-3">
+    <ul class="mt-8 grid gap-px overflow-hidden rounded-xs border border-line bg-line sm:grid-cols-2">
       {
         destinations.map((item) => (
           <li class="bg-white">
             <a
               href={item.href}
-              class="group flex items-center justify-between gap-4 px-6 py-5 transition-colors hover:bg-evergreen-50"
+              class="group flex h-full items-start justify-between gap-4 px-6 py-6 transition-colors hover:bg-evergreen-50"
             >
-              <span class="font-serif text-xl text-evergreen-800">
-                {item.label}
+              <span class="flex flex-col gap-1.5">
+                <span class="font-serif text-xl text-evergreen-800">
+                  {item.label}
+                </span>
+                <span class="text-sm leading-relaxed text-ink-muted">
+                  {item.note}
+                </span>
               </span>
               <svg
-                class="h-3.5 w-3.5 shrink-0 text-ink-subtle transition-transform duration-300 ease-[var(--ease-editorial)] motion-safe:group-hover:translate-x-1"
+                class="mt-1.5 h-3.5 w-3.5 shrink-0 text-ink-subtle transition-transform duration-300 ease-[var(--ease-editorial)] motion-safe:group-hover:translate-x-1"
                 viewBox="0 0 16 16"
                 fill="none"
                 stroke="currentColor"

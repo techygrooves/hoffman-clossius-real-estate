@@ -14,6 +14,7 @@
  * Martin. Everything else waits for him.
  */
 import BaseLayout from '@layouts/BaseLayout.astro';
+import { personSchema } from '@lib/seo/schema';
 import Section from '@components/ui/Section.astro';
 import SectionHeader from '@components/ui/SectionHeader.astro';
 import Button from '@components/ui/Button.astro';
@@ -69,6 +70,7 @@ const WORKING_WITH = [
 <BaseLayout
   title="Martin Hoffman P.A."
   description="Martin Hoffman P.A., Broker-Associate with Hoffman & Closius, representing buyers and sellers across Broward, Palm Beach and Miami-Dade. Direct line 954-605-4823."
+  schema={[person ? personSchema(person) : null]}
 >
   <PersonHero
     person={person}

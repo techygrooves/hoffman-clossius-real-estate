@@ -128,6 +128,44 @@ async function main() {
     process.exit(1);
   }
 
+  /*
+   * Orphans: a built page that nothing links to.
+   *
+   * A dead link is loud — someone clicks it. An orphan is silent: the page
+   * builds, renders correctly and is in the sitemap, and no visitor ever
+   * arrives because no page points at it. That is a link-graph defect the
+   * existing check could not see, since it only walked links outward.
+   *
+   * Reported, not fatal. A page can be legitimately unlinked — the account
+   * routes are deliberately kept out of the menus — so this is a prompt to
+   * look, not a build failure.
+   */
+  const linked = new Set(
+    [...refs.keys()].map((href) => {
+      const clean = (href.split(/[?#]/)[0] ?? '/').replace(/\/+$/, '');
+      return clean === '' ? '/' : `${clean}/`;
+    }),
+  );
+
+  const orphans = [];
+  for (const file of files) {
+    const rel = path.relative(DIST, file);
+    if (rel === '404.html') continue;
+    const route = `/${rel.replace(/index\.html$/, '')}`;
+    const normalised = route === '/' ? '/' : route;
+    if (!linked.has(normalised)) orphans.push(normalised);
+  }
+
+  if (orphans.length > 0) {
+    console.log(`\nℹ ${orphans.length} page(s) linked from nowhere:`);
+    for (const route of orphans.sort()) console.log(`    ${route}`);
+    console.log(
+      '    Deliberate for the account routes; anything else wants a link from a real page.',
+    );
+  } else {
+    console.log('✓ every built page is linked from somewhere.');
+  }
+
   console.log('✓ every internal link resolves.');
 }
 

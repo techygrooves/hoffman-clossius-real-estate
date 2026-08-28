@@ -3,7 +3,7 @@
 Living record of what exists, what is broken and what comes next.
 **Update this file at the end of every session.**
 
-Last updated: **2026-08-27** — Session 12 (visual refinement & responsive UX)
+Last updated: **2026-08-27** — Session 13 (technical SEO foundation)
 
 ---
 
@@ -32,6 +32,8 @@ importantly — what automation could not check and still needs a person.
 | Pages | 45 in production · 65 with demo content on |
 | Accessibility | ✅ axe-core: **0 violations**, 45 routes × 2 widths, and 65 × 2 with demo content |
 | Responsive | ✅ **0 horizontal overflow, 0 image-ratio defects** across 64 routes × 8 widths (360→1920) |
+| SEO | ✅ unique title + description on every route · canonical on all 42 indexable pages · sitemap + robots live on the confirmed domain |
+| Core Web Vitals | ✅ **CLS 0** on every page measured · FCP 116–236ms · 4–6 requests/page · no third-party hosts |
 | Internal links | ✅ all resolve, both modes |
 | Tests | ✅ **2,929 checks passing** — see below |
 | Contrast | ✅ every rendered text node on all 64 pages × 2 widths clears WCAG 2.2 AA |
@@ -67,6 +69,105 @@ importantly — what automation could not check and still needs a person.
 | Listings — mobile + no-JavaScript | 8 |
 | Homepage | 15 |
 | Navigation | 21 |
+
+---
+
+## ✅ Completed — Session 13 (2026-08-27) · Technical SEO foundation
+
+The platform, not the campaign. **No keyword work, no content strategy** — that
+scope is written down in `SEO_PHASE_2.md` and deliberately not started.
+
+### The domain is confirmed
+**`https://www.hoffmanandclosius.com`**, set in `src/config/site.ts` with
+`urlConfirmed: true`. That one flag was gating canonical tags and `og:url`
+across the whole site, and it now unblocks them: 42 absolute sitemap entries,
+canonical URLs on every indexable page, `robots.txt` pointing at the sitemap.
+
+It also settles `CONTENT_PENDING.md` 2.5 — the client's own domain spells it
+**Closius**, single *s*, matching the site and the wordmark. Only the
+repository name still carries the double *s*, which affects nothing published.
+
+**`www` is the canonical host, so the apex must 301 to it at the host.**
+Without that the site resolves at two addresses which compete as duplicates —
+`LEGACY_REDIRECTS.md` §2.
+
+### Metadata, centralised
+`BaseLayout` was assembling titles, canonicals and social tags inline. Now
+`src/lib/seo/meta.ts` owns the rules and `src/components/seo/SeoHead.astro`
+renders them, so each rule has one implementation:
+
+- **Unique title and description on all 45 routes** — verified, no duplicates.
+- **Canonical on every indexable page**, and deliberately **absent** on the
+  three noindexed ones: a page not asking to be indexed anywhere should not
+  also nominate a canonical.
+- Canonical paths always carry the trailing slash the site actually serves.
+- Open Graph and Twitter on every page; `summary_large_image` only when there
+  is an image to put in it.
+- Titles stayed **clean and descriptive**. No keyword stuffing — that is a
+  phase-2 decision made against Search Console data, not guesswork.
+
+### Structured data that refuses to lie
+`src/lib/seo/schema.ts` holds one generator per type, and **each returns `null`
+when the facts it needs are missing** — so a page can call it unconditionally
+and nothing can publish a claim the client has not made.
+
+| Type | State |
+| --- | --- |
+| `RealEstateAgent` | Emitting. Name, description, counties served, both people. **No address, hours, telephone, priceRange or rating** — none confirmed. |
+| `WebSite` | Emitting. **No `SearchAction`** — it would advertise a search that currently returns nothing. |
+| `WebPage`, `BreadcrumbList` | Emitting on every page. Breadcrumbs own their trail so markup and JSON-LD cannot disagree. |
+| `Person` | Emitting on both profile pages. Confirmed title, phone, email only. |
+| `BlogPosting` | Wired. Returns null for sample posts — a structural placeholder must never be marked up as an article with a named byline. |
+| `FAQPage` | Wired and **emitting nothing**, gated on `reviewed: true`. Reviewing the 24 answers switches it on with no code change. |
+| `RealEstateListing` | Implemented, refuses demo records, called by nothing until a feed exists. |
+
+Never generated: `aggregateRating`, `review`, or any LocalBusiness address
+data. Marked-up ratings render as stars in a search result; inventing them
+fabricates a public claim.
+
+### Performance — measured, not asserted
+| | |
+| --- | --- |
+| CLS | **0** on every page measured |
+| FCP | 116–236ms · LCP 148–844ms (local) |
+| Requests | 4–6 per page |
+| CSS | 72.6 KB, one file |
+| JavaScript | 27.6 KB across 12 chunks, per-page only what it needs |
+| Fonts | 3 self-hosted woff2, `font-display: swap`, **2 preloaded** — the italic face is not, deliberately |
+| Third-party hosts | **none** |
+
+CLS is 0 because `MediaSlot` reserves every image's aspect ratio before it
+loads. Nothing is over-preloaded.
+
+**One latent gap recorded:** `MediaSlot` emits `sizes` but no `srcset`, which
+makes `sizes` inert. Harmless today — zero images ship — but it must be closed
+in the same pass that adds real photography and `sharp`.
+
+### Orphan detection
+`verify-links` walked links outward but could not see a page nothing links
+*to*. A dead link is loud; an orphan is silent — it builds, renders and sits in
+the sitemap while no visitor ever arrives. Now reported (not fatal, since the
+account routes are deliberately unlinked). **Result: 0 orphans.**
+
+### 404
+Rebuilt around the four routes a lost visitor actually wants — Search homes,
+Explore communities, Home, Contact — each with a line explaining where it goes,
+as a 2×2 grid, with the two most likely intents as buttons in the hero.
+
+### Planning documents
+- **`LEGACY_REDIRECTS.md`** — the format and the method, with **nothing
+  guessed**. The old site's URL inventory has not been supplied, and a map
+  built on assumptions loses ranking invisibly. Includes the four sources to
+  gather it from, why redirecting everything to the homepage is the common
+  costly mistake, and a launch checklist.
+- **`SEO_PHASE_2.md`** — the twelve areas of scope, in suggested order, with
+  the constraint that governs all of them: SEO creates the strongest pressure
+  in this project to invent facts, and a page that ranks on an invented
+  statistic is a liability that ranks.
+
+### Verified
+`astro check` 0/0/0 · 45 pages · every internal link resolves · 0 orphans ·
+axe-core **0 violations** across 45 routes × 2 widths · 653 structural checks.
 
 ---
 
@@ -1459,6 +1560,39 @@ the subarea section and the FAQ all render nothing rather than generic cards.
 That was a deliberate choice, not an omission — a "Lifestyle" band containing
 Dining, Beaches and Schools would look finished and say nothing, and would make
 it much less likely that anyone ever writes the real thing.
+
+### Session 13 — 2026-08-27 · Technical SEO foundation
+**One config flag was holding back the whole head.** `urlConfirmed: false` had
+been suppressing canonical tags and `og:url` site-wide since session 1 — the
+right call while the domain was a guess, and instantly obsolete the moment the
+client supplied one. Worth noting how cheap that made the change: because the
+suppression was a single flag rather than scattered conditionals, confirming
+the domain unblocked canonicals, `og:url` and 42 absolute sitemap URLs in one
+edit. Gating uncertain data behind one flag pays for itself at exactly this
+moment.
+
+**The generators return null, and that is the whole design.** Structured data
+is where a site quietly starts lying: `aggregateRating` is trivial to emit and
+renders as stars in a search result. Rather than rely on remembering not to,
+every generator in `schema.ts` returns `null` when its facts are missing, so a
+page calls it unconditionally and honesty is the default path. `FAQPage` is the
+clearest case — fully wired, emitting nothing, waiting on `reviewed: true`.
+Reviewing the answers switches it on with no code change, and until then the
+markup cannot contradict the page's own "still being reviewed" caveat.
+
+**An orphan is a silent dead link.** The link checker had walked links outward
+since session 3 and could not see a page nothing points at — which builds,
+renders, sits in the sitemap and never receives a visitor. Adding the reverse
+check cost about fifteen lines and returned zero orphans, which is the good
+outcome and also the reason nobody would have thought to look.
+
+**The redirect map is the riskiest thing in the project and it is not code.**
+It is time-bound in a way nothing else here is: Search Console history, the old
+sitemap and the server logs all disappear with the old site, and a map built
+from assumptions fails invisibly because a wrong 301 still returns 200.
+`LEGACY_REDIRECTS.md` therefore documents the method and guesses nothing —
+the temptation was to fill the table in from the route list, which would have
+looked like progress and been worth less than an empty table.
 
 ### Session 12 — 2026-08-27 · Visual refinement & responsive UX
 **The most visible problem was a placeholder doing its job too well.** Six

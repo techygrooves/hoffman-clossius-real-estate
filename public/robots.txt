@@ -1,9 +1,17 @@
-# Hoffman & Closius
-# NOTE: the Sitemap line is regenerated once the production domain is confirmed
-# (CONTENT_PENDING.md → "Primary domain").
+# Hoffman & Closius — https://www.hoffmanandclosius.com
+#
+# `www` is the canonical host. The apex domain must 301 to it at the host, or
+# the two resolve as separate sites and split their own ranking signals.
+# See LEGACY_REDIRECTS.md §2.
 
 User-agent: *
 Allow: /
 
+# Account routes. Provider-hosted, nothing to index, and excluded from the
+# sitemap for the same reason. Both also carry a noindex meta tag — this line
+# is a courtesy, not the mechanism, since a disallowed page can still be
+# indexed from an external link.
 Disallow: /login/
 Disallow: /register/
+
+Sitemap: https://www.hoffmanandclosius.com/sitemap-index.xml
