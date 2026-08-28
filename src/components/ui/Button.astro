@@ -43,9 +43,11 @@ const {
 const base = [
   'group relative inline-flex items-center justify-center gap-2.5',
   'font-sans font-medium tracking-wide-sm',
-  'rounded-xs border transition-all duration-300 ease-[var(--ease-editorial)]',
+  'rounded-sm border transition-all duration-300 ease-[var(--ease-editorial)]',
   'disabled:cursor-not-allowed disabled:opacity-50',
-  'motion-safe:active:translate-y-px',
+  // The same lift the cards use, an octave quieter — hover should feel like
+  // one gesture across the site. Press still overrides it downward.
+  'motion-safe:hover:-translate-y-px motion-safe:active:translate-y-0',
 ].join(' ');
 
 /*

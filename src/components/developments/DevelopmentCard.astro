@@ -36,8 +36,11 @@ const typeLabel =
 
 <article
   class={cn(
-    'group relative flex flex-col overflow-hidden rounded-xs border border-line bg-white',
-    'transition-shadow duration-500 ease-[var(--ease-editorial)] hover:shadow-card',
+    'group relative flex flex-col overflow-hidden rounded-sm border border-line bg-white',
+    // One hover language for every card on the site: a small lift and a soft
+    // shadow, motion-safe so it does nothing when reduced motion is set.
+    'transition-[transform,box-shadow,border-color] duration-500 ease-[var(--ease-editorial)]',
+    'hover:border-evergreen-800/25 hover:shadow-card motion-safe:hover:-translate-y-1',
     className,
   )}
   data-development-card

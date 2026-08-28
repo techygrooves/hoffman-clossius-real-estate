@@ -42,16 +42,26 @@ const payload = JSON.stringify({
   parent: community.parent,
   parentName,
 });
+
+/* Same reasoning as CommunitiesGrid: the dark scrim exists to keep type legible
+   over a photograph, and no photography has been supplied. Without this the
+   whole /communities/ index renders as a wall of evergreen. */
+const hasPhoto = Boolean(community.heroImage?.src);
 ---
 
 <li data-community={payload} class={cn('min-w-0', className)}>
   <a
     href={`/communities/${community.slug}/`}
     class={cn(
-      'group relative isolate flex h-full flex-col overflow-hidden rounded-xs bg-evergreen-900 text-white',
+      'group relative isolate flex h-full flex-col overflow-hidden rounded-sm',
+      'transition-[transform,box-shadow] duration-500 ease-[var(--ease-editorial)]',
+      'motion-safe:hover:-translate-y-1 hover:shadow-card',
+      hasPhoto
+        ? 'bg-evergreen-900 text-white'
+        : 'border border-line bg-cream-50 text-ink hover:border-evergreen-800/30',
       isFeature ? 'min-h-[24rem] sm:min-h-[28rem]' : 'min-h-[18rem]',
     )}
-    data-surface="dark"
+    data-surface={hasPhoto ? 'dark' : undefined}
   >
     <span class="absolute inset-0 -z-10">
       <MediaSlot
@@ -60,7 +70,7 @@ const payload = JSON.stringify({
         width={800}
         height={1000}
         ratio="auto"
-        tone="deep"
+        tone={hasPhoto ? 'deep' : 'light'}
         seed={seed}
         marker={false}
         sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
@@ -69,27 +79,32 @@ const payload = JSON.stringify({
       />
     </span>
 
-    {/* Scrim, so the text keeps its contrast over any photograph. */}
-    <span
-      class="absolute inset-0 -z-10 bg-gradient-to-t from-evergreen-900 via-evergreen-900/70 to-evergreen-900/25"
-      aria-hidden="true"></span>
+    {/* Scrim, so the text keeps its contrast over any photograph. Only when
+        there is one — there is nothing to darken otherwise. */}
+    {hasPhoto && (
+      <span
+        class="absolute inset-0 -z-10 bg-gradient-to-t from-evergreen-900 via-evergreen-900/70 to-evergreen-900/25"
+        aria-hidden="true"
+      />
+    )}
 
     <span class="mt-auto flex flex-col p-6 sm:p-7">
-      <span class="text-xs uppercase tracking-eyebrow text-white/70">
+      <span class={cn('text-xs uppercase tracking-eyebrow', hasPhoto ? 'text-white/70' : 'text-gold-700')}>
         {community.parent && parentName ? `${parentName} · ${community.county}` : community.county}
       </span>
       <span
         class={cn(
-          'mt-2 font-serif text-white',
+          'mt-2 font-serif',
+          hasPhoto ? 'text-white' : 'text-evergreen-800',
           isFeature ? 'text-3xl' : 'text-2xl',
         )}
       >
         {community.name}
       </span>
-      <span class="mt-3 text-sm leading-relaxed text-white/75">
+      <span class={cn('mt-3 text-sm leading-relaxed', hasPhoto ? 'text-white/75' : 'text-ink-muted')}>
         {community.shortDescription}
       </span>
-      <span class="mt-5 inline-flex items-center gap-2 text-xs uppercase tracking-eyebrow text-gold-300">
+      <span class={cn('mt-5 inline-flex items-center gap-2 text-xs uppercase tracking-eyebrow', hasPhoto ? 'text-gold-300' : 'text-evergreen-700')}>
         Explore {community.name}
         <svg
           class="h-3 w-3 transition-transform duration-300 ease-[var(--ease-editorial)] motion-safe:group-hover:translate-x-1"

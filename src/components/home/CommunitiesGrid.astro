@@ -20,6 +20,20 @@ interface Props {
 
 const { limit = 6 } = Astro.props;
 const items = communities.slice(0, limit);
+
+/*
+ * A community card is a photograph with type over it — that is the design, and
+ * it needs a dark scrim to stay legible. No photography has been supplied yet
+ * (CONTENT_PENDING.md 9.6), so every card was rendering as a solid evergreen
+ * block: six of them, turning the brightest section of a white-first homepage
+ * into a wall of green.
+ *
+ * So the placeholder has its own treatment — light card, evergreen type, gold
+ * county line — and the dark treatment switches on per card, the moment that
+ * community has a real image. Nothing to undo later.
+ */
+const hasPhoto = (community: (typeof items)[number]) =>
+  Boolean(community.heroImage?.src);
 ---
 
 <Section tone="white" labelledby="communities-heading">
@@ -44,8 +58,15 @@ const items = communities.slice(0, limit);
           <li>
             <a
               href={`/communities/${community.slug}/`}
-              class="group relative isolate flex h-full min-h-[24rem] flex-col overflow-hidden rounded-xs bg-evergreen-900 text-white sm:min-h-[26rem]"
-              data-surface="dark"
+              class:list={[
+                'group relative isolate flex h-full min-h-[22rem] flex-col overflow-hidden rounded-sm sm:min-h-[24rem]',
+                'transition-[transform,box-shadow] duration-500 ease-[var(--ease-editorial)]',
+                'motion-safe:hover:-translate-y-1 hover:shadow-card',
+                hasPhoto(community)
+                  ? 'bg-evergreen-900 text-white'
+                  : 'border border-line bg-cream-50 text-ink hover:border-evergreen-800/30',
+              ]}
+              data-surface={hasPhoto(community) ? 'dark' : undefined}
               data-reveal
               style={`--reveal-delay:${Math.min(index, 5) * 60}ms`}
             >
@@ -56,7 +77,7 @@ const items = communities.slice(0, limit);
                   width={800}
                   height={1000}
                   ratio="auto"
-                  tone="deep"
+                  tone={hasPhoto(community) ? 'deep' : 'light'}
                   seed={index}
                   marker={false}
                   sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
@@ -65,22 +86,47 @@ const items = communities.slice(0, limit);
                 />
               </span>
 
-              <span
-                aria-hidden="true"
-                class="absolute inset-0 bg-gradient-to-t from-evergreen-950/90 via-evergreen-950/40 to-transparent transition-opacity duration-500 group-hover:from-evergreen-950/95"
-              />
+              {/* The scrim exists to make white type legible over a photograph.
+                  With no photograph there is nothing to darken, and six dark
+                  cards turn a white-first page green. */}
+              {hasPhoto(community) && (
+                <span
+                  aria-hidden="true"
+                  class="absolute inset-0 bg-gradient-to-t from-evergreen-950/90 via-evergreen-950/40 to-transparent transition-opacity duration-500 group-hover:from-evergreen-950/95"
+                />
+              )}
 
-              <span class="relative mt-auto flex flex-col p-6">
-                <span class="text-[0.625rem] uppercase tracking-eyebrow text-gold-300">
+              <span class="relative mt-auto flex flex-col p-7 sm:p-8">
+                <span
+                  class:list={[
+                    'text-[0.625rem] uppercase tracking-eyebrow',
+                    hasPhoto(community) ? 'text-gold-300' : 'text-gold-700',
+                  ]}
+                >
                   {community.county}
                 </span>
-                <span class="mt-2 font-serif text-2xl text-white">
+                <span
+                  class:list={[
+                    'mt-2.5 font-serif text-2xl',
+                    hasPhoto(community) ? 'text-white' : 'text-evergreen-800',
+                  ]}
+                >
                   {community.name}
                 </span>
-                <span class="mt-2 text-sm leading-snug text-white/70">
+                <span
+                  class:list={[
+                    'mt-2.5 text-sm leading-relaxed',
+                    hasPhoto(community) ? 'text-white/70' : 'text-ink-muted',
+                  ]}
+                >
                   {community.shortDescription}
                 </span>
-                <span class="mt-4 inline-flex items-center gap-2 text-[0.625rem] uppercase tracking-eyebrow text-white/80">
+                <span
+                  class:list={[
+                    'mt-5 inline-flex items-center gap-2 text-[0.625rem] uppercase tracking-eyebrow',
+                    hasPhoto(community) ? 'text-white/80' : 'text-evergreen-700',
+                  ]}
+                >
                   View community
                   <svg
                     class="h-3 w-3 transition-transform duration-300 ease-[var(--ease-editorial)] motion-safe:group-hover:translate-x-1"

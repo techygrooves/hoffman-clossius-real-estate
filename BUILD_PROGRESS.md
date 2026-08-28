@@ -3,7 +3,7 @@
 Living record of what exists, what is broken and what comes next.
 **Update this file at the end of every session.**
 
-Last updated: **2026-08-27** — Session 11 (accessibility statement & full-site audit)
+Last updated: **2026-08-27** — Session 12 (visual refinement & responsive UX)
 
 ---
 
@@ -31,6 +31,7 @@ importantly — what automation could not check and still needs a person.
 | Build | ✅ passing — `astro check`: 0 errors, 0 warnings, 0 hints |
 | Pages | 45 in production · 65 with demo content on |
 | Accessibility | ✅ axe-core: **0 violations**, 45 routes × 2 widths, and 65 × 2 with demo content |
+| Responsive | ✅ **0 horizontal overflow, 0 image-ratio defects** across 64 routes × 8 widths (360→1920) |
 | Internal links | ✅ all resolve, both modes |
 | Tests | ✅ **2,929 checks passing** — see below |
 | Contrast | ✅ every rendered text node on all 64 pages × 2 widths clears WCAG 2.2 AA |
@@ -66,6 +67,80 @@ importantly — what automation could not check and still needs a person.
 | Listings — mobile + no-JavaScript | 8 |
 | Homepage | 15 |
 | Navigation | 21 |
+
+---
+
+## ✅ Completed — Session 12 (2026-08-27) · Visual refinement & responsive UX
+
+A design pass, not a content pass: **no data module, provider, route or piece
+of copy changed.** Every page measured at 360, 390, 430, 768, 1024, 1280, 1440
+and 1920 — 512 page-measurements in all.
+
+### What measurement found, and did not find
+**No page scrolls horizontally at any width, and no image is cropped or
+squashed anywhere.** That is worth stating plainly, because it was the thing
+most likely to be wrong and it was already right — the fluid type scale, fluid
+gutter and fluid section spacing built in session 1 are doing their job.
+
+The one real measurable defect was small controls, addressed below.
+
+### The homepage was turning green
+Six community cards rendered as solid evergreen blocks, and the
+`/communities/` index was a whole page of them. Not a bug: the card design is
+*type over a photograph*, and the dark scrim exists to keep that type legible.
+But **no photography has been supplied** (`CONTENT_PENDING.md` 9.6), so the
+scrim was darkening nothing and the brightest section of a white-first homepage
+was reading as a wall of green.
+
+The scrim and the dark surface are now **per card, conditional on that
+community actually having an image**. With no photo the card is cream with
+evergreen type and a gold county line; the moment a photograph lands, that card
+switches to the dark treatment on its own. Nothing to undo later, and
+`data-surface="dark"` moves with it — so the focus ring stays legible in both
+states rather than going gold-on-cream.
+
+### One card language, one hover gesture
+`ListingCard`, `DevelopmentCard`, `CommunityCard` and the homepage grid now
+share the same behaviour: a 1px lift, a soft shadow, a border that warms
+slightly, 500ms on the editorial easing — all `motion-safe`, so reduced motion
+gets none of it. Buttons take the same gesture an octave quieter (1px, and the
+press still overrides it downward). Card and control radii were reconciled: the
+site had cards at 2px and now runs 4px throughout.
+
+### Small controls — 296 → 216
+Two CSS rules rather than a hundred edits:
+
+- **Contact links** (`tel:` / `mailto:`) — 58 of them across 34 files, the most
+  repeated control on the site, were 20px tall. Now 44px, the project's own aim
+  rather than SC 2.5.8's 24px floor.
+- **Standalone links that are direct children of a flex or grid container.** A
+  link in that position is a discrete target by construction — a card action, a
+  filter reset — and never a word inside a sentence, because a sentence would
+  make it a sibling of a text node. So it can take height without pushing prose
+  line boxes apart.
+
+A third rule (`:only-child`) was written, measured, found to change nothing,
+and deleted rather than left in the bundle.
+
+**216 remain**, all of them links in ordinary block containers. They are not a
+WCAG failure — axe's `target-size` rule passes on every page in both modes
+under the inline exception — they sit below the project's own 44px aim.
+Tracked as problem 22.
+
+### The dangling separator
+The hero eyebrow read `BROWARD · PALM BEACH · MIAMI-DADE` as one joined string,
+so at 390px it broke mid-list and left a `·` hanging at the end of a line.
+Rather than restructure the list, it now fits: the gold rule is ornament and is
+dropped below `sm` (it costs 50px), tracking eases from 0.18em to 0.12em, and
+`text-nowrap` guarantees the result. Measured at 281px wide inside 320px of
+available gutter at 360px.
+
+### Verified after, not assumed
+- `astro check`: 0 errors, 0 warnings, 0 hints
+- axe-core: **0 violations**, 45 routes × 2 widths and 65 × 2 with demo content
+  — the light cards clear contrast
+- 653 + 933 structural/keyboard/focus checks, 8 interaction checks, all passing
+- 0 horizontal overflow and 0 image-ratio defects across all eight widths
 
 ---
 
@@ -1080,7 +1155,7 @@ primitive rather than adding a near-duplicate.
 | 17 | Community locational lines are ours, not the client's | 🟠 med | Written from geography alone. The four Hollywood-area subareas need the closest review — neighbourhood boundaries are locally understood and vary. Sheridan Lakes deliberately has no parent municipality recorded. `CONTENT_PENDING.md` 10.5a, 10.5b. |
 | 18 | Coordinates are unverified and unplotted | 🟢 low | Approximate centroids on the eleven municipalities, none on the subareas. `CommunityMap` states the location in words and plots nothing, so nothing incorrect ships — but they must be verified before a map provider goes in. `CONTENT_PENDING.md` 10.5c. |
 | 15 | Per-agent listings untestable against real data | 🟢 low | `agentProfilePath` matches `listingAgent.profilePath`, which the demo provider sets from `professionals[].href`. A real IDX feed must map its own agent identity onto the same paths in `idxProvider.ts`, or both profile pages will show the honest "nothing on the open market" state forever. Noted in `IDX_INTEGRATION.md`. |
-| 22 | Small link targets below the project's own 44px aim | 🟢 low | **Re-assessed in session 11 and downgraded.** Breadcrumb links render 37×16 at 390px and stacked phone/email links 20px tall. These do **not** fail WCAG 2.2 SC 2.5.8: the criterion exempts a target inline in a sentence or constrained by the line-height of surrounding text, and axe-core — which implements that exception — reports no target-size violation on any page in either build mode. They do sit below this project's own stricter 44×44 aim (`PROJECT_CONTEXT.md` §7). Raising them is a deliberate pass across shared components (`Breadcrumbs`, the contact-detail lists repeated across asides), not a defect to fix in passing. Sessions 10 and 11 brought their own standalone links to 28px. |
+| 22 | Small link targets below the project's own 44px aim | 🟢 low | **Improved in session 12: 296 → 216.** Two base-layer rules fixed the repeated cases — `tel:`/`mailto:` links (58 across 34 files, now 44px) and standalone links that are direct children of a flex or grid container. The remaining 216 are links in ordinary block containers, 16–20px tall. They are **not** a WCAG failure: axe's `target-size` rule passes on every page in both build modes under SC 2.5.8's inline exception. They sit below this project's own stricter 44×44 aim. Closing the rest means per-call-site edits, since no CSS selector distinguishes them from prose links. |
 | 23 | No account provider connected | 🟠 med | `/login/` says accounts are not available; `/register/` collects alert details for Martin and MaryEllen to action by hand. Resolves with two environment variables — `CONTENT_PENDING.md` 5.10a, `AUTH_INTEGRATION.md`. **No page renders a password field in any build mode, and that does not change when a provider is connected** — the credential step is the provider's, on its own origin. |
 | 24 | No approved legal text | 🔴 high | `/privacy-policy/` and `/terms/` are built and render a clearly marked "awaiting legal review" slot. Both documents bind the client and neither may be drafted by us. Resolves by pasting approved text into `src/data/legal.ts` and setting `approved: true` — `CONTENT_PENDING.md` 4.7, 4.7a, 4.8. The privacy policy is additionally blocked on 6.1/6.7 (where submissions go and how long they are kept) and 11.1 (analytics), because it must describe what the site actually does. |
 | 12 | No median home values published | 🟠 med | `/sell/median-home-values/` shows no figure for any of the six cities, because none carries a source and a date. Resolves via a `medianHomeValue` on a community record, or a live `ValuationProvider`. `CONTENT_PENDING.md` 10.7. |
@@ -1384,6 +1459,35 @@ the subarea section and the FAQ all render nothing rather than generic cards.
 That was a deliberate choice, not an omission — a "Lifestyle" band containing
 Dining, Beaches and Schools would look finished and say nothing, and would make
 it much less likely that anyone ever writes the real thing.
+
+### Session 12 — 2026-08-27 · Visual refinement & responsive UX
+**The most visible problem was a placeholder doing its job too well.** Six
+community cards were solid dark green on a homepage briefed as white-first —
+not because anyone chose that, but because the card is designed as type over a
+photograph, the scrim exists to make that type readable, and there is no
+photograph yet. The scrim was darkening an empty slot.
+
+The fix is the one worth repeating: **make the placeholder state a designed
+state, not a degraded one.** The dark treatment is now conditional on that
+specific community having an image, so the page is bright today and becomes the
+intended photographic design one card at a time, with nothing to unwind. A
+placeholder that looks deliberate is the difference between a site that looks
+unfinished and one that looks restrained.
+
+**Two CSS rules beat a hundred edits.** The most repeated control on the site —
+58 phone and email links across 34 files — was 20px tall. Editing 34 files
+would have been noisy, risky and immediately stale. One base-layer rule scoped
+to `tel:` and `mailto:` fixed all of them, because on this site those hrefs
+*are* the semantic signal for "discrete tap target". The second rule generalised
+it: a link that is a direct child of a flex or grid container cannot be sitting
+in a sentence. A third rule measured zero effect and was deleted — worth saying
+because writing CSS that does nothing is easier than noticing it does nothing.
+
+**Measurement first, opinions second.** Eight widths across 64 routes said
+there was no horizontal overflow and no image-ratio defect anywhere, which
+redirected the whole session away from hunting layout bugs and toward brand:
+colour balance, one hover gesture, reconciled radii. The thing most likely to
+be broken was already right, and only measuring showed that.
 
 ### Session 11 — 2026-08-27 · Accessibility statement & full-site audit
 The last route in the site, and an audit of all of them.

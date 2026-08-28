@@ -57,8 +57,15 @@ const counties = serviceArea.counties
 
   <Container class="relative flex min-h-[clamp(34rem,72vh,46rem)] flex-col justify-center py-20 sm:py-28">
     <div class="max-w-4xl">
-      <p class="eyebrow text-gold-300" data-reveal>
-        <span class="rule-gold" aria-hidden="true"></span>
+      {/*
+        The three counties are one string, so at 390px it wrapped mid-list and
+        left a dangling "·" at the end of the first line. Rather than break the
+        list, make it fit: the gold rule is dropped below sm (it is ornament,
+        and it costs 50px) and the tracking eases off, which brings the line
+        inside the gutter at 360px. `text-nowrap` then guarantees it.
+      */}
+      <p class="eyebrow text-nowrap tracking-[0.12em] text-gold-300 sm:tracking-eyebrow" data-reveal>
+        <span class="hidden rule-gold sm:block" aria-hidden="true"></span>
         {counties}
       </p>
 
