@@ -41,7 +41,17 @@ const isDark = tone === 'dark';
  * the box once the serif's ascenders and descenders are accounted for.
  */
 const fontSize = Math.round(height * 0.62);
-const markSize = Math.max(7, Math.round(fontSize * 0.28));
+
+/*
+ * The registered mark sits ON THE BASELINE, to the lower right of the "s" —
+ * not raised as a superscript. Corrected 2026-09-27 after the client compared
+ * this against the real mark on keyes.com: there the ® is a small circled R
+ * tucked under the tail of the "s", and a raised one reads as a footnote.
+ *
+ * 7px is the floor because below that the circle and the R inside it stop
+ * resolving into distinct shapes and the glyph turns into a smudge.
+ */
+const markSize = Math.max(7, Math.round(fontSize * 0.24));
 ---
 
 <span
@@ -52,28 +62,36 @@ const markSize = Math.max(7, Math.round(fontSize * 0.28));
   style={`height:${height}px`}
   class={cn('inline-flex shrink-0 select-none items-center self-start', className)}
 >
-  <span
-    aria-hidden="true"
-    style={`font-size:${fontSize}px`}
-    class={cn(
-      'font-serif italic leading-none tracking-[0.005em]',
-      isDark ? 'text-white' : 'text-evergreen-800',
-    )}
-  >
-    Keyes
-  </span>
   {/*
-    The registered-trademark mark is part of how the name is presented on the
-    client's own site, so it is carried here too.
+    `items-baseline` is what puts the ® on the same baseline as the name, so
+    it sits beside the foot of the "s" rather than floating above the cap
+    line. The wrapper exists purely so that baseline alignment happens between
+    these two, while the outer box still centres the pair in its slot.
   */}
-  <span
-    aria-hidden="true"
-    style={`font-size:${markSize}px`}
-    class={cn(
-      'ml-0.5 self-start leading-none',
-      isDark ? 'text-white/70' : 'text-evergreen-800/70',
-    )}
-  >
-    ®
+  <span class="inline-flex items-baseline">
+    <span
+      aria-hidden="true"
+      style={`font-size:${fontSize}px`}
+      class={cn(
+        'font-serif italic leading-none tracking-[0.005em]',
+        isDark ? 'text-white' : 'text-evergreen-800',
+      )}
+    >
+      Keyes
+    </span>
+    {/*
+      The registered-trademark mark is part of how the name is presented on
+      the client's own site, so it is carried here too.
+    */}
+    <span
+      aria-hidden="true"
+      style={`font-size:${markSize}px`}
+      class={cn(
+        'ml-0.5 leading-none',
+        isDark ? 'text-white/70' : 'text-evergreen-800/70',
+      )}
+    >
+      ®
+    </span>
   </span>
 </span>

@@ -170,7 +170,7 @@ Each was run across every route in both build modes unless noted.
 - Every image goes through `MediaSlot`; informative images take descriptive
   `alt`, decorative placeholders take `alt=""`.
 - No keyword-stuffed alt text — alt values are a name and a role
-  ("Martin Hoffman P.A., Broker-Associate"), not a keyword list.
+  ("Martin Hoffman P.A., Broker"), not a keyword list.
 
 ### Colour
 - Contrast measured by painting the colour to a canvas and reading the pixel

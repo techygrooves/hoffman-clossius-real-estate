@@ -15,7 +15,8 @@
     "check": "astro check",
     "verify:links": "node scripts/verify-links.mjs",
     "astro": "astro",
-    "test:unit": "node --test tests/*.test.mjs"
+    "test:unit": "node --test tests/*.test.mjs",
+    "test:browser": "node tests/browser/logo.mjs"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.3",
