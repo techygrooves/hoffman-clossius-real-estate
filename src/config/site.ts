@@ -54,6 +54,20 @@ export type Professional = {
    * CONTENT_PENDING.md 8.5.
    */
   readonly specialties: readonly string[];
+  /**
+   * One neutral sentence introducing this person, used by every agent card
+   * on the site — `AgentCard` everywhere, plus the profile preview on
+   * `/about/`.
+   *
+   * It lives here because it was previously copied into seven pages as a
+   * string literal, and the 2026-09-27 correction to their titles meant
+   * editing seven places and hoping none was missed. One copy, one place to
+   * fix.
+   *
+   * Strictly role-descriptive: licence and what they do. Never experience,
+   * volume, awards or specialisms beyond what the client has confirmed.
+   */
+  readonly intro: string;
   /** State licence number, null until confirmed. */
   readonly licenseNumber: string | null;
 };
@@ -74,7 +88,7 @@ export const site = {
   titleSuffix: 'Hoffman & Closius',
   tagline: 'South Florida Real Estate',
   description:
-    'Hoffman & Closius — South Florida real estate representation for buyers, sellers and relocating families across Broward, Palm Beach and Miami-Dade.',
+    'Hoffman & Closius — South Florida real estate for buyers and sellers across Broward, Palm Beach and Miami-Dade, including relocation to and from the area.',
   locale: 'en-US',
   lang: 'en',
   region: 'South Florida',
@@ -105,7 +119,12 @@ export const professionals: readonly Professional[] = [
     firstName: 'Martin',
     lastName: 'Hoffman',
     name: 'Martin Hoffman P.A.',
-    title: 'Broker-Associate',
+    /*
+     * Corrected 2026-09-27 by the client: Martin holds a BROKER licence, not a
+     * broker-associate licence. The two are different levels of Florida
+     * licence and the site previously stated the wrong one.
+     */
+    title: 'Broker',
     specialty: null,
     phone: { label: 'Phone', value: '954-605-4823', href: tel('9546054823') },
     email: {
@@ -114,6 +133,8 @@ export const professionals: readonly Professional[] = [
       href: 'mailto:MartinHoffman@keyes.com',
     },
     href: '/about/martin-hoffman/',
+    intro:
+      'Martin holds a Florida broker licence and works with buyers and sellers across South Florida.',
     portrait: null,
     bio: null,
     specialties: [],
@@ -124,7 +145,8 @@ export const professionals: readonly Professional[] = [
     firstName: 'MaryEllen',
     lastName: 'Closius',
     name: 'MaryEllen Closius P.A.',
-    title: 'Realtor Associate',
+    /* Corrected 2026-09-27 by the client: Sales Associate, not Realtor Associate. */
+    title: 'Sales Associate',
     specialty: 'Relocation Specialist',
     phone: { label: 'Phone', value: '954-471-4626', href: tel('9544714626') },
     email: {
@@ -133,6 +155,8 @@ export const professionals: readonly Professional[] = [
       href: 'mailto:MaryEllenC@keyes.com',
     },
     href: '/about/maryellen-closius/',
+    intro:
+      'MaryEllen is a Sales Associate and Relocation Specialist, working with buyers and sellers moving to and from South Florida.',
     portrait: null,
     bio: null,
     specialties: [],

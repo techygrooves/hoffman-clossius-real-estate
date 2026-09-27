@@ -205,11 +205,7 @@ const maryellen = getProfessional('maryellen-closius');
             person && (
               <AgentCard
                 person={person}
-                intro={
-                  person.slug === 'martin-hoffman'
-                    ? 'Martin holds a Broker-Associate licence and represents buyers and sellers across South Florida.'
-                    : 'MaryEllen is a Realtor Associate and Relocation Specialist, working with buyers, sellers and families moving to South Florida.'
-                }
+                intro={person.intro}
                 ctaLabel={`Meet ${person.firstName}`}
                 seed={index + 5}
               />
