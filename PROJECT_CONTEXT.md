@@ -107,10 +107,26 @@ the footer.
    paraphrase of them. The logo stands on its own with no explanation.
 3. The logo is rendered only through `src/components/layout/KeyesLogo.astro`.
    Do not inline `<img src="/brand/...">` anywhere else.
-4. **While the asset is missing, the placeholder must stay neutral** — a
-   generic image glyph in a dashed slot. Never set "Keyes" as styled type, or
-   draw an approximate mark, as a stand-in. A placeholder that looks like a
-   logo is worse than an obviously empty slot.
+4. **Never draw, trace or approximate the mark itself.** No attempt at the
+   brush-script lettering, no redrawn glyphs, no "close enough" vector. A poor
+   reproduction of somebody's trademark is worse than no reproduction: it is
+   wrong in a way that looks deliberate, and it is the version that ends up
+   screenshotted.
+
+### Interim treatment — changed 2026-09-27 on the client's instruction
+
+The original rule was that the missing asset must show a **neutral graphic
+placeholder** and that "Keyes" must never be set as type. The client has since
+asked for the name to be set as type instead, matching their existing site.
+
+`KeyesLogo` now falls back to `KeyesWordmark`, which sets **"Keyes®" in the
+site's own serif**. Rule 4 above is unchanged and still binding: this is the
+name set honestly as type, not an imitation of the mark.
+
+It remains a fallback. **The real asset always wins** — drop it in and the
+wordmark disappears everywhere with no code change, which is still the right
+end state (`CONTENT_PENDING.md` 1.1). Worth confirming with Keyes marketing
+that a typographic treatment is acceptable to them (1.1a).
 
 ### Asset status
 
@@ -122,8 +138,8 @@ The official files have **not been supplied yet**. Expected paths:
 | `public/brand/keyes-logo-white.svg` | Evergreen backgrounds (footer) |
 
 `.png` / `.webp` are accepted fallbacks. `KeyesLogo.astro` probes for these
-files at build time and switches from its visible placeholder to the real asset
-automatically — no code change required. After adding the files, set
+files at build time and switches from the typographic fallback to the real
+asset automatically — no code change required. After adding the files, set
 `brokerageBrand.width` / `.height` in `src/config/site.ts` to the asset's true
 intrinsic dimensions. Details in `docs/keyes-logo.md`.
 

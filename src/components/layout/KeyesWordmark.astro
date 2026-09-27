@@ -1,0 +1,79 @@
+---
+/**
+ * KeyesWordmark — a typographic rendering of the Keyes name.
+ *
+ * ── Why this exists ───────────────────────────────────────────────────────
+ * The official Keyes artwork has not been supplied (CONTENT_PENDING.md 1.1).
+ * The client asked for the name to be set as type in the meantime, matching
+ * their existing site, rather than leaving a dashed placeholder box.
+ *
+ * ── What it deliberately is NOT ───────────────────────────────────────────
+ * It does not trace, imitate or approximate the Keyes brush-script mark. A bad
+ * reproduction of somebody's trademark is worse than clean type: it is wrong
+ * in a way that looks deliberate, and it is the version that ends up
+ * screenshotted. This is the name set honestly in the site's own serif.
+ *
+ * ── It is a fallback, and stays one ───────────────────────────────────────
+ * `KeyesLogo` prefers the real asset whenever one exists in /public/brand/ and
+ * only falls back to this. Dropping `keyes-logo.svg` in replaces it everywhere
+ * with no code change — which remains the right end state.
+ */
+import { brokerageBrand } from '@config/site';
+import { cn } from '@lib/cn';
+
+interface Props {
+  tone?: 'light' | 'dark';
+  /** Rendered height of the lockup in px, to match the asset slot it fills. */
+  height?: number;
+  /** True when an adjacent element already names the brokerage. */
+  decorative?: boolean;
+  class?: string;
+}
+
+const { tone = 'light', height = 40, decorative = false, class: className } =
+  Astro.props;
+
+const isDark = tone === 'dark';
+
+/*
+ * The wordmark is sized from the slot height so it sits on the same optical
+ * line as the real asset would. 0.62 keeps the cap height comfortably inside
+ * the box once the serif's ascenders and descenders are accounted for.
+ */
+const fontSize = Math.round(height * 0.62);
+const markSize = Math.max(7, Math.round(fontSize * 0.28));
+---
+
+<span
+  data-keyes-wordmark
+  role={decorative ? undefined : 'img'}
+  aria-label={decorative ? undefined : brokerageBrand.alt}
+  aria-hidden={decorative ? 'true' : undefined}
+  style={`height:${height}px`}
+  class={cn('inline-flex shrink-0 select-none items-center self-start', className)}
+>
+  <span
+    aria-hidden="true"
+    style={`font-size:${fontSize}px`}
+    class={cn(
+      'font-serif italic leading-none tracking-[0.005em]',
+      isDark ? 'text-white' : 'text-evergreen-800',
+    )}
+  >
+    Keyes
+  </span>
+  {/*
+    The registered-trademark mark is part of how the name is presented on the
+    client's own site, so it is carried here too.
+  */}
+  <span
+    aria-hidden="true"
+    style={`font-size:${markSize}px`}
+    class={cn(
+      'ml-0.5 self-start leading-none',
+      isDark ? 'text-white/70' : 'text-evergreen-800/70',
+    )}
+  >
+    ®
+  </span>
+</span>

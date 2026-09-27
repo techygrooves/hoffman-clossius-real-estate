@@ -1247,7 +1247,8 @@ twelve homepage sections in `src/components/home/`.
 | `Footer` | `src/components/layout/Footer.astro` | ✅ stable — rebuilt in session 2 |
 | `MobileActionBar` | `src/components/layout/MobileActionBar.astro` | ✅ stable — new in session 2 |
 | `SocialLinks` | `src/components/layout/SocialLinks.astro` | ✅ stable — renders nothing until URLs are confirmed |
-| `KeyesLogo` | `src/components/layout/KeyesLogo.astro` | ⚠️ neutral graphic placeholder until the asset arrives |
+| `KeyesLogo` | `src/components/layout/KeyesLogo.astro` | ✅ stable — real asset when present, `KeyesWordmark` otherwise |
+| `KeyesWordmark` | `src/components/layout/KeyesWordmark.astro` | ⚠️ typographic fallback until 1.1 / 1.2 supplied |
 | `Wordmark` | `src/components/layout/Wordmark.astro` | ✅ stable |
 | `Container` | `src/components/ui/Container.astro` | ✅ stable |
 | `Section` | `src/components/ui/Section.astro` | ✅ stable |
@@ -1298,7 +1299,9 @@ primitive rather than adding a near-duplicate.
 
 | # | Item | Severity | Detail |
 | --- | --- | --- | --- |
-| 1 | Keyes logo is a placeholder | 🔴 high | Header, drawer and footer show a **neutral dashed image-glyph slot** — deliberately not a wordmark, so nothing approximates the trademark. Resolves itself the moment the real files land in `public/brand/`. `CONTENT_PENDING.md` 1.1–1.3. |
+| 1 | Keyes name is set as type, not the official artwork | 🟠 med | On the client's instruction (2026-09-27) the header, drawer and footer set **"Keyes®" in the site serif** rather than the previous dashed placeholder. It does not trace or imitate the mark. The real asset still wins automatically the moment it lands in `public/brand/`, and is still wanted. Worth confirming Keyes marketing accept a typographic treatment. `CONTENT_PENDING.md` 1.1, 1.1a. |
+| 1a | The team's MH / MC lockup is not carried over | 🟠 med | hoffmanandclosius.com uses a combined lockup — script MH and MC monograms with names and titles, a divider, then Keyes. This site uses the "Hoffman & Closius" serif wordmark. Carrying it over needs the source artwork. `CONTENT_PENDING.md` 1.6. |
+| 1b | Name capitalisation differs from the live site | 🟡 low | The existing site writes **"Maryellen Closius"**; this site writes **"MaryEllen Closius P.A."**, which is what the original brief specified. Both use "Closius" (one s) — the repository name `hoffman-clossius` is the outlier. Confirm which she prefers. |
 | 2 | No canonical URLs | 🟠 med | Suppressed on purpose while `site.urlConfirmed` is false. Flip it once the domain is confirmed. |
 | 3 | Parent paths 404 | 🟠 med | `/properties/`, `/developments/`, `/resources/` have no index page — they were not in the specified route list. Nothing links to them (verified by `verify:links`; the nav points at leaf routes) but a typed URL will 404. **Decide with the client:** add index pages, or redirect to the first child. |
 | 4 | Build logs a benign content warning | 🟢 low | `The collection "blog" does not exist or is empty` and `No files found matching …` — expected with zero posts. Disappears with the first article. |
@@ -1842,3 +1845,48 @@ is a check that has already stopped running. The mortgage maths is the first
 thing on this site with arithmetic worth being wrong about, and its expected
 values are computed independently of the implementation — a test that
 re-derives its expectation the same way the code does proves nothing.
+
+## ✅ Completed — Session 10 (2026-09-27) · Keyes wordmark
+
+A short session from one screenshot of the client's existing site.
+
+### The logo slots are filled
+`KeyesLogo` fell back to a neutral dashed image-glyph box, on the rule that a
+placeholder must never approximate the trademark. The client asked for the name
+to be set as type instead, matching hoffmanandclosius.com.
+
+`KeyesWordmark` now sets **"Keyes®" in the site's own serif**, and `KeyesLogo`
+falls back to it — five slots across the header, compact bar, drawer and
+footer, in both light and reversed treatments.
+
+What did **not** change: it does not trace, imitate or approximate the
+brush-script mark. A poor reproduction of somebody's trademark is worse than
+clean type — it is wrong in a way that looks deliberate, and it is the version
+that ends up screenshotted. And **the real asset still wins**: dropping
+`keyes-logo.svg` into `public/brand/` removes the fallback everywhere with no
+code change.
+
+WCAG 1.4.3 exempts text that is part of a logo or brand name, so the wordmark
+is marked `data-keyes-wordmark` and the contrast sweep skips that subtree — the
+same treatment the `data-wordmark` lockup already had.
+
+### Also noticed, not changed
+- The existing site uses a combined **MH / MC monogram lockup** with names,
+  titles, a divider and then Keyes. This site uses the "Hoffman & Closius"
+  serif wordmark. Carrying the lockup over needs the source artwork (1.6).
+- The existing site writes **"Maryellen Closius"**; this site writes
+  **"MaryEllen Closius P.A."** per the original brief. Flagged rather than
+  changed — it is her name, and the brief was explicit.
+- The domain was already confirmed on `main` as `www.hoffmanandclosius.com`
+  during the SEO pass, which supersedes what the screenshot alone showed.
+
+### Environment note
+The scratchpad browser suites from sessions 1–9 and `node_modules` were both
+wiped between sessions. `node_modules` reinstalled from the lockfile in seconds;
+the suites did not survive, because they only ever lived in the scratchpad.
+**They belong in the repository** — `tests/` already exists for the mortgage
+unit tests and runs inside `npm run build`. Worth moving them there so a wiped
+scratchpad costs nothing.
+
+Rebuilt for this change: a focused logo suite (21 checks) and the
+pixel-accurate contrast sweep (44 pages × 2 widths, 0 failures).
