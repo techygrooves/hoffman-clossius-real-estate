@@ -1893,7 +1893,8 @@ pixel-accurate contrast sweep (44 pages × 2 widths, 0 failures).
 
 ## ✅ Completed — Session 11 (2026-09-27) · Client corrections
 
-Six corrections from the client, five applied and one blocked.
+Corrections from the client, in two rounds: two wrong licence titles, three
+wording changes, and the position of the ® on the Keyes wordmark.
 
 ### The licence titles were wrong, and that is the serious one
 
@@ -1938,23 +1939,55 @@ correction is a one-line change that cannot be applied unevenly.
   correcting the licence cards. Read literally it describes dual agency, which
   is a specific thing in Florida and not what was meant.
 
-### The Keyes wordmark is wrong — blocked
+### The Keyes wordmark: the ® was in the wrong place
 
-The client confirmed the **green is correct** but the real mark is **cursive**,
-which last session's serif setting is not. They said they were sending a zoomed
-image of the logo; **no image arrived with the message**.
+First pass this session the client said the mark was cursive and the serif was
+not — but the image they meant to send did not arrive. Nothing was changed on a
+guess: swapping in a script webfont approximates a trademark we had just been
+told we were getting wrong, which is worse than clean type that is visibly not
+the mark.
 
-Nothing was changed on a guess. Swapping in a script webfont would be
-approximating a trademark we have now been told we are getting wrong — a worse
-outcome than clean type that is visibly not the mark. Raised to 🔴 as
-`CONTENT_PENDING.md` 1.1b, and still resolved outright the moment
-`public/brand/keyes-logo.svg` exists.
+They then sent both screenshots side by side, and the answer was narrower than
+either of us expected. **The treatment is right; the ® was in the wrong place.**
+It had been set as a raised superscript. On the real mark it is a small circled
+R sitting by the foot of the "s", and raised it reads as a footnote rather than
+as part of the lockup.
+
+Fixed by baseline-aligning the two halves: the name and the ® are now one
+`items-baseline` row inside the slot box, so the mark sits on the name's own
+baseline at every size rather than at the top of the box. Measured, its
+vertical centre now lands 0.66–0.74 down the name's box, where before it sat at
+0.12–0.22.
+
+`CONTENT_PENDING.md` 1.1b is now a **decision record rather than a gap**. The
+client compared this against the real mark and approved the typographic
+treatment, so it is written down that the serif was looked at and chosen rather
+than settled for — otherwise someone "fixes" it back to a script face in six
+months. The real vector is still wanted, and still wins automatically.
+
+### The logo suite now lives in the repository
+
+This is the second time the client has caught something on the wordmark by
+looking at the live site. The suite that should have caught it existed only in
+the scratch directory and was wiped between sessions, so it caught neither —
+which is exactly what session 10 flagged and did not act on.
+
+It is now `tests/browser/logo.mjs`, run with `npm run test:browser`. It is
+deliberately **not** part of `npm run build`: the build's tests are pure Node
+and must stay dependency-free, so this sits one directory below the
+`tests/*.test.mjs` glob, finds Playwright wherever it is installed, and serves
+`dist/` itself on an ephemeral port so it stays one command.
+
+The ® assertion was checked against a deliberately broken build before being
+trusted — flipping the row back to `items-start` fails it with the exact
+superscript numbers. A new assertion that has only ever been seen passing is
+not evidence of anything.
 
 ### Verified
 - `npm run build` — 0 `astro check` errors, 17/17 unit tests, 45 pages, all
   internal links resolve.
-- Keyes logo suite — 21/21. **All 45 built pages carry the mark**, five slots
-  each, which was the client's explicit ask.
+- `npm run test:browser` — 28/28, covering the ® position, both tone variants,
+  and **the mark present on every page sampled**.
 - Contrast sweep — 44 pages × 2 widths, 0 failures.
 - `grep` for `Broker-Associate` / `Realtor Associate` across the whole repo:
   no hits outside the correction note that records they were wrong.
