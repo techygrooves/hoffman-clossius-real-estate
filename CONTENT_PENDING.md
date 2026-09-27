@@ -13,9 +13,11 @@ Status key: 🔴 blocking · 🟠 needed soon · 🟡 needed before launch
 
 | # | Item | Status | Notes |
 | --- | --- | --- | --- |
-| 1.1 | **Official Keyes logo — light background** | 🔴 | Drop at `public/brand/keyes-logo.svg` (`.png`/`.webp` accepted). Until then the header, drawer and footer show a **neutral graphic placeholder** — a generic image glyph, deliberately not a wordmark, so nothing on the site approximates the Keyes trademark. |
-| 1.2 | **Official Keyes logo — reversed / white** | 🔴 | `public/brand/keyes-logo-white.svg`, for the evergreen footer. |
-| 1.3 | Logo intrinsic dimensions | 🔴 | Set `brokerageBrand.width` / `.height` in `src/config/site.ts` once the file exists, so the aspect ratio is exact. |
+| 1.1 | **Official Keyes logo — light background** | 🟠 | Drop at `public/brand/keyes-logo.svg` (`.png`/`.webp` accepted) and it replaces the fallback everywhere, with no code change. **Interim, at the client's instruction (2026-09-27):** the header, drawer and footer set the NAME as type — "Keyes®" in the site's serif — instead of the previous dashed placeholder. It does **not** trace or imitate the brush-script mark; a poor reproduction of a trademark is worse than clean type. The real vector is still wanted. |
+| 1.1a | **Confirm Keyes permit the typographic treatment** | 🟠 | Most brokerages require their supplied artwork rather than the name re-set in another typeface. Worth a one-line check with Keyes marketing, and resolved outright by supplying the file for 1.1. |
+| 1.6 | **The full MH / MC lockup from the existing site** | 🟠 | hoffmanandclosius.com uses a combined lockup: script MH and MC monograms with each name and title, a divider, then Keyes. If that artwork should carry over, supply the source file — this site uses the "Hoffman & Closius" serif wordmark instead. |
+| 1.2 | **Official Keyes logo — reversed / white** | 🟠 | `public/brand/keyes-logo-white.svg`, for the evergreen footer. |
+| 1.3 | Logo intrinsic dimensions | 🟠 | Set `brokerageBrand.width` / `.height` in `src/config/site.ts` once the file exists, so the aspect ratio is exact. |
 | 1.4 | Any Keyes brand-usage guidelines | 🟠 | Minimum clear space, minimum size, permitted backgrounds. |
 | 1.5 | `apple-touch-icon.png` (180×180) and `favicon.ico` | 🟡 | A Hoffman & Closius monogram `favicon.svg` exists; the raster versions still need producing. |
 
@@ -208,7 +210,7 @@ Every placeholder shipped today, so none can be forgotten:
 
 | Placeholder | Where | Removed when |
 | --- | --- | --- |
-| Neutral dashed image-glyph box in the header, drawer and footer | `src/components/layout/KeyesLogo.astro` | 1.1 / 1.2 supplied |
+| "Keyes®" set as type in the header, drawer and footer, in place of the official artwork | `src/components/layout/KeyesWordmark.astro` | 1.1 / 1.2 supplied — the real asset wins automatically |
 | `site.url = 'https://hoffmanclosius.com'`, `urlConfirmed: false` | `src/config/site.ts` | 3.1 confirmed |
 | Empty data modules | `src/data/*.ts` | The matching source is confirmed |
 | Fifteen community pages carrying only a locational one-liner, with a visible "guide is being written" note | `src/components/communities/CommunityIntro.astro` | 10.5 supplied |

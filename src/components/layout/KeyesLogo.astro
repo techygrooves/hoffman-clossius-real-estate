@@ -8,9 +8,14 @@
  *    Only the rendered height changes; aspect ratio is always preserved.
  *  - Never write relationship wording ("affiliated with", "backed by", ...)
  *    next to it. The logo stands on its own.
- *  - While the asset is missing this component renders a NEUTRAL GRAPHIC
- *    placeholder. It must never approximate the Keyes trademark — no styled
- *    wordmark, no lettering standing in for the logo, no invented mark.
+ *  - While the asset is missing this component falls back to `KeyesWordmark`,
+ *    which sets the NAME as type in the site's own serif. That was the
+ *    client's instruction (they asked for the name rather than a dashed box,
+ *    matching their existing site). It still does not trace, imitate or
+ *    approximate the Keyes brush-script mark — a bad reproduction of a
+ *    trademark is worse than clean type.
+ *  - The real asset always wins. Drop it in and the fallback disappears
+ *    everywhere with no code change; that remains the right end state.
  *
  * ── THE IMAGE SLOT ────────────────────────────────────────────────────────
  * Drop the official files here and this component switches to them at build
@@ -28,6 +33,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { brokerageBrand } from '@config/site';
+import KeyesWordmark from './KeyesWordmark.astro';
 import { cn } from '@lib/cn';
 
 interface Props {
@@ -68,14 +74,6 @@ const src = resolveAsset(preferred) ?? resolveAsset('keyes-logo');
 
 const ratio = brokerageBrand.width / brokerageBrand.height;
 const width = Math.round(height * ratio);
-
-/* Placeholder geometry mirrors the real asset's aspect ratio, so swapping in
-   the official file does not shift the surrounding layout. The ratio is only
-   an assumption until the real file lands, so the box may grow past it rather
-   than clip its own label — and the label is dropped entirely at small sizes,
-   where only the glyph fits. */
-const isDark = tone === 'dark';
-const showPlaceholderLabel = height >= 36;
 ---
 
 {
@@ -93,42 +91,14 @@ const showPlaceholderLabel = height >= 36;
     />
   ) : (
     /*
-     * NEUTRAL PLACEHOLDER — deliberately visible so the missing asset cannot
-     * ship unnoticed, and deliberately generic so it cannot be mistaken for,
-     * or serve as, the Keyes mark. Tracked in CONTENT_PENDING.md 1.1.
+     * No asset supplied yet, so the name is set as type. See KeyesWordmark for
+     * why this is lettering rather than an attempt at the mark itself.
      */
-    <span
-      role="img"
-      aria-label="Brokerage logo — official asset pending"
-      title="Official brokerage logo asset has not been supplied yet"
-      data-pending-asset="keyes-logo"
-      style={`height:${height}px;min-width:${width}px`}
-      class={cn(
-        'inline-flex w-fit shrink-0 self-start items-center justify-center gap-1.5 rounded-xs border border-dashed px-2',
-        isDark ? 'border-white/40 text-white/75' : 'border-evergreen-800/35 text-evergreen-800/75',
-        className,
-      )}
-    >
-      {/* Generic image-placeholder glyph. Not a logo, not lettering. */}
-      <svg
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="1.25"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        aria-hidden="true"
-        style={`height:${Math.max(14, Math.round(height * 0.42))}px;width:auto`}
-      >
-        <rect x="3" y="5" width="18" height="14" rx="1.5" />
-        <circle cx="8.5" cy="10" r="1.25" />
-        <path d="M21 16l-4.5-4.5L9 19" />
-      </svg>
-      {showPlaceholderLabel && (
-        <span class="font-sans text-[0.5rem] uppercase tracking-eyebrow whitespace-nowrap">
-          Logo pending
-        </span>
-      )}
-    </span>
+    <KeyesWordmark
+      tone={tone}
+      height={height}
+      decorative={decorative}
+      class={className}
+    />
   )
 }
