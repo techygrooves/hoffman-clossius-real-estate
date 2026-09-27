@@ -32,7 +32,15 @@ export type Professional = {
   readonly phone: ContactChannel;
   readonly email: ContactChannel;
   readonly href: string;
-  /** Portrait lives in /public/images/team/. Null until the client supplies it. */
+  /**
+   * Portrait, as a path under /public — `/images/team/<slug>.jpg`.
+   *
+   * It is wired up before the photographs exist on purpose. `MediaSlot`
+   * resolves the path at build time and falls back to the neutral placeholder
+   * while nothing is there, so dropping the file into `public/images/team/`
+   * is the only step: no code change, no broken <img> in the meantime.
+   * Any of .jpg/.jpeg/.png/.webp/.avif is picked up. CONTENT_PENDING.md 8.3.
+   */
   readonly portrait: string | null;
   /**
    * Long-form biography, as paragraphs. Null until the client supplies or
@@ -114,7 +122,7 @@ export const professionals: readonly Professional[] = [
       href: 'mailto:MartinHoffman@keyes.com',
     },
     href: '/about/martin-hoffman/',
-    portrait: null,
+    portrait: '/images/team/martin-hoffman.jpg',
     bio: null,
     specialties: [],
     licenseNumber: null,
@@ -133,7 +141,7 @@ export const professionals: readonly Professional[] = [
       href: 'mailto:MaryEllenC@keyes.com',
     },
     href: '/about/maryellen-closius/',
-    portrait: null,
+    portrait: '/images/team/maryellen-closius.jpg',
     bio: null,
     specialties: [],
     licenseNumber: null,

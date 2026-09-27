@@ -154,6 +154,9 @@ Netlify, Vercel, Cloudflare Pages and S3 serve `dist/` as-is.
 
 ```
 public/brand/    Keyes logo assets — see docs/keyes-logo.md
+public/images/   Client photography — see public/images/README.md for the
+                 exact filenames. Paths are wired ahead of the files; a
+                 slot shows the placeholder until the image is there.
 public/fonts/    Self-hosted woff2 (latin subset)
 src/config/      site.ts · navigation.ts — the only place client data lives
 src/components/  layout/ · sections/ · ui/ · forms/ · auth/ · legal/
