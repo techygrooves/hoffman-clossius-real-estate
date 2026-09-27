@@ -34,6 +34,7 @@ import {
   type Professional,
 } from '@config/site';
 import { absolute } from './meta';
+import { resolvePublicImage } from '@lib/media/public-asset';
 
 /** A JSON-LD node. Loose by design — schema.org shapes vary per type. */
 export type JsonLd = Record<string, unknown>;
@@ -168,6 +169,12 @@ export function breadcrumbSchema(trail: readonly Crumb[]): JsonLd | null {
  * (CONTENT_PENDING.md 8.1–8.5).
  */
 export function personSchema(person: Professional): JsonLd {
+  /*
+   * Resolved rather than read straight off the config. A portrait path is
+   * wired up before the photograph exists, and markup pointing at a 404 is
+   * exactly the kind of claim the header of this file forbids.
+   */
+  const portrait = resolvePublicImage(person.portrait);
   return compact({
     '@type': 'Person',
     '@id': `${site.url}${person.href}#person`,
@@ -181,7 +188,7 @@ export function personSchema(person: Professional): JsonLd {
     email: person.email.value,
     url: absolute(person.href),
     worksFor: { '@id': ORGANISATION_ID },
-    ...(person.portrait ? { image: absolute(person.portrait) } : {}),
+    ...(portrait ? { image: absolute(portrait) } : {}),
     // knowsAbout / award / hasCredential omitted: nothing is confirmed.
   });
 }

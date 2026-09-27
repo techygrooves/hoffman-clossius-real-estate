@@ -14,10 +14,12 @@ import Button from '@components/ui/Button.astro';
 import MediaSlot from '@components/ui/MediaSlot.astro';
 
 /**
- * Set to a path under /public once the client's photography is supplied —
- * e.g. '/images/home/hero.jpg'. CONTENT_PENDING.md 9.1.
+ * Wired ahead of the file. `MediaSlot` resolves it at build time and shows the
+ * deep placeholder while nothing is at that path, so supplying the photograph
+ * means dropping it into `public/images/home/` and nothing else.
+ * CONTENT_PENDING.md 9.1.
  */
-const heroImage: string | null = null;
+const heroImage: string | null = '/images/home/hero.jpg';
 
 const counties = serviceArea.counties
   .map((c) => c.replace(' County', ''))

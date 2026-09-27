@@ -15,9 +15,16 @@
  * shifts when the image loads.
  */
 import { cn } from '@lib/cn';
+import { resolvePublicImage } from '@lib/media/public-asset';
 
 interface Props {
-  /** Path under /public. Omit to render the placeholder. */
+  /**
+   * Path under /public. Omit to render the placeholder.
+   *
+   * It may be wired up before the file exists: a path with nothing behind it
+   * resolves to the placeholder and prints one line in the build log, rather
+   * than shipping a broken <img>. See `@lib/media/public-asset`.
+   */
   src?: string | null;
   /** Required when `src` is set. Empty string marks a decorative image. */
   alt?: string;
@@ -56,6 +63,13 @@ const {
   imgClass,
 } = Astro.props;
 
+/*
+ * `src` is what the caller asked for; `image` is what is actually on disk.
+ * Everything below branches on `image`, so an outstanding photograph shows
+ * the placeholder and needs no other change once it arrives.
+ */
+const image = resolvePublicImage(src);
+
 const aspect = ratio ?? `${width}/${height}`;
 const isDeep = tone === 'deep';
 
@@ -73,13 +87,13 @@ const wash = isDeep
 ---
 
 {
-  src ? (
+  image ? (
     <div
       class={cn('relative overflow-hidden bg-evergreen-50', className)}
       style={`aspect-ratio:${aspect}`}
     >
       <img
-        src={src}
+        src={image}
         alt={alt}
         width={width}
         height={height}
