@@ -9,8 +9,8 @@
  * whose whole job is to establish whether someone is trustworthy, an invented
  * credential is the worst possible thing to put.
  *
- * The one piece of interpretation on the page is what a Broker-Associate
- * licence is, which is a matter of Florida licensing rather than a claim about
+ * The one piece of interpretation on the page is what a Florida broker
+ * licence is, which is a matter of licensing rather than a claim about
  * Martin. Everything else waits for him.
  */
 import BaseLayout from '@layouts/BaseLayout.astro';
@@ -36,12 +36,12 @@ if (!person) throw new Error('Martin Hoffman is missing from src/config/site.ts'
  */
 const LICENCE_NOTES = [
   {
-    title: 'A broker-level licence, working within a brokerage',
-    body: 'A Broker-Associate has qualified for a broker licence — a higher level than a sales associate — and practises under a brokerage rather than running one. It is a licensing distinction, and it is why the title reads the way it does.',
+    title: 'A Florida broker licence',
+    body: 'Florida issues two levels of real estate licence. The broker licence is the senior of the two, reached through qualifying experience, further coursework and a separate state examination. It says what Martin is licensed to do — and nothing about how often or how well he has done it.',
   },
   {
-    title: 'Represents both sides of a transaction',
-    body: 'Martin works with buyers and with sellers. Which side of a deal you are on changes the advice, not the standard of it.',
+    title: 'Works with buyers and with sellers',
+    body: 'Both sides of the market, rather than one. Which side of a deal you are on changes the advice, not the standard of it.',
   },
   {
     title: 'Across three counties',
@@ -69,12 +69,12 @@ const WORKING_WITH = [
 
 <BaseLayout
   title="Martin Hoffman P.A."
-  description="Martin Hoffman P.A., Broker-Associate with Hoffman & Closius, representing buyers and sellers across Broward, Palm Beach and Miami-Dade. Direct line 954-605-4823."
+  description="Martin Hoffman P.A., Broker with Hoffman & Closius, serving buyers and sellers across Broward, Palm Beach and Miami-Dade. Direct line 954-605-4823."
   schema={[person ? personSchema(person) : null]}
 >
   <PersonHero
     person={person}
-    lead="Broker-Associate with Hoffman & Closius, representing buyers and sellers across South Florida."
+    lead="Broker with Hoffman & Closius, working with buyers and sellers across South Florida."
     breadcrumbs={[{ label: 'About', href: '/about/' }, { label: 'Martin Hoffman P.A.' }]}
     seed={1}
   />
@@ -111,7 +111,7 @@ const WORKING_WITH = [
           <div class="rounded-xs border border-line p-6 sm:p-8">
             <h2 class="font-serif text-xl text-evergreen-800">Working as a pair</h2>
             <p class="mt-3 text-sm leading-relaxed text-ink-muted">
-              Martin works alongside MaryEllen Closius P.A., a Realtor Associate
+              Martin works alongside MaryEllen Closius P.A., a Sales Associate
               and Relocation Specialist. Between them you get two people on a
               transaction rather than one, and the one better placed to help
               takes the lead.

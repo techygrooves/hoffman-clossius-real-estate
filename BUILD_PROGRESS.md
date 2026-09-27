@@ -757,9 +757,9 @@ are their direct lines. That is a real proposition.
       focus with all six community guides, service links, testimonial preview,
       final contact CTA.
 - [x] `/about/martin-hoffman/` — portrait, title, biography component, listings,
-      contact card, consultation CTA. Carries three notes on what a
-      Broker-Associate licence **is**, which is Florida licensing law rather
-      than a claim about his record.
+      contact card, consultation CTA. Carries three notes on what a Florida
+      broker licence **is**, which is licensing law rather than a claim about
+      his record.
 - [x] `/about/maryellen-closius/` — the same, plus a relocation feature. Her
       confirmed "Relocation Specialist" title is used as a title and nothing
       more: the section describes what makes an out-of-state move difficult —
@@ -1890,3 +1890,71 @@ scratchpad costs nothing.
 
 Rebuilt for this change: a focused logo suite (21 checks) and the
 pixel-accurate contrast sweep (44 pages × 2 widths, 0 failures).
+
+## ✅ Completed — Session 11 (2026-09-27) · Client corrections
+
+Six corrections from the client, five applied and one blocked.
+
+### The licence titles were wrong, and that is the serious one
+
+Martin Hoffman P.A. holds a **broker** licence, not a broker-associate
+licence. MaryEllen Closius P.A. is a **Sales Associate**, not a Realtor
+Associate. Both were published wrongly across the site.
+
+This is a different class of error from a typo. A licence title is a regulated
+statement about what a person is permitted to do, it appears in structured data
+that search engines republish, and it is the sort of thing a client quotes back
+in a listing appointment. `PROJECT_CONTEXT.md` §1 now carries the corrected
+titles with a dated note saying both were previously wrong, so the next person
+to restate them restates them from the corrected source.
+
+Worse than the titles themselves: `/about/martin-hoffman/` carried three cards
+**explaining what a Broker-Associate licence is** — copy written in good faith
+about a licence he does not hold. Confident explanatory prose built on an
+unverified premise is more damaging than the bare wrong word, because it reads
+as research. Rewritten to describe the Florida broker licence, and nothing
+about his record.
+
+### One string, seven copies
+
+The agent introduction existed as a string literal in **seven** places — six
+`AgentCard` call sites plus the profile preview on `/about/`. Correcting a
+title meant editing seven files and hoping none was missed, which is exactly
+the shape of bug that leaves one stale page live for a year.
+
+It now lives once, as `professionals[].intro` in `src/config/site.ts`, beside
+the title it has to agree with. Every call site passes `person.intro`. The next
+correction is a one-line change that cannot be applied unevenly.
+
+### Wording
+
+- `/` hero: "the people they **represent**" → "the people they **serve**".
+- MaryEllen's copy: "buyers, sellers and families moving **to** South Florida"
+  → "buyers and sellers moving **to and from** South Florida". Applied to her
+  profile, `/about/`, `/relocation/` and the site description — the old framing
+  had settled into four places, and "arriving from out of state" on
+  `/relocation/` directly contradicted the corrected line.
+- `Represents both sides of a transaction` was also removed as a heading while
+  correcting the licence cards. Read literally it describes dual agency, which
+  is a specific thing in Florida and not what was meant.
+
+### The Keyes wordmark is wrong — blocked
+
+The client confirmed the **green is correct** but the real mark is **cursive**,
+which last session's serif setting is not. They said they were sending a zoomed
+image of the logo; **no image arrived with the message**.
+
+Nothing was changed on a guess. Swapping in a script webfont would be
+approximating a trademark we have now been told we are getting wrong — a worse
+outcome than clean type that is visibly not the mark. Raised to 🔴 as
+`CONTENT_PENDING.md` 1.1b, and still resolved outright the moment
+`public/brand/keyes-logo.svg` exists.
+
+### Verified
+- `npm run build` — 0 `astro check` errors, 17/17 unit tests, 45 pages, all
+  internal links resolve.
+- Keyes logo suite — 21/21. **All 45 built pages carry the mark**, five slots
+  each, which was the client's explicit ask.
+- Contrast sweep — 44 pages × 2 widths, 0 failures.
+- `grep` for `Broker-Associate` / `Realtor Associate` across the whole repo:
+  no hits outside the correction note that records they were wrong.

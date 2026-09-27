@@ -12,19 +12,8 @@ import { getProfessional } from '@config/site';
 const martin = getProfessional('martin-hoffman');
 const maryellen = getProfessional('maryellen-closius');
 
-/** Keyed by slug so a copy change never lands on the wrong person. */
-const INTROS: Record<string, { intro: string; cta: string }> = {
-  'martin-hoffman': {
-    intro:
-      'Martin holds a Broker-Associate licence and represents buyers and sellers across South Florida.',
-    cta: 'Meet Martin',
-  },
-  'maryellen-closius': {
-    intro:
-      'MaryEllen is a Realtor Associate and Relocation Specialist, working with buyers, sellers and families moving to South Florida.',
-    cta: 'Meet MaryEllen',
-  },
-};
+/* The introduction now lives on the record itself (`professionals[].intro`),
+   so a correction to either person's title lands everywhere at once. */
 ---
 
 <Section tone="warm" labelledby="agents-heading">
@@ -42,8 +31,8 @@ const INTROS: Record<string, { intro: string; cta: string }> = {
           person && (
             <AgentCard
               person={person}
-              intro={INTROS[person.slug]?.intro ?? ''}
-              ctaLabel={INTROS[person.slug]?.cta ?? 'Read more'}
+              intro={person.intro}
+              ctaLabel={`Meet ${person.firstName}`}
               seed={index + 1}
             />
           ),

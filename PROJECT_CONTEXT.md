@@ -20,12 +20,17 @@ instruction.
 ### Primary professionals
 
 **Martin Hoffman P.A.**
-Broker-Associate
+Broker
 Phone `954-605-4823` · Email `MartinHoffman@keyes.com`
 
 **MaryEllen Closius P.A.**
-Realtor Associate | Relocation Specialist
+Sales Associate | Relocation Specialist
 Phone `954-471-4626` · Email `MaryEllenC@keyes.com`
+
+> **Corrected 2026-09-27 by the client.** Martin holds a **broker** licence,
+> not a broker-associate licence; MaryEllen is a **Sales Associate**, not a
+> Realtor Associate. Both were previously published wrongly. These are
+> licence titles — if either is ever restated, it is restated from here.
 
 These are the **only** confirmed facts about the people. Everything else about
 them — biography, photograph, licence number, years in the business, awards,
