@@ -128,11 +128,13 @@ export const professionals: readonly Professional[] = [
     lastName: 'Hoffman',
     name: 'Martin Hoffman P.A.',
     /*
-     * Corrected 2026-09-27 by the client: Martin holds a BROKER licence, not a
-     * broker-associate licence. The two are different levels of Florida
-     * licence and the site previously stated the wrong one.
+     * Set by the client, 2026-09-28. This field has now been corrected twice
+     * — first to 'Broker', then back — so it is worth being explicit: nobody
+     * should change it from anything other than the client saying so
+     * directly. It is a regulated title and it reaches the Person structured
+     * data, so a guess here is republished by search engines.
      */
-    title: 'Broker',
+    title: 'Broker-Associate',
     specialty: null,
     phone: { label: 'Phone', value: '954-605-4823', href: tel('9546054823') },
     email: {
@@ -142,7 +144,7 @@ export const professionals: readonly Professional[] = [
     },
     href: '/about/martin-hoffman/',
     intro:
-      'Martin holds a Florida broker licence and works with buyers and sellers across South Florida.',
+      'Martin is a Broker-Associate and works with buyers and sellers across South Florida.',
     portrait: '/images/team/martin-hoffman.jpg',
     bio: null,
     specialties: [],
