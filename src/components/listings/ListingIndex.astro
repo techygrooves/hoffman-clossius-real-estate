@@ -104,7 +104,23 @@ const showResults = hasListingData && scope.listings.length > 0;
       <h2 id="listing-results-heading" class="sr-only">Property results</h2>
       {listingProvider.isDemo && <DemoNotice class="mb-6" what="properties" />}
 
-      <ListingFilters query={query} action={path} showStatus={showStatus} />
+      {/*
+        Only rendered when there is something to filter.
+
+        With no MLS feed connected these controls filtered an empty set: you
+        could set a price range and a bedroom count, press Search, and nothing
+        would happen. That is what the client meant by the search not working.
+        The honest page is the one that sends you to the search that does work
+        (`ListingEmptyState`, below) rather than one that takes your input and
+        drops it.
+
+        Gated on data rather than on a flag, so the day a provider is
+        connected the full filter UI returns with no code change — it is all
+        still here.
+      */}
+      {showResults && (
+        <ListingFilters query={query} action={path} showStatus={showStatus} />
+      )}
 
       <div class="mt-10 scroll-mt-32" data-results-region>
         {

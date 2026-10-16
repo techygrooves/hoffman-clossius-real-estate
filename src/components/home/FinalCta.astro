@@ -4,7 +4,7 @@
  */
 import Section from '@components/ui/Section.astro';
 import Button from '@components/ui/Button.astro';
-import { professionals } from '@config/site';
+import { professionals, propertySearch } from '@config/site';
 ---
 
 <Section tone="deep" labelledby="final-cta-heading">
@@ -17,7 +17,7 @@ import { professionals } from '@config/site';
 
     <div class="mt-10 flex flex-col gap-3 sm:flex-row">
       <Button href="/contact/" size="lg" variant="gold" withArrow>Contact Us</Button>
-      <Button href="/properties/search/" size="lg" variant="inverse">
+      <Button href={propertySearch.url} size="lg" variant="inverse">
         Search Homes
       </Button>
     </div>

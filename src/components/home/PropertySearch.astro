@@ -2,46 +2,37 @@
 /**
  * PropertySearch — the search module beneath the hero.
  *
- * A plain GET form that routes its criteria to /properties/search/, which
- * applies them for real.
+ * ── What changed, and why ─────────────────────────────────────────────────
+ * This used to be a full filter form — location, price, beds, baths, type —
+ * that submitted to `/properties/search/`. Every field worked; the page it
+ * submitted to had no listings behind it, because no MLS feed has ever been
+ * connected. So a visitor filled in six fields and got nothing. That is what
+ * the client meant by "the search bar is not working".
  *
- * The field names come from `PARAM` in src/lib/listings/query.ts — the same
- * vocabulary the search page parses. They must not be spelled by hand here,
- * or the two drift apart and the homepage sends filters the search page
- * silently ignores.
+ * The client supplied their live search on 2026-10-16
+ * (`propertySearch.url` in src/config/site.ts), so this now takes people
+ * straight there.
  *
- * The Buy/Rent tabs are a native radio group — keyboard-operable with arrow
- * keys, and styled entirely in CSS, so no JavaScript is involved.
+ * ── Why there is no text field ────────────────────────────────────────────
+ * The destination is an external platform whose query vocabulary we have not
+ * been given, and the site cannot reach it from here to find out. A box that
+ * takes what someone types and then drops it on the floor is worse than no
+ * box: they would arrive at an unfiltered list believing they had searched
+ * for Hollywood. So this is an honest, prominent way IN to the search, and
+ * the typing happens there, where it works.
+ *
+ * Restore filters here the moment the destination's parameter names are
+ * confirmed — see IDX_INTEGRATION.md.
  */
 import Container from '@components/ui/Container.astro';
-import {
-  PARAM,
-  PROPERTY_TYPE_LABELS,
-  SELECTABLE_PROPERTY_TYPES,
-} from '@lib/listings/query';
+import { propertySearch } from '@config/site';
 
-const PRICES = [
-  50000, 100000, 200000, 300000, 400000, 500000, 750000, 1000000, 1500000,
-  2000000, 3000000, 5000000, 10000000,
+/** Routes that do work on this site today, for people who want a way to browse. */
+const BROWSE = [
+  { label: 'Our listings', href: '/properties/our-listings/' },
+  { label: 'New developments', href: '/developments/new/' },
+  { label: 'Communities', href: '/communities/' },
 ];
-
-const usd = new Intl.NumberFormat('en-US', {
-  style: 'currency',
-  currency: 'USD',
-  notation: 'compact',
-  maximumFractionDigits: 1,
-});
-
-const fieldClass =
-  'h-12 w-full rounded-xs border border-line-control bg-white px-3.5 text-sm text-ink placeholder:text-ink-subtle ' +
-  'transition-colors hover:border-evergreen-700 focus:border-evergreen-800';
-
-const labelClass = 'block text-xs uppercase tracking-wide-sm text-ink-muted';
-
-const tabClass =
-  'block cursor-pointer rounded-xs px-6 py-2.5 text-center text-sm tracking-wide-sm transition-colors ' +
-  'text-ink-muted hover:text-evergreen-800 ' +
-  'peer-checked:bg-evergreen-800 peer-checked:text-white';
 ---
 
 <section
@@ -59,128 +50,88 @@ const tabClass =
         Find your place in South Florida
       </h2>
 
-      <form
-        action="/properties/search/"
-        method="get"
-        class="mt-7"
-        role="search"
-        aria-label="Property search"
+      <p class="mt-3 max-w-xl leading-relaxed text-ink-muted">
+        Every active listing across Broward, Palm Beach and Miami-Dade, with
+        filters for location, price, bedrooms and property type.
+      </p>
+
+      {/*
+        One link, styled as a search bar. The whole bar is the target, so
+        there is no small hit area to aim at on a phone, and `group-hover`
+        lights the action block from anywhere inside it.
+
+        It is deliberately a link rather than a form: it reads as something
+        you press, not something you type into, which is the truth of it.
+      */}
+      <a
+        href={propertySearch.url}
+        data-search-cta
+        class="group mt-7 flex min-h-14 w-full items-stretch overflow-hidden rounded-xs border border-line-control bg-white transition-all duration-300 ease-[var(--ease-editorial)] hover:border-evergreen-800 hover:shadow-card focus-visible:border-evergreen-800 motion-safe:active:translate-y-px"
       >
-        {/* Buy / Rent */}
-        <fieldset class="border-0 p-0">
-          <legend class="sr-only">What are you looking for?</legend>
-          <div class="inline-flex rounded-xs border border-line p-1">
-            <label class="relative">
-              <input
-                type="radio"
-                name={PARAM.status}
-                value="for-sale"
-                checked
-                class="peer sr-only"
-              />
-              <span class={tabClass}>Buy</span>
-            </label>
-            <label class="relative">
-              <input type="radio" name={PARAM.status} value="for-rent" class="peer sr-only" />
-              <span class={tabClass}>Rent</span>
-            </label>
-          </div>
-        </fieldset>
+        <span class="flex flex-1 items-center gap-3 px-4 py-3.5 sm:gap-4 sm:px-5">
+          <svg
+            class="h-5 w-5 shrink-0 text-evergreen-700"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linecap="round"
+            aria-hidden="true"
+          >
+            <circle cx="11" cy="11" r="7"></circle>
+            <path d="M20 20l-4-4"></path>
+          </svg>
+          {/*
+            Weighted and coloured as an action, not as placeholder grey. The
+            bar is shaped like a search field because that is the shape people
+            look for, but nothing here accepts typing, so it must not read as
+            an empty box waiting for a caret.
+          */}
+          <span
+            class="text-left text-sm font-medium leading-snug text-evergreen-800 sm:text-base"
+          >
+            Search all South Florida listings
+            <span class="sr-only"> — {propertySearch.srSuffix}</span>
+          </span>
+        </span>
 
-        <div class="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-12">
-          <div class="lg:col-span-4">
-            <label class={labelClass} for="search-location">
-              Location, city or ZIP
-            </label>
-            <input
-              id="search-location"
-              name={PARAM.location}
-              type="text"
-              autocomplete="off"
-              placeholder="Hollywood, Fort Lauderdale, 33019…"
-              class={`mt-2 ${fieldClass}`}
-            />
-          </div>
+        <span
+          class="flex shrink-0 items-center gap-2.5 self-stretch bg-evergreen-800 px-5 text-sm font-medium tracking-wide-sm text-white transition-colors duration-300 group-hover:bg-evergreen-900 sm:px-8"
+          aria-hidden="true"
+        >
+          <span class="hidden sm:inline">Search</span>
+          <svg
+            class="h-3.5 w-3.5 shrink-0 transition-transform duration-300 ease-[var(--ease-editorial)] motion-safe:group-hover:translate-x-1"
+            viewBox="0 0 16 16"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linecap="square"
+          >
+            <path d="M1 8h13M9 3l5 5-5 5"></path>
+          </svg>
+        </span>
+      </a>
 
-          <div class="lg:col-span-2">
-            <label class={labelClass} for="search-min">Min price</label>
-            <select id="search-min" name={PARAM.minPrice} class={`mt-2 ${fieldClass}`}>
-              <option value="">No minimum</option>
-              {PRICES.map((p) => <option value={p}>{usd.format(p)}</option>)}
-            </select>
-          </div>
+      <div
+        class="mt-6 flex flex-col gap-4 border-t border-line pt-6 sm:flex-row sm:items-center sm:justify-between"
+      >
+        <p class="text-xs leading-relaxed text-ink-muted">
+          Or browse what we are working on right now:
+        </p>
 
-          <div class="lg:col-span-2">
-            <label class={labelClass} for="search-max">Max price</label>
-            <select id="search-max" name={PARAM.maxPrice} class={`mt-2 ${fieldClass}`}>
-              <option value="">No maximum</option>
-              {PRICES.map((p) => <option value={p}>{usd.format(p)}</option>)}
-            </select>
-          </div>
-
-          <div class="lg:col-span-1">
-            <label class={labelClass} for="search-beds">Beds</label>
-            <select id="search-beds" name={PARAM.beds} class={`mt-2 ${fieldClass}`}>
-              <option value="">Any</option>
-              {[1, 2, 3, 4, 5, 6].map((n) => <option value={n}>{n}+</option>)}
-            </select>
-          </div>
-
-          <div class="lg:col-span-1">
-            <label class={labelClass} for="search-baths">Baths</label>
-            <select id="search-baths" name={PARAM.baths} class={`mt-2 ${fieldClass}`}>
-              <option value="">Any</option>
-              {[1, 2, 3, 4, 5].map((n) => <option value={n}>{n}+</option>)}
-            </select>
-          </div>
-
-          <div class="sm:col-span-2 lg:col-span-2">
-            <label class={labelClass} for="search-type">Property type</label>
-            <select id="search-type" name={PARAM.propertyType} class={`mt-2 ${fieldClass}`}>
-              <option value="">All types</option>
-              {
-                SELECTABLE_PROPERTY_TYPES.filter((t) => t !== 'other').map((t) => (
-                  <option value={t}>{PROPERTY_TYPE_LABELS[t]}</option>
-                ))
-              }
-            </select>
-          </div>
-        </div>
-
-        <div class="mt-7 flex flex-col gap-4 border-t border-line pt-6 sm:flex-row sm:items-center sm:justify-between">
-          <p class="max-w-md text-xs leading-relaxed text-ink-muted">
-            Your filters carry through to the results page, and the address bar
-            keeps them — so a search can be bookmarked or sent to someone.
-          </p>
-
-          <div class="flex flex-col gap-3 sm:flex-row sm:shrink-0">
-            <button
-              type="submit"
-              class="group inline-flex h-12 items-center justify-center gap-2.5 rounded-xs border border-evergreen-800 bg-evergreen-800 px-8 text-sm font-medium tracking-wide-sm text-white transition-all duration-300 ease-[var(--ease-editorial)] hover:bg-evergreen-900 hover:shadow-card motion-safe:active:translate-y-px"
-            >
-              Search Homes
-              <svg
-                class="h-3.5 w-3.5 shrink-0 transition-transform duration-300 ease-[var(--ease-editorial)] motion-safe:group-hover:translate-x-1"
-                viewBox="0 0 16 16"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="1.5"
-                stroke-linecap="square"
-                aria-hidden="true"
-              >
-                <path d="M1 8h13M9 3l5 5-5 5"></path>
-              </svg>
-            </button>
-
-            <a
-              href="/properties/search/"
-              class="inline-flex h-12 items-center justify-center rounded-xs border border-line-control px-6 text-sm font-medium tracking-wide-sm text-evergreen-800 transition-colors hover:border-evergreen-800 hover:bg-evergreen-50"
-            >
-              Advanced Search
-            </a>
-          </div>
-        </div>
-      </form>
+        <ul class="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
+          {
+            BROWSE.map((item) => (
+              <li>
+                <a href={item.href} class="link-underline text-evergreen-800">
+                  {item.label}
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
     </div>
   </Container>
 </section>

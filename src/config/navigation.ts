@@ -20,6 +20,8 @@
  * dead-link check.
  */
 import { featuredCommunities } from '../data/communities.ts';
+/* Same rule, same reason. `site.ts` has no runtime imports at all. */
+import { propertySearch } from './site.ts';
 
 export type NavLink = {
   readonly label: string;
@@ -185,10 +187,19 @@ export const primaryNav: readonly NavEntry[] = [
   { label: 'Contact', href: '/contact/' },
 ];
 
-/** The single primary call to action in the header. */
+/**
+ * The single primary call to action in the header.
+ *
+ * Points at the client's live search rather than `/properties/search/`, which
+ * filters a listing set this site does not have. `allNavHrefs()` below skips
+ * anything that is not a root-relative path, so an external destination here
+ * is invisible to the dead-link check — which is correct, since that check
+ * can only verify routes this build produces.
+ */
 export const headerCta = {
   label: 'Search Homes',
-  href: '/properties/search/',
+  href: propertySearch.url,
+  external: true,
 } as const;
 
 /* -------------------------------------------------------------------------- */
@@ -216,8 +227,8 @@ export const mobileActions: readonly MobileAction[] = [
   {
     kind: 'link',
     label: 'Search',
-    srLabel: 'Search homes for sale',
-    href: '/properties/search/',
+    srLabel: `Search homes for sale ${propertySearch.srSuffix}`,
+    href: propertySearch.url,
   },
   {
     kind: 'link',
@@ -286,12 +297,6 @@ export const legalNav: readonly NavLink[] = [
   { label: 'Terms', href: '/terms/' },
 ];
 
-/** Account routes — deliberately kept out of the primary menu. */
-export const accountNav: readonly NavLink[] = [
-  { label: 'Sign In', href: '/login/' },
-  { label: 'Create Account', href: '/register/' },
-];
-
 /* -------------------------------------------------------------------------- */
 /* Helpers                                                                     */
 /* -------------------------------------------------------------------------- */
@@ -338,7 +343,6 @@ export const allNavHrefs = (): string[] => {
   }
   for (const group of footerNav) group.items.forEach((i) => add(i.href));
   legalNav.forEach((l) => add(l.href));
-  accountNav.forEach((l) => add(l.href));
   mobileActions.forEach((a) => {
     if (a.kind === 'link') add(a.href);
   });

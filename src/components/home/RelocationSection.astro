@@ -8,14 +8,14 @@
  */
 import Section from '@components/ui/Section.astro';
 import MediaSlot from '@components/ui/MediaSlot.astro';
-import { getProfessional } from '@config/site';
+import { getProfessional, propertySearch } from '@config/site';
 
 const maryellen = getProfessional('maryellen-closius');
 
 const LINKS = [
   { label: 'Relocation Guide', href: '/relocation/' },
   { label: 'Explore Communities', href: '/communities/' },
-  { label: 'Search Homes', href: '/properties/search/' },
+  { label: 'Search Homes', href: propertySearch.url },
   { label: 'Contact Us', href: '/contact/' },
 ];
 ---

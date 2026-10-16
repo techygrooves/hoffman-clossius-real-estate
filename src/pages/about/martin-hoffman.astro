@@ -24,7 +24,7 @@ import PersonSpecialties from '@components/people/PersonSpecialties.astro';
 import PersonContactCard from '@components/people/PersonContactCard.astro';
 import PersonListings from '@components/people/PersonListings.astro';
 import ConsultationCta from '@components/people/ConsultationCta.astro';
-import { getProfessional } from '@config/site';
+import { getProfessional, propertySearch } from '@config/site';
 
 const person = getProfessional('martin-hoffman');
 if (!person) throw new Error('Martin Hoffman is missing from src/config/site.ts');
@@ -179,7 +179,7 @@ const WORKING_WITH = [
     </ul>
 
     <div class="mt-10 flex flex-wrap gap-3" data-reveal>
-      <Button href="/properties/search/" variant="secondary" withArrow>
+      <Button href={propertySearch.url} variant="secondary" withArrow>
         Search properties
       </Button>
       <Button href="/sell/home-evaluation/" variant="ghost">

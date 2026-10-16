@@ -31,7 +31,7 @@ import {
   communityCounties,
   getCommunity,
 } from '@data/communities';
-import { serviceArea } from '@config/site';
+import { propertySearch, serviceArea } from '@config/site';
 
 const featured = featuredCommunities();
 const counties = communityCounties();
@@ -71,7 +71,7 @@ const areaCount = communities.length - cityCount;
               timelines and its own quirks of insurance and association rules.
             </p>
             <div class="mt-9 flex flex-wrap gap-3">
-              <Button href="/properties/search/" size="lg" withArrow>
+              <Button href={propertySearch.url} size="lg" withArrow>
                 Search all properties
               </Button>
               <Button href="/relocation/" size="lg" variant="secondary">
@@ -169,7 +169,7 @@ const areaCount = communities.length - cityCount;
         <Button href="/contact/" variant="secondary" withArrow>
           Ask about an area
         </Button>
-        <Button href="/properties/search/" variant="ghost">Search all properties</Button>
+        <Button href={propertySearch.url} variant="ghost">Search all properties</Button>
       </div>
     </div>
   </Section>

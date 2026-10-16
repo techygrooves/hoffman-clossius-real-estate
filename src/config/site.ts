@@ -178,6 +178,37 @@ export const getProfessional = (slug: string): Professional | undefined =>
   professionals.find((p) => p.slug === slug);
 
 /* -------------------------------------------------------------------------- */
+/* Property search — the client's live IDX search                              */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Where "search properties" actually sends people.
+ *
+ * CONFIRMED by the client (2026-10-16). Until now every search control on the
+ * site pointed at `/properties/search/`, which renders a real filtering UI
+ * over no listings at all — the MLS feed has never been connected
+ * (IDX_INTEGRATION.md, CONTENT_PENDING.md §5). That is why search "was not
+ * working": nothing was broken, there was simply nothing behind it.
+ *
+ * This is an EXTERNAL destination, on the brokerage's existing search
+ * platform. Links to it navigate in the same tab — nobody asked for a new
+ * window — but every one carries an `sr-only` note, so somebody using a
+ * screen reader is told they are leaving before they commit to it.
+ *
+ * ── One thing to watch ────────────────────────────────────────────────────
+ * The URL sits on the same hostname this site is destined for. If this site
+ * is ever published AT `www.hoffmanandclosius.com`, the host must keep
+ * serving `/11/search/11` from the existing platform, because this build does
+ * not generate that route. Changing hosting without checking that would turn
+ * every search control on the site into a 404. See LEGACY_REDIRECTS.md.
+ */
+export const propertySearch = {
+  url: 'https://www.hoffmanandclosius.com/11/search/11',
+  /** Shown to assistive tech so leaving the site is never a surprise. */
+  srSuffix: '(opens the full property search)',
+} as const;
+
+/* -------------------------------------------------------------------------- */
 /* Brokerage brand assets                                                      */
 /* -------------------------------------------------------------------------- */
 
@@ -265,11 +296,17 @@ export const pending = {
     realtorDotCom: null as string | null,
   },
 
-  /** IDX / MLS feed. No listing data may be fabricated or scraped. */
+  /**
+   * IDX / MLS feed for listings rendered BY THIS SITE. No listing data may be
+   * fabricated or scraped.
+   *
+   * `searchUrl` has graduated out of here: the client confirmed their live
+   * search on 2026-10-16 and it now lives in `propertySearch` above. The rest
+   * stays null — this site still displays no MLS data of its own.
+   */
   idx: {
     provider: null as string | null,
     embedType: null as null | 'iframe' | 'script' | 'api',
-    searchUrl: null as string | null,
     agentIds: null as string[] | null,
   },
 

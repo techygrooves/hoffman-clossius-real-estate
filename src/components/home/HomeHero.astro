@@ -8,7 +8,7 @@
  * (keep it muted, `playsinline`, poster-backed and behind a reduced-motion
  * check when it arrives).
  */
-import { professionals, serviceArea } from '@config/site';
+import { professionals, propertySearch, serviceArea } from '@config/site';
 import Container from '@components/ui/Container.astro';
 import Button from '@components/ui/Button.astro';
 import MediaSlot from '@components/ui/MediaSlot.astro';
@@ -96,7 +96,7 @@ const counties = serviceArea.counties
         data-reveal
         style="--reveal-delay:180ms"
       >
-        <Button href="/properties/search/" size="lg" variant="gold" withArrow>
+        <Button href={propertySearch.url} size="lg" variant="gold" withArrow>
           Search Properties
         </Button>
         <Button href="/sell/home-evaluation/" size="lg" variant="inverse">

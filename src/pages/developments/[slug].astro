@@ -28,6 +28,7 @@ import DevelopmentGrid from '@components/developments/DevelopmentGrid.astro';
 import { developmentProvider } from '@lib/developments/provider';
 import { DEVELOPMENT_TYPE_LABELS } from '@lib/developments/query';
 import { formatPrice, formatDate } from '@lib/format';
+import { propertySearch } from '@config/site';
 
 export const getStaticPaths = (async () => {
   const developments = await developmentProvider.getAll();
@@ -199,7 +200,7 @@ const categoryCrumb =
             >
               Ask about availability
             </Button>
-            <Button href="/properties/search/" variant="secondary">
+            <Button href={propertySearch.url} variant="secondary">
               Search resale properties
             </Button>
           </div>

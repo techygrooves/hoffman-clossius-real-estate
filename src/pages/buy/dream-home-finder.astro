@@ -21,7 +21,7 @@ import LeadForm from '@components/forms/LeadForm.astro';
 import FormSection from '@components/forms/FormSection.astro';
 import FormField from '@components/forms/FormField.astro';
 import FormChoiceGroup from '@components/forms/FormChoiceGroup.astro';
-import { professionals } from '@config/site';
+import { professionals, propertySearch } from '@config/site';
 import { communities } from '@data/communities';
 import { PARAM, PROPERTY_TYPE_LABELS, SELECTABLE_PROPERTY_TYPES } from '@lib/listings/query';
 
@@ -339,7 +339,7 @@ const contactOptions = ['Email', 'Phone call', 'Text message'].map((label) => ({
               picture. Your filters carry over into this form.
             </p>
             <a
-              href="/properties/search/"
+              href={propertySearch.url}
               class="link-underline mt-4 inline-block text-sm text-evergreen-800"
             >
               Search properties

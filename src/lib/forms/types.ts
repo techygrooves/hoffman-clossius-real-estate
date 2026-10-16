@@ -21,11 +21,13 @@ export type LeadKind =
   | 'home-evaluation'
   | 'contact'
   /**
-   * A request to have property alerts set up by hand. NOT an account: this
-   * site has no account system (src/lib/auth/), so /register/ collects the
-   * same details a saved search needs and sends them to Martin and MaryEllen
-   * as an ordinary enquiry. No password is involved, because none is asked
-   * for.
+   * A request to have property alerts set up by hand.
+   *
+   * Nothing emits this today. `/register/` used to, and it was removed on
+   * 2026-10-16 along with the rest of the account system. The variant is kept
+   * because the shape is still right: if alerts ever come back they are an
+   * ordinary enquiry sent to Martin and MaryEllen, never an account with a
+   * password behind it.
    */
   | 'property-alerts'
   | 'relocation'
