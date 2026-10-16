@@ -25,7 +25,7 @@ import Button from '@components/ui/Button.astro';
 import MediaSlot from '@components/ui/MediaSlot.astro';
 import TestimonialCard from '@components/testimonials/TestimonialCard.astro';
 import TestimonialEmptyState from '@components/testimonials/TestimonialEmptyState.astro';
-import { getProfessional, professionals, serviceArea } from '@config/site';
+import { getProfessional, professionals, propertySearch, serviceArea } from '@config/site';
 import { communities } from '@data/communities';
 import { verifiedTestimonials } from '@data/testimonials';
 
@@ -81,7 +81,7 @@ const LINKS = [
     eyebrow: 'Search',
     title: 'Search properties',
     body: 'Filter by location, price, size and features. Every search is shareable.',
-    href: '/properties/search/',
+    href: propertySearch.url,
     cta: 'Start searching',
   },
   {
@@ -135,7 +135,7 @@ const LINKS = [
             </p>
             <div class="mt-9 flex flex-wrap gap-3">
               <Button href="/contact/" size="lg" withArrow>Get in touch</Button>
-              <Button href="/properties/search/" size="lg" variant="secondary">
+              <Button href={propertySearch.url} size="lg" variant="secondary">
                 Search properties
               </Button>
             </div>
@@ -382,7 +382,7 @@ const LINKS = [
           <Button href="/communities/" variant="gold" withArrow>
             Explore communities
           </Button>
-          <Button href="/properties/search/" variant="inverse">
+          <Button href={propertySearch.url} variant="inverse">
             Search properties
           </Button>
         </div>

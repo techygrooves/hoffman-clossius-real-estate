@@ -11,7 +11,7 @@
  *  'error'           the provider failed. Also plain language.
  */
 import Button from '@components/ui/Button.astro';
-import { professionals } from '@config/site';
+import { professionals, propertySearch } from '@config/site';
 import { cn } from '@lib/cn';
 
 interface Props {
@@ -24,11 +24,18 @@ interface Props {
 const { variant = 'no-results', title, class: className } = Astro.props;
 
 const COPY = {
+  /*
+   * The state every one of these pages is in today: this site shows no MLS
+   * data of its own. Since 2026-10-16 there is somewhere real to send people
+   * — the brokerage's own search — so that is the primary action rather than
+   * a form. Asking someone to describe what they want, when a working search
+   * exists one click away, is making them do the site's job.
+   */
   'not-configured': {
-    title: 'Live property search is being configured.',
-    body: 'Full search across the South Florida market is being set up for this site. In the meantime, tell Martin or MaryEllen what you are looking for — they search the market directly and will come back to you.',
-    primary: { label: 'Tell us what you want', href: '/buy/dream-home-finder/' },
-    secondary: { label: 'Contact us', href: '/contact/' },
+    title: 'Search the full South Florida market.',
+    body: 'Listings are not shown on this page yet. Our complete search — every active home, condominium and rental across Broward, Palm Beach and Miami-Dade — is one click away, or tell Martin and MaryEllen what you are looking for and they will search it for you.',
+    primary: { label: 'Search all listings', href: propertySearch.url },
+    secondary: { label: 'Tell us what you want', href: '/buy/dream-home-finder/' },
   },
   'no-results': {
     title: 'No properties match those filters.',

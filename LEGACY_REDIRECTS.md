@@ -33,6 +33,14 @@ So every old URL needs its own considered destination, not a catch-all.
 `site.url` is `https://www.hoffmanandclosius.com` and every canonical,
 `og:url` and sitemap entry is built from that exact origin.
 
+> ### ⚠️ `/11/search/11` must keep working
+> Every search control on this site links to
+> `https://www.hoffmanandclosius.com/11/search/11` — 214 links across 43
+> pages (`propertySearch` in `src/config/site.ts`). **This build does not
+> generate that route.** If this site is published at that hostname, the
+> host must keep serving that path from the existing platform, or every
+> one of those links 404s at once. Check it before any hosting change.
+
 **The host must 301 the apex to `www`**, and http to https:
 
 | From | To | Status |

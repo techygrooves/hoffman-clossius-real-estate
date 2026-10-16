@@ -19,6 +19,7 @@ import DemoNotice from '@components/ui/DemoNotice.astro';
 import ListingGrid from '@components/listings/ListingGrid.astro';
 import { listingProvider, hasListingData } from '@lib/listings/provider';
 import type { Community } from '@data/communities';
+import { propertySearch } from '@config/site';
 
 interface Props {
   community: Community;
@@ -95,7 +96,7 @@ const items = result.listings;
           <Button href="/buy/dream-home-finder/" variant="secondary" withArrow>
             Tell us what you want
           </Button>
-          <Button href="/properties/search/" variant="ghost">
+          <Button href={propertySearch.url} variant="ghost">
             Search all properties
           </Button>
         </div>

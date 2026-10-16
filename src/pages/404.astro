@@ -8,7 +8,7 @@ import BaseLayout from '@layouts/BaseLayout.astro';
 import PageHero from '@components/ui/PageHero.astro';
 import Section from '@components/ui/Section.astro';
 import Button from '@components/ui/Button.astro';
-import { professionals } from '@config/site';
+import { professionals, propertySearch } from '@config/site';
 
 /*
  * The four routes a lost visitor actually wants, in the order they want them.
@@ -19,7 +19,7 @@ import { professionals } from '@config/site';
 const destinations = [
   {
     label: 'Search homes',
-    href: '/properties/search/',
+    href: propertySearch.url,
     note: 'Filter by location, price, size and features across South Florida.',
   },
   {
@@ -51,7 +51,7 @@ const destinations = [
     lead="The link may be out of date, or the address may have been mistyped."
   >
     <div class="mt-2 flex flex-wrap gap-3">
-      <Button href="/properties/search/" withArrow>Search homes</Button>
+      <Button href={propertySearch.url} withArrow>Search homes</Button>
       <Button href="/communities/" variant="secondary">Explore communities</Button>
     </div>
   </PageHero>

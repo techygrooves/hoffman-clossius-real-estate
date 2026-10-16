@@ -28,7 +28,7 @@ import Section from '@components/ui/Section.astro';
 import SectionHeader from '@components/ui/SectionHeader.astro';
 import Button from '@components/ui/Button.astro';
 import { LOAN_TERMS } from '@lib/mortgage/calculate';
-import { professionals } from '@config/site';
+import { professionals, propertySearch } from '@config/site';
 
 /*
  * Deliberately carries NO width utility. Tailwind emits `w-full` after `w-28`,
@@ -468,7 +468,7 @@ const NOT_INCLUDED = [
           {
             title: 'Search properties',
             body: 'Filter by area, price, size and features. Every search is shareable.',
-            href: '/properties/search/',
+            href: propertySearch.url,
             cta: 'Start searching',
           },
           {

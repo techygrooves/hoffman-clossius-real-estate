@@ -1327,7 +1327,7 @@ primitive rather than adding a near-duplicate.
 | 18 | Coordinates are unverified and unplotted | 🟢 low | Approximate centroids on the eleven municipalities, none on the subareas. `CommunityMap` states the location in words and plots nothing, so nothing incorrect ships — but they must be verified before a map provider goes in. `CONTENT_PENDING.md` 10.5c. |
 | 15 | Per-agent listings untestable against real data | 🟢 low | `agentProfilePath` matches `listingAgent.profilePath`, which the demo provider sets from `professionals[].href`. A real IDX feed must map its own agent identity onto the same paths in `idxProvider.ts`, or both profile pages will show the honest "nothing on the open market" state forever. Noted in `IDX_INTEGRATION.md`. |
 | 22 | Small link targets below the project's own 44px aim | 🟢 low | **Improved in session 12: 296 → 216.** Two base-layer rules fixed the repeated cases — `tel:`/`mailto:` links (58 across 34 files, now 44px) and standalone links that are direct children of a flex or grid container. The remaining 216 are links in ordinary block containers, 16–20px tall. They are **not** a WCAG failure: axe's `target-size` rule passes on every page in both build modes under SC 2.5.8's inline exception. They sit below this project's own stricter 44×44 aim. Closing the rest means per-call-site edits, since no CSS selector distinguishes them from prose links. |
-| 23 | No account provider connected | 🟠 med | `/login/` says accounts are not available; `/register/` collects alert details for Martin and MaryEllen to action by hand. Resolves with two environment variables — `CONTENT_PENDING.md` 5.10a, `AUTH_INTEGRATION.md`. **No page renders a password field in any build mode, and that does not change when a provider is connected** — the credential step is the provider's, on its own origin. |
+| 23 | ~~No account provider connected~~ | 🟢 **gone** | **Accounts removed entirely on 2026-10-16 at the client's instruction.** `/login/`, `/register/`, `src/components/auth/`, `src/lib/auth/` and `AUTH_INTEGRATION.md` are deleted; the Sign In / Create Account links are out of the header and drawer. Nothing had to be migrated — the site never collected credentials and rendered no password field in any build mode. See session 14. |
 | 24 | No approved legal text | 🔴 high | `/privacy-policy/` and `/terms/` are built and render a clearly marked "awaiting legal review" slot. Both documents bind the client and neither may be drafted by us. Resolves by pasting approved text into `src/data/legal.ts` and setting `approved: true` — `CONTENT_PENDING.md` 4.7, 4.7a, 4.8. The privacy policy is additionally blocked on 6.1/6.7 (where submissions go and how long they are kept) and 11.1 (analytics), because it must describe what the site actually does. |
 | 12 | No median home values published | 🟠 med | `/sell/median-home-values/` shows no figure for any of the six cities, because none carries a source and a date. Resolves via a `medianHomeValue` on a community record, or a live `ValuationProvider`. `CONTENT_PENDING.md` 10.7. |
 
@@ -1350,8 +1350,10 @@ primitive rather than adding a near-duplicate.
    on any record also lights up that city on `/sell/median-home-values/`.
 5. `/developments/new/` and `/existing/` — blocked on client material.
 6. The first journal article — one Markdown file. Delete the samples with it.
-7. **IDX integration** — `/properties/*`, `/property/[slug]/`, `/login/`,
-   `/register/`. Fully blocked on `CONTENT_PENDING.md` §5.
+7. **IDX integration** — `/properties/*`, `/property/[slug]/`. Still blocked on
+   `CONTENT_PENDING.md` §5 for listings rendered *by this site*, but no longer
+   blocking visitors: since 2026-10-16 every search control points at the
+   brokerage's live search (`propertySearch` in `src/config/site.ts`).
 
 ### The SEO phase — deferred on purpose, and scaffolded for
 Every community record carries an empty `seo` object (`title`, `description`,
@@ -1991,3 +1993,88 @@ not evidence of anything.
 - Contrast sweep — 44 pages × 2 widths, 0 failures.
 - `grep` for `Broker-Associate` / `Realtor Associate` across the whole repo:
   no hits outside the correction note that records they were wrong.
+
+## ✅ Completed — Session 14 (2026-10-16) · A search that works, and no accounts
+
+### "The search bar is not working"
+
+Nothing was broken. The search bar filtered correctly, submitted correctly and
+landed on a page that applied every filter — to zero listings, because no MLS
+feed has ever been connected. A visitor set a price range, a bedroom count and
+a city, pressed Search, and arrived at an empty page. Six fields of effort for
+nothing.
+
+The client supplied their live search, and it now lives in one place as
+`propertySearch` in `src/config/site.ts`. **Every search control on the site
+points at it** — 214 links across 43 pages:
+
+- the search module under the hero, rebuilt;
+- the header `Search Homes` button, on every page;
+- the `Search` action in the mobile bar;
+- all 25 "Search properties" / "Search homes" calls to action scattered
+  through the homepage, `/buy/`, `/about/`, `/relocation/`, `/communities/`,
+  `/404/`, the buying guide and the mortgage calculator.
+
+The URL is **not** repeated at those 25 call sites. That is the lesson from
+session 11, where one sentence had been copy-pasted into seven files and a
+correction meant finding all seven: one constant, one import, one place to
+change it.
+
+### Why the rebuilt bar has no text field
+
+The destination is an external platform whose query parameters we have not
+been given, and this container cannot reach the host to find out — the proxy
+refuses `hoffmanandclosius.com` outright. A box that accepts "Hollywood, under
+$600k" and then drops it would land someone on an unfiltered list believing
+they had searched. That is worse than no box.
+
+So the bar is one honest link, shaped like a search field because that is the
+shape people look for, with its label weighted and coloured as an action
+rather than as placeholder grey — nothing on it should read as an empty box
+waiting for a caret. The first draft failed that test and was changed.
+
+Restore real filters the moment the parameter names are confirmed; the hook is
+documented on the component.
+
+### The dead filter form is gone from the listing pages
+
+`/properties/search/`, `/for-sale/`, `/for-rent/` and `/our-listings/` all
+rendered a full filter UI above an empty state. One line now gates it on
+`showResults`, so a filter form appears only when there is something to
+filter. The empty state's primary action is the live search rather than a
+form asking the visitor to describe what they want — with a working search one
+click away, asking them to do that is making them do the site's job.
+
+Gated on **data**, not on a flag: `npm run build:demo` still renders the full
+filter UI over the sample listings, and the day a provider is connected the
+filters return with no code change. Both states verified in this session.
+
+### Accounts removed
+
+`/login/`, `/register/`, `src/components/auth/`, `src/lib/auth/` and
+`AUTH_INTEGRATION.md` are deleted, and `accountNav` with the Sign In / Create
+Account links is out of the header and the mobile drawer. Nothing had to be
+migrated: the site never collected credentials and rendered no password field
+in any build mode. 45 pages became 43.
+
+The `'property-alerts'` lead kind is kept though nothing emits it now. The
+shape is still right — if alerts come back they are an enquiry to Martin and
+MaryEllen, never an account with a password behind it.
+
+### One thing to watch before launch
+
+`propertySearch.url` is on `www.hoffmanandclosius.com` — the hostname this
+site is itself destined for. **If this build is ever published at that
+hostname, the host must keep serving `/11/search/11` from the existing
+platform**, because this build does not generate that route. Changing hosting
+without checking would turn all 214 of those links into a 404 at once. Noted
+on the constant and in `LEGACY_REDIRECTS.md`.
+
+### Verified
+- `npm run build` — 0 `astro check` errors, 17/17 unit tests, 43 pages, every
+  page linked, every internal link resolves.
+- `npm run build:demo` — filter UI still renders over sample listings.
+- `npm run test:browser` — 28/28.
+- Contrast sweep — 42 pages × 2 widths, 0 failures.
+- No horizontal overflow at 390px; the search bar is a full-width target on
+  both phone and desktop.

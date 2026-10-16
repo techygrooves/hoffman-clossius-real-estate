@@ -14,7 +14,7 @@ import SectionHeader from '@components/ui/SectionHeader.astro';
 import Button from '@components/ui/Button.astro';
 import MediaSlot from '@components/ui/MediaSlot.astro';
 import AgentCard from '@components/ui/AgentCard.astro';
-import { getProfessional, professionals } from '@config/site';
+import { getProfessional, professionals, propertySearch } from '@config/site';
 
 const martin = getProfessional('martin-hoffman');
 const maryellen = getProfessional('maryellen-closius');
@@ -55,7 +55,7 @@ const ROUTES = [
     eyebrow: 'Search',
     title: 'Search homes',
     body: 'Filter by location, price, size and features. Every search is shareable — the URL carries your filters.',
-    href: '/properties/search/',
+    href: propertySearch.url,
     cta: 'Start searching',
   },
   {
@@ -93,7 +93,7 @@ const ROUTES = [
     breadcrumbs={[{ label: 'Buy' }]}
   >
     <div class="mt-2 flex flex-wrap gap-3">
-      <Button href="/properties/search/" size="lg" withArrow>Search Properties</Button>
+      <Button href={propertySearch.url} size="lg" withArrow>Search Properties</Button>
       <Button href="/buy/dream-home-finder/" size="lg" variant="secondary">
         Dream Home Finder
       </Button>

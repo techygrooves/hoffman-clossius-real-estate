@@ -111,7 +111,8 @@ label; the `<svg>` lacked `aria-hidden`, so it announced as an unnamed graphic
 before the text. Hidden.
 
 ### 3.5 Standalone link targets below 24×24 — *minor*
-Carried over from the previous session's work on `/contact/`, `/register/`,
+Carried over from the previous session's work on `/contact/`, `/register/`
+(since removed),
 `/privacy-policy/` and `/terms/`: aside CTAs and "Related" lists rendered 20px
 tall at 390px, under WCAG 2.2 SC 2.5.8. Padded to 28px, no visible change.
 
@@ -264,7 +265,7 @@ question the moment it is connected.
 | # | Item | What to check |
 | --- | --- | --- |
 | 6.1 | **IDX / MLS property search** (`CONTENT_PENDING.md` §5) | If the provider supplies an embed, iframe or script, its markup is theirs. Check keyboard operability, focus handling, labels and contrast **before** signing, and confirm whether an accessible alternative exists. A provider embed can undo everything in this document on the pages it occupies. |
-| 6.2 | **Account provider** — sign-in and registration (`AUTH_INTEGRATION.md`) | The credential step happens on the provider's origin, so their pages carry it. If an *embedded* widget is chosen instead, its form must be checked against WCAG 2.2 AA — it is not covered by this audit. |
+| 6.2 | ~~**Account provider**~~ — *removed 2026-10-16* | Accounts are gone from the site, so there is nothing here to audit. | 
 | 6.3 | **Map provider** (`CONTENT_PENDING.md` 11.4) | Map widgets are a common failure point: keyboard panning, focus order and a text alternative for the information the map conveys. The site currently states locations in words and plots nothing. |
 | 6.4 | **Form endpoint** (`CONTENT_PENDING.md` 6.1) | If the destination redirects to its own confirmation or error page, that page's accessibility is the provider's. Prefer the current inline, announced result. |
 | 6.5 | **Spam protection** (`CONTENT_PENDING.md` 6.4) | A visual CAPTCHA is an accessibility barrier. Prefer a honeypot or a provider-side check with no user-facing puzzle. |

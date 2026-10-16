@@ -32,7 +32,7 @@ import FormChoiceGroup from '@components/forms/FormChoiceGroup.astro';
 import DevelopmentGrid from '@components/developments/DevelopmentGrid.astro';
 import { communities, featuredCommunities, getCommunity } from '@data/communities';
 import { developmentProvider } from '@lib/developments/provider';
-import { getProfessional, professionals } from '@config/site';
+import { getProfessional, professionals, propertySearch } from '@config/site';
 
 const maryellen = getProfessional('maryellen-closius');
 const featured = featuredCommunities();
@@ -352,7 +352,7 @@ const PLANS = [
           as they come up, including the ones that never reach a portal.
         </p>
         <div class="mt-9 flex flex-wrap gap-3">
-          <Button href="/properties/search/" variant="gold" withArrow>
+          <Button href={propertySearch.url} variant="gold" withArrow>
             Search properties
           </Button>
           <Button href="/buy/dream-home-finder/" variant="inverse">
@@ -677,7 +677,7 @@ const PLANS = [
                 </a>
               </li>
               <li>
-                <a href="/properties/search/" class="link-underline text-evergreen-800">
+                <a href={propertySearch.url} class="link-underline text-evergreen-800">
                   Search properties
                 </a>
               </li>

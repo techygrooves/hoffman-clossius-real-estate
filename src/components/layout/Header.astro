@@ -26,7 +26,6 @@ import { professionals } from '@config/site';
 import {
   primaryNav,
   headerCta,
-  accountNav,
   isNavGroup,
   entryIsActive,
   isCurrent,
@@ -81,18 +80,6 @@ const RIGHT_ALIGN_FROM = primaryNav.length - 3;
                 Contact
               </a>
             </li>
-            {
-              accountNav.map((link) => (
-                <li>
-                  <a
-                    href={link.href}
-                    class="link-underline text-white/60 transition-colors hover:text-white"
-                  >
-                    {link.label}
-                  </a>
-                </li>
-              ))
-            }
           </ul>
         </nav>
       </div>
@@ -453,21 +440,7 @@ const RIGHT_ALIGN_FROM = primaryNav.length - 3;
         </div>
 
         <div class="border-t border-line px-[var(--gutter)] py-5">
-          <SocialLinks class="-ml-2 mb-3" />
-          <ul class="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs">
-            {
-              accountNav.map((link) => (
-                <li>
-                  <a
-                    href={link.href}
-                    class="link-underline text-ink-muted transition-colors hover:text-evergreen-800"
-                  >
-                    {link.label}
-                  </a>
-                </li>
-              ))
-            }
-          </ul>
+          <SocialLinks class="-ml-2" />
         </div>
       </div>
     </div>
