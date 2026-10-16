@@ -32,10 +32,18 @@ person's confirmed name and title. Nothing to write here.
 | File | What it is | Shape | Minimum | Preferred |
 | --- | --- | --- | --- | --- |
 | `hero.jpg` | Homepage hero background | wide, **21:9-ish** | 2400 × 1400 | 3200 × 1800 |
+| `relocation.jpg` | The picture beside "Moving to South Florida?" on the homepage | portrait-ish **10:11** | 1000 × 1100 | 2000 × 2200 |
 
-This one sits behind white text with a dark overlay. A busy or bright image
+`hero.jpg` sits behind white text with a dark overlay. A busy or bright image
 fights the headline — an unhurried South Florida exterior with space in the
 upper left works best, because that is where the heading sits.
+
+`relocation.jpg` sits on a white background next to the relocation copy, at
+roughly square-but-taller. It is illustrative rather than informative, so it
+carries no alt text: the heading and paragraph beside it already say what it
+is there to say, and describing it again would make a screen reader read the
+same thing twice. Anything that reads as *arriving* suits it — a street, a
+neighbourhood, a building — rather than a portrait.
 
 ## Before uploading
 
