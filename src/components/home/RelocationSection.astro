@@ -80,8 +80,20 @@ const LINKS = [
     </div>
 
     <div class="order-1 lg:order-2" data-reveal style="--reveal-delay:100ms">
+      {/*
+        Wired ahead of the file, the same way the portraits were: `MediaSlot`
+        checks what is actually under /public at build time, so this shows the
+        neutral placeholder until the photograph lands and needs no code
+        change when it does.
+
+        `alt` stays empty on purpose. The heading and the paragraph beside it
+        already say everything this picture is doing — it is illustrative, not
+        informative — so describing it again would only make a screen reader
+        read the same thing twice.
+      */}
       <MediaSlot
-        src={null}
+        src="/images/home/relocation.jpg"
+        alt=""
         width={1000}
         height={1100}
         ratio="10/11"
