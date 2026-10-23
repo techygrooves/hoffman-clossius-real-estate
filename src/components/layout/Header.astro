@@ -5,7 +5,7 @@
  * ── Structure ─────────────────────────────────────────────────────────────
  *  Utility bar   (≥lg)  Evergreen strip: both direct lines, social slot,
  *                       Contact link.
- *  Brand row     (≥xl)  Hoffman & Closius wordmark · Keyes logo, prominent ·
+ *  Brand row     (≥xl)  Name wordmark · Keyes logo, prominent ·
  *                       Search Homes call to action. Scrolls away.
  *  Nav row       (≥xl)  Sticky. Pins to the top once the rows above scroll
  *                       past, and takes a shadow while pinned.
@@ -22,7 +22,7 @@
  *  - Escape closes the drawer and focus returns to the button that opened it.
  *  - <nav> landmarks are individually labelled: Primary, Utility, Mobile.
  */
-import { professionals } from '@config/site';
+import { professionals, site } from '@config/site';
 import {
   primaryNav,
   headerCta,
@@ -92,7 +92,7 @@ const RIGHT_ALIGN_FROM = primaryNav.length - 3;
       <a
         href="/"
         class="rounded-xs transition-opacity duration-300 hover:opacity-80"
-        aria-label="Hoffman & Closius — home"
+        aria-label={`${site.name} — home`}
       >
         <Wordmark size="lg" />
       </a>
@@ -241,7 +241,7 @@ const RIGHT_ALIGN_FROM = primaryNav.length - 3;
       <a
         href="/"
         class="min-w-0 shrink rounded-xs transition-opacity duration-300 hover:opacity-80"
-        aria-label="Hoffman & Closius — home"
+        aria-label={`${site.name} — home`}
       >
         <Wordmark size="md" />
       </a>

@@ -1,6 +1,6 @@
 /**
  * ---------------------------------------------------------------------------
- * CENTRAL SITE CONFIGURATION — Hoffman & Closius
+ * CENTRAL SITE CONFIGURATION — Martin Hoffman & MaryEllen Closius
  * ---------------------------------------------------------------------------
  * This is the single source of truth for reusable, CONFIRMED client data.
  * Components must import from here instead of hardcoding names, phones,
@@ -88,15 +88,29 @@ const tel = (digits: string) => `tel:+1${digits.replace(/\D/g, '')}`;
 /* -------------------------------------------------------------------------- */
 
 export const site = {
-  /** Public-facing name of the team. */
-  name: 'Hoffman & Closius',
+  /*
+   * ── Corrected 2026-10-23 by the client ─────────────────────────────────
+   * The site used to present "Hoffman & Closius" as though it were a firm.
+   * It is not: Martin and MaryEllen are two licensed agents who work at
+   * Keyes Real Estate and own no company. A made-up firm name on a real
+   * estate site is not a stylistic choice — it misstates who a client would
+   * be contracting with, so it is their two names and their brokerage.
+   */
+  /** Public-facing name: the two people, not a company. */
+  name: 'Martin Hoffman & MaryEllen Closius',
   /** Short form for tight spaces (mobile header, breadcrumbs). */
-  shortName: 'Hoffman & Closius',
+  shortName: 'Martin Hoffman & MaryEllen Closius',
   /** Used in <title> suffixes. */
-  titleSuffix: 'Hoffman & Closius',
+  titleSuffix: 'Martin Hoffman & MaryEllen Closius',
   tagline: 'South Florida Real Estate',
+  /**
+   * The brokerage they work at. Named plainly, the way the industry names
+   * it — a title line, never a sentence explaining the relationship. See
+   * PROJECT_CONTEXT.md §4.
+   */
+  brokerage: 'Keyes Real Estate',
   description:
-    'Hoffman & Closius — South Florida real estate for buyers and sellers across Broward, Palm Beach and Miami-Dade, including relocation to and from the area.',
+    'Martin Hoffman P.A. and MaryEllen Closius P.A. of Keyes Real Estate — South Florida homes for buyers and sellers across Broward, Palm Beach and Miami-Dade, including relocation to and from the area.',
   locale: 'en-US',
   lang: 'en',
   region: 'South Florida',
