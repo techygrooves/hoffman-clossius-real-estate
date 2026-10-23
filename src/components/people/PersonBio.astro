@@ -16,7 +16,7 @@
  * array of paragraphs. Nothing here changes.
  */
 import type { Professional } from '@config/site';
-import { serviceArea } from '@config/site';
+import { serviceArea, site } from '@config/site';
 import { cn } from '@lib/cn';
 
 interface Props {
@@ -42,7 +42,7 @@ const roleLine = person.specialty
  * biography arrives.
  */
 const neutralIntro = [
-  `${person.name} is a ${roleLine} with Hoffman & Closius, working with buyers and sellers across ${countyList}.`,
+  `${person.name} is a ${roleLine} at ${site.brokerage}, working with buyers and sellers across ${countyList}.`,
   `The best way to find out whether ${person.firstName} is the right person for what you are trying to do is to ask directly — by phone or email, both below.`,
 ];
 

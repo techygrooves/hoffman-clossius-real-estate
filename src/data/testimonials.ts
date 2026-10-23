@@ -78,7 +78,7 @@ export const SOURCE_BADGES: Record<
   },
   'Direct Client': {
     label: 'Direct Client',
-    description: 'Given directly to Hoffman & Closius, shared with permission',
+    description: 'Given directly to Martin and MaryEllen, shared with permission',
   },
 };
 

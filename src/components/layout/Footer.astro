@@ -30,13 +30,13 @@ const hasLegalCopy =
   {/* ══════════════════════════════════════════════════════════ masthead ══ */}
   <Container class="grid gap-14 border-b border-line-inverse py-16 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.25fr)] lg:gap-20 lg:py-20">
     <div class="flex flex-col gap-8">
-      <a href="/" class="w-fit rounded-xs" aria-label="Hoffman & Closius — home">
+      <a href="/" class="w-fit rounded-xs" aria-label={`${site.name} — home`}>
         <Wordmark tone="light" size="lg" />
       </a>
 
       <p class="max-w-sm text-sm leading-relaxed text-white/70">
-        Representation for buyers and sellers across {site.region}, including
-        relocation to and from the area.
+        Helping buyers and sellers across {site.region}, including relocation
+        to and from the area.
       </p>
 
       <KeyesLogo tone="dark" height={46} />

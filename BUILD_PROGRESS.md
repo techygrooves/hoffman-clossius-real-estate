@@ -2078,3 +2078,69 @@ on the constant and in `LEGACY_REDIRECTS.md`.
 - Contrast sweep — 42 pages × 2 widths, 0 failures.
 - No horizontal overflow at 390px; the search bar is a full-width target on
   both phone and desktop.
+
+## ✅ Completed — Session 15 (2026-10-23) · Two agents at Keyes, not a firm
+
+Three corrections from the client, all about who the site says they are.
+
+### The site invented a company
+
+"Hoffman & Closius" sat in the header, the footer, every page title, the
+`og:site_name` and the `RealEstateAgent` structured data. It reads as a firm.
+There isn't one — Martin and MaryEllen are two licensed agents at **Keyes Real
+Estate** and own no company.
+
+On a real estate site that is not a stylistic question. A firm name a visitor
+cannot find on any licence misstates who they would be contracting with, and
+it was being republished by search engines through the JSON-LD.
+
+So `site.name`, `shortName` and `titleSuffix` are now **Martin Hoffman &
+MaryEllen Closius**, with a new `site.brokerage` of **Keyes Real Estate**.
+Forty-four references across twenty-eight files followed, and the firm name
+now appears **nowhere in the build** — including `favicon.svg` and
+`robots.txt`, which both carried it where nobody would think to look.
+
+### The wordmark
+
+```
+Martin Hoffman & MaryEllen Closius
+KEYES REAL ESTATE
+```
+
+Two names rather than two surnames is roughly twice the characters, so the
+lockup had to stop being `whitespace-nowrap`. Each size step is smaller than
+before and the names wrap with `text-balance`, which breaks after the gold
+ampersand rather than stranding "Closius" alone. Measured at 390px: no
+horizontal overflow, Keyes logo and menu button still fit beside it.
+
+The Keyes logo itself was not touched — the client asked for the names, and
+for no other logo to change.
+
+### The standing Keyes rule, amended rather than broken
+
+`PROJECT_CONTEXT.md` §4 has forbidden relationship wording since session 1:
+no "affiliated with Keyes", "backed by Keyes", "part of Keyes". The client has
+now asked for the opposite of what that rule was protecting — they want it
+clear they work at Keyes.
+
+The rule is amended, not abandoned, because the two things are different:
+
+- **Required now** — Keyes named as a *title line*, the way the industry
+  writes it on any agent's card. "Keyes Real Estate" under the wordmark.
+  "Broker-Associate at Keyes Real Estate" under a name.
+- **Still forbidden** — prose that *explains* the arrangement, or sells the
+  association. Verified: zero occurrences of any banned phrase in the build.
+
+### Footer copy
+
+"Representation for buyers and sellers…" → "**Helping** buyers and sellers
+across South Florida, including relocation to and from the area."
+
+### Verified
+- `npm run build` — 0 `astro check` errors, 17/17 unit tests, 43 pages, every
+  page linked, every internal link resolves.
+- `npm run test:browser` — 28/28. Contrast sweep — 42 pages × 2 widths, 0
+  failures.
+- `grep` over `dist/`: 0 occurrences of the old firm name, 0 of any forbidden
+  relationship phrase.
+- Header and footer checked at 1400px and 390px.

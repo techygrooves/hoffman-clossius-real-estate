@@ -1,4 +1,4 @@
-# Hoffman & Closius — https://www.hoffmanandclosius.com
+# Martin Hoffman & MaryEllen Closius, Keyes Real Estate — https://www.hoffmanandclosius.com
 #
 # `www` is the canonical host. The apex domain must 301 to it at the host, or
 # the two resolve as separate sites and split their own ranking signals.

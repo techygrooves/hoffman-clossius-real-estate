@@ -9,11 +9,19 @@ instruction.
 
 ## 1. Client identity
 
-**Hoffman & Closius** — a two-person South Florida real estate team.
+**Martin Hoffman P.A. and MaryEllen Closius P.A.** — two licensed agents at
+**Keyes Real Estate**. They are not a firm and own no company.
+
+> **Corrected 2026-10-23 by the client.** The site previously presented
+> "Hoffman & Closius" as a brand, which read as a company they owned. It is
+> their two names, and the brokerage is Keyes. On a real estate site this is
+> not a stylistic question: a made-up firm name misstates who a client would
+> be contracting with.
 
 | | |
 | --- | --- |
-| Team name | Hoffman & Closius |
+| Public-facing name | Martin Hoffman & MaryEllen Closius |
+| Brokerage | Keyes Real Estate |
 | Tagline used on site | South Florida Real Estate |
 | Service area | Broward, Palm Beach and Miami-Dade counties |
 
@@ -106,10 +114,18 @@ the footer.
 1. **Never modify the logo.** No recolouring, redrawing, stretching, cropping,
    rotating, drop shadows, gradients, outlines or decorative frames. Only the
    rendered height varies; the aspect ratio is always preserved.
-2. **Never write relationship wording anywhere on the site.** Specifically
-   forbidden: "affiliated with Keyes", "backed by Keyes", "working under
-   Keyes", "proudly affiliated with Keyes", "part of Keyes", and any
-   paraphrase of them. The logo stands on its own with no explanation.
+2. **Name the brokerage; never explain the relationship.**
+   **Amended 2026-10-23 by the client**, who asked that the site say plainly
+   that they work at Keyes Realty rather than appear to be their own firm.
+
+   *Allowed, and now required* — Keyes named as a title line, the way the
+   industry writes it on any agent's card: "Keyes Real Estate" under the
+   wordmark, "Broker-Associate at Keyes Real Estate" under a name.
+
+   *Still forbidden* — prose that explains the arrangement: "affiliated with
+   Keyes", "backed by Keyes", "working under Keyes", "proudly affiliated with
+   Keyes", "part of Keyes", and any paraphrase. The distinction is between
+   stating where someone works and selling the association.
 3. The logo is rendered only through `src/components/layout/KeyesLogo.astro`.
    Do not inline `<img src="/brand/...">` anywhere else.
 4. **Never draw, trace or approximate the mark itself.** No attempt at the

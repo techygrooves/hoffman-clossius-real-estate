@@ -68,7 +68,7 @@ export const primaryNav: readonly NavEntry[] = [
       {
         label: 'Our Listings',
         href: '/properties/our-listings/',
-        description: 'Properties represented by Hoffman & Closius.',
+        description: 'Properties Martin and MaryEllen represent directly.',
       },
       {
         label: 'Property Search',
@@ -157,7 +157,7 @@ export const primaryNav: readonly NavEntry[] = [
     href: '/about/',
     items: [
       {
-        label: 'About Hoffman & Closius',
+        label: 'About Martin and MaryEllen',
         href: '/about/',
         description: 'How we work and who we work with.',
       },
@@ -239,7 +239,7 @@ export const mobileActions: readonly MobileAction[] = [
   {
     kind: 'link',
     label: 'Contact',
-    srLabel: 'Contact Hoffman & Closius',
+    srLabel: 'Contact Martin Hoffman and MaryEllen Closius',
     href: '/contact/',
   },
 ];
