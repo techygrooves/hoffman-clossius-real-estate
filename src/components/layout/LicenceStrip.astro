@@ -1,0 +1,59 @@
+---
+/**
+ * LicenceStrip — who the visitor is actually dealing with, at the very top of
+ * every page.
+ *
+ * ── Why it exists ─────────────────────────────────────────────────────────
+ * Added 2026-10-28 at the client's instruction: a consumer must be able to
+ * see, immediately, the licensed names they are dealing with and the
+ * brokerage behind them. Florida licensees carry that obligation, and the
+ * site was making people hunt for it — the titles existed only on the two
+ * profile pages.
+ *
+ * ── Why it is not desktop-only ────────────────────────────────────────────
+ * The utility bar above the brand row is `lg:block`, so phone visitors never
+ * see it. A disclosure that only reaches people on laptops is not a
+ * disclosure. This renders at every width and wraps rather than truncating:
+ * nothing in here may ever be hidden to save space.
+ *
+ * ── Where the words come from ─────────────────────────────────────────────
+ * `professionals[]` and `site.brokerage`, never typed here. These are
+ * regulated titles that have already been corrected twice
+ * (PROJECT_CONTEXT.md §1); a second copy in markup is a second thing to miss.
+ */
+import Container from '@components/ui/Container.astro';
+import { professionals, site } from '@config/site';
+---
+
+<div class="bg-evergreen-900 text-white" data-surface="dark" data-licence-strip>
+  <Container>
+    {/*
+      Centred and wrapping on phones, spread on a wide screen. `gap-y` does
+      the work when it wraps, so the lines never collide.
+    */}
+    <ul
+      class="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 py-2 text-center text-[0.6875rem] leading-snug sm:gap-x-5 sm:text-xs lg:justify-start"
+    >
+      {
+        professionals.map((person) => (
+          <li class="flex items-center gap-1.5">
+            <span class="font-medium text-white/90">{person.name}</span>
+            <span class="text-white/40" aria-hidden="true">·</span>
+            <span class="uppercase tracking-wide-sm text-white/65">
+              {person.title}
+            </span>
+          </li>
+        ))
+      }
+      <li class="flex items-center gap-1.5">
+        {/*
+          Named, not explained. PROJECT_CONTEXT.md §4 allows the brokerage as
+          a title line and still forbids any sentence about the relationship.
+        */}
+        <span class="uppercase tracking-wide-sm text-white/65">
+          {site.brokerage}
+        </span>
+      </li>
+    </ul>
+  </Container>
+</div>

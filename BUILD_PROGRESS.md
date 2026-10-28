@@ -2144,3 +2144,80 @@ across South Florida, including relocation to and from the area."
 - `grep` over `dist/`: 0 occurrences of the old firm name, 0 of any forbidden
   relationship phrase.
 - Header and footer checked at 1400px and 390px.
+
+## ✅ Completed — Session 16 (2026-10-28) · Licensed identity, above everything
+
+The client asked for the P.A. suffix, both licence titles and the brokerage
+to sit **at the top**, so a consumer knows who they are dealing with before
+anything else — their words: *"it is the law with realtors that public knows
+who they are dealing with."*
+
+### What was actually missing
+
+The header already carried both names and "Keyes Real Estate" under the
+wordmark. What it did not carry was the regulated part: **P.A.** and each
+person's **licence title**. Those existed only on the two profile pages, two
+clicks in. A disclosure nobody encounters is not one.
+
+### `LicenceStrip`
+
+A new row above everything else in the header:
+
+```
+Martin Hoffman P.A. · BROKER-ASSOCIATE   MaryEllen Closius P.A. · SALES ASSOCIATE   KEYES REAL ESTATE
+```
+
+Three decisions worth recording:
+
+**It renders at every width.** The utility bar above the brand row is
+`lg:block`, so phone visitors never see it. Hiding a disclosure on the
+devices most visitors use would defeat the point, so this strip wraps to
+three centred lines at 390px rather than hiding or truncating. Measured: no
+horizontal overflow at either width.
+
+**Every word comes from `professionals[]` and `site.brokerage`.** Nothing is
+typed into the markup. These are regulated titles that have already been
+corrected twice (PROJECT_CONTEXT.md §1), and a second copy in a component is
+a second thing to miss next time.
+
+**Keyes is named, not explained.** §4 of the project rules allows the
+brokerage as a title line and still forbids any sentence about the
+relationship. The strip names it and stops.
+
+### Asserted, because the obvious future change would break it
+
+The tempting way to tidy a crowded mobile header is to hide a row. Do that to
+this one and the disclosure silently disappears for most visitors. So
+`tests/browser/logo.mjs` now checks the strip is **visible at 390px as well
+as 1400px** and names both licensees and the brokerage — 12 new assertions,
+40 in the suite.
+
+### The contrast sweep finally lives in the repository
+
+Rebuilt from scratch for the **third** time this project, because it only
+ever lived in a scratch directory that is wiped between sessions. It is now
+`tests/browser/contrast.mjs` (`npm run test:contrast`), alongside the logo
+suite and for the same reason: a check that does not survive is not a check.
+
+It paints every colour to a 1×1 canvas and reads the pixels back, because
+Tailwind compiles `text-white/65` to `color-mix()`, which `getComputedStyle`
+reports as `oklab()` — parsing that as a string reads it as near-black and
+produces confident nonsense.
+
+Verified against a deliberately broken build before being trusted: dropping
+the strip to `text-white/20` produced 84 failing page/width combinations at
+1.86:1. Restored, the sweep is clean.
+
+### Verified
+- `npm run build` — 0 `astro check` errors, 17/17 unit tests, 43 pages, every
+  page linked, every internal link resolves.
+- `npm run test:browser` — 40/40. `npm run test:contrast` — 42 pages × 2
+  widths, 0 failures.
+- The strip is present on all 43 built pages and carries no responsive
+  hiding class.
+
+### Noted, not changed
+"Keyes Real Estate" now appears twice within the first 350px on a phone:
+once in the strip, once under the wordmark. Both were asked for, a round
+apart, so neither was removed on my own judgement. Dropping the wordmark's
+line is a one-line change if the client wants it.

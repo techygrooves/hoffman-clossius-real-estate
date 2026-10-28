@@ -1,5 +1,6 @@
 /**
- * Browser checks for the Keyes logo slots.
+ * Browser checks for the header's brand and disclosure area: the Keyes
+ * logo slots, and the licensed-identity strip above them.
  *
  * ── Why this is in the repository ─────────────────────────────────────────
  * The ® on the wordmark has now been corrected twice by the client, both
@@ -237,6 +238,37 @@ console.log('\n── The real asset still wins ──');
     assets === 0 || fallbacks === 0,
     `${assets} asset, ${fallbacks} fallback`,
   );
+  await page.close();
+}
+
+/*
+ * THE REGRESSION THIS SECTION EXISTS FOR.
+ *
+ * The licence strip is a consumer disclosure: who you are dealing with, and
+ * which brokerage. Every other row in the header is hidden at some width to
+ * make room. The obvious "tidy up the mobile header" change is to hide this
+ * one too, which would quietly remove the disclosure for every phone visitor
+ * — the majority of them. So it is asserted at phone width, not just desktop.
+ */
+console.log('\n── Licensed identity ──');
+for (const width of [390, 1400]) {
+  const page = await browser.newPage({
+    viewport: { width, height: width === 390 ? 844 : 900 },
+    isMobile: width === 390,
+  });
+  await page.goto(`${BASE}/`, { waitUntil: 'domcontentloaded' });
+  const strip = page.locator('[data-licence-strip]');
+  ok(`${width}px: the strip is visible`, await strip.isVisible());
+  const text = ((await strip.textContent()) ?? '').replace(/\s+/g, ' ');
+  for (const needed of [
+    'Martin Hoffman P.A.',
+    'Broker-Associate',
+    'MaryEllen Closius P.A.',
+    'Sales Associate',
+    'Keyes Real Estate',
+  ]) {
+    ok(`${width}px: names "${needed}"`, text.includes(needed));
+  }
   await page.close();
 }
 
