@@ -3,6 +3,9 @@
  * Header — global site header.
  *
  * ── Structure ─────────────────────────────────────────────────────────────
+ *  Licence strip (all)  Both licensed names, their licence titles and the
+ *                       brokerage. A consumer disclosure, so unlike every
+ *                       other row here it is never hidden at any width.
  *  Utility bar   (≥lg)  Evergreen strip: both direct lines, social slot,
  *                       Contact link.
  *  Brand row     (≥xl)  Name wordmark · Keyes logo, prominent ·
@@ -35,6 +38,7 @@ import Container from '@components/ui/Container.astro';
 import Button from '@components/ui/Button.astro';
 import KeyesLogo from './KeyesLogo.astro';
 import Wordmark from './Wordmark.astro';
+import LicenceStrip from './LicenceStrip.astro';
 import SocialLinks from './SocialLinks.astro';
 
 const current = Astro.url.pathname;
@@ -45,6 +49,13 @@ const RIGHT_ALIGN_FROM = primaryNav.length - 3;
 ---
 
 <header data-site-header>
+  {/*
+    Licensed identity, above everything and at every width. See LicenceStrip
+    — it is a disclosure, so it is never the thing that gets hidden to make
+    room on a phone.
+  */}
+  <LicenceStrip />
+
   {/* ══════════════════════════════════════════════ utility bar (desktop) ══ */}
   <div class="hidden bg-evergreen-800 text-white lg:block" data-surface="dark">
     <Container class="flex h-11 items-center justify-between gap-6">
